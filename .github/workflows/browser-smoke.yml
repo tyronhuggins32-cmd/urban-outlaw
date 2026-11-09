@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - '.github/workflows/browser-smoke.yml'
+      - 'index.html'
+      - 'assets/ninja-character.glb'
+      - 'tests/browser-smoke.cjs'
 permissions:
   contents: read
 jobs:
