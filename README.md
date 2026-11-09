@@ -1,40 +1,37 @@
 # Urban Outlaw
 
-**Build 0.9: Animated blank body, stage 1.** A third-person browser game with the neutral-gray, youthful body base as the playable character. This stage intentionally has no hair, eyes, facial details, clothing, or weapons. Proportions can be approved before adding details individually.
+**Build 1.1: continuous, skinned reference sculpt.** The previous blocky mannequin has been replaced by a more detailed single-mesh 3D ninja with layered black-blue hair, a forehead protector, natural skin coloring, fitted dark-gray shorts, and bare feet. The revised sculpt was generated from the supplied character sheet, then rigged and adapted for this browser game.
 
-## Play
+[Play Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/) | [Inspect live model against reference](https://tyronhuggins32-cmd.github.io/urban-outlaw/?review=1)
 
-[Launch Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/)
+## Model quality and known limitations
 
-For local play: run **python3 -m http.server 8000** in the repository folder and visit http://localhost:8000. The game needs an internet connection to load Three.js.
+- Active model: `assets/reference-rig.glb` (42,727 triangles, one **SkinnedMesh**, humanoid skeleton).
+- Actual vertex skin weights and bone deformations, unlike the previous 80-part procedural mannequin.
+- Source silhouette is compact with bangs, swept spiky hair, tied back section, teen build, plain fitted shorts and exposed skin.
+- Current sculpt is **not an exact replica**. Front comparison shows a small indistinct face, overly muscular limbs and simplified hands; the hair is more jagged than the reference. Keep the reference sheet as the acceptance target.
+- Original previous procedural model is retained at `assets/blank-body.glb` as an archive, not the active character.
+- The 4 reference angles plus face reference are under `assets/reference/`. Select **FRONT**, **SIDE**, **BACK**, **3/4** inside the review mode to compare genuine rendered mesh with the supplied reference.
+- Studio comparison uses a neutral floor and backdrop, while normal game mode retains the grassy world.
+
+## Animation
+
+`scripts/reference-character-animations.js` creates Idle, Walk, Run, Jump clips from the Mixamo-style humanoid bones using sampled quaternion keyframes. Three.js AnimationMixer blends them in response to movement, sprint and jump. The model is **Y-up** and rendered at 4.0 game units tall. Animations deform the single skinned surface rather than rotating material groups.
 
 ## Controls
 
-| Device | Move | Look | Jump | Sprint |
+| Device | Move | Camera | Jump | Sprint |
 |---|---|---|---|---|
-| Keyboard/mouse | WASD / arrows | Drag | Space | Shift |
-| Phone/tablet | On-screen joystick | Swipe | JUMP | Hold RUN |
-| PS5 DualSense | Left stick / D-pad | Right stick | Cross (×) | R2 / R1 / L3 |
+| Keyboard | WASD / arrows | Mouse drag | Space | Shift |
+| Mobile | Virtual joystick | Swipe | JUMP | Hold RUN |
+| PS5 DualSense | Left stick or D-pad | Right stick | Cross | R2/R1/L3 |
 
-The TOUCH toggle hides or restores mobile controls; the saved setting persists.
+Tap TOUCH to toggle virtual buttons. Tap or click a review angle to rotate the model for comparison.
 
-## Animated base body
+## Build and verification
 
-- **Active GLB:** assets/blank-body.glb
-- **Editable generator:** scripts/build_blank_body.py
-- 30 independently modeled gray anatomical meshes with rounded, smooth normals. Authored height approximately 1.73m and about 6.7 heads tall, with a slender youthful build.
-- 19 named articulation joints: root, hips, spine, neck, head, and bilateral shoulders, upper arms, forearms, hands, thighs, lower legs, and feet.
-- Four **real glTF animation clips** built into the GLB: Idle, Walk, Run, and Jump. Each clip animates 13 actual nodes. Three.js AnimationMixer blends them based on player motion.
-- Y-up, +Z forward. The game scales the model to 4.35 world units and grounds its feet.
-- The old clothed ninja is retained as an inactive backup in assets/ninja-character.glb. It no longer appears as the normal playable character.
-- This model is articulated using parent-child nodes rather than skin weights, so elbows and knees still need a continuous skinned model for fully seamless deformations. This is an honest early-stage body model, not a finished realistic character.
+Serve the repository from its root with `python3 -m http.server 8000`. No frontend build step. Three.js imports from CDN.
 
-## Building the asset free
+`.github/workflows/import-reference-character.yml` retrieves and validates the source GLB, and `.github/workflows/browser-smoke.yml` runs Playwright checks on mobile viewport, including skinned mesh loading, four animation state transitions and four matching reference views. Review screenshots are saved as CI artifacts.
 
-Run **python3 scripts/build_blank_body.py assets/blank-body.glb**. No proprietary programs, subscriptions, or Python dependencies are needed. The GitHub workflow at .github/workflows/build-blank-body.yml generates, validates, and commits the model.
-
-## Tests
-
-The GitHub workflow at .github/workflows/browser-smoke.yml uses Playwright to open the mobile-sized game and check that the correct GLB loaded, it has plausible bounds, the joints and all four clips are present, and the animation changes from Idle to Walk, Run, and Jump when corresponding controls are pressed.
-
-The earlier body-proportion approval image is a reference, not a 3D file. The actual 3D geometry and animation are reproducible from the Python source.
+Previous experimental generators remain in `scripts/` for historical reference and must not overwrite `assets/reference-rig.glb` without an explicit model-quality review.
