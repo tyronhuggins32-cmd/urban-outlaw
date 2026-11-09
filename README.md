@@ -25,10 +25,10 @@ Mouse wheel zooms in and out. Mobile controls are displayed automatically on tou
 ## How it works
 
 - One static `index.html` contains the styles, UI, and game code.
-- Three.js renders the 3D scene. No 3D models, textures, or game assets need to be downloaded separately.
+- Three.js renders the 3D scene. The browser automatically loads the GLB model and its embedded textures from this repository; the user does not need to upload assets manually.
 - The approved front, side, back and three-quarter character art is packed in `assets/approved-ninja-turnaround.png`, displayed on a camera-facing plane with view-dependent sprite selection and subtle movement animations.
 - Movement, sprint, jump movement, mobile controls, and DualSense gamepad support are retained. Limb-rig animations require a future fully modeled character.
-- Three.js is loaded from jsDelivr with an unpkg fallback; an internet connection is required for the first load.
+- Three.js is loaded from jsDelivr with an unpkg fallback. The glTF loader uses the jsDelivr Three.js addon import map; a network connection is required.
 - No build step or backend is required.
 
 ## GitHub Pages
