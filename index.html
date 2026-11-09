@@ -231,9 +231,8 @@
           animationActions.Jump.setLoop(THREE.LoopOnce, 1);
           animationActions.Jump.clampWhenFinished = true;
           setCharacterAnimation('Idle');
-          const requiredRigParts = ['Hips','Spine','Head','UpperArm_L','UpperArm_R','Forearm_L','Forearm_R','UpperLeg_L','UpperLeg_R','LowerLeg_L','LowerLeg_R'];
-          const rigPartsFound = requiredRigParts.filter(name => imported.getObjectByName(name)).length;
-          if (rigPartsFound < 10) throw new Error('Body articulation hierarchy incomplete');
+          const rigPartsFound = new Set(gltf.animations.flatMap(clip => clip.tracks.map(track => track.name.split('.')[0]))).size;
+          if (rigPartsFound < 10) throw new Error('Body animation tracks do not address enough joints');
           document.getElementById('game').dataset.character = 'blank-base-v1';
           document.getElementById('game').dataset.animationClips = gltf.animations.map(clip=>clip.name).join(',');
           document.getElementById('game').dataset.rigJoints = String(rigPartsFound);
