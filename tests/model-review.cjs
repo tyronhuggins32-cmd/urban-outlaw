@@ -7,7 +7,7 @@ const { chromium }=require('playwright');
  await page.goto('http://127.0.0.1:8000/?review=1',{waitUntil:'domcontentloaded',timeout:30000});
  await page.waitForFunction(()=>document.getElementById('loading').classList.contains('hidden'),null,{timeout:75000});
  const state=await page.locator('#game').getAttribute('data-character');
- if(state!=='skin-hair-v1')throw new Error('Model review did not load actual GLB: '+state);
+ if(state!=='reference-rig-v1')throw new Error('Model review did not load actual GLB: '+state);
  for(const view of ['front','side','back','hero']){
    await page.locator('[data-review-angle="'+view+'"]').click();
    await page.waitForTimeout(300);
