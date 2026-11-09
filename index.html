@@ -74,12 +74,12 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 1.0 · SKIN + HAIR</div>
+    <div class="ui version"><span class="dot"></span> BUILD 1.1 · SCULPTED MODEL</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
-    <div class="ui help">STAGE 2 · SKIN AND HAIR</div>
-    <div class="ui animation-status" id="animationStatus">SKIN + HAIR · IDLE</div>
+    <div class="ui help">REFERENCE-SCULPTED 3D CHARACTER</div>
+    <div class="ui animation-status" id="animationStatus">SCULPTED · IDLE</div>
     <div id="touchControls">
       <div class="stick-wrap" id="stickZone" aria-label="Movement joystick"><div id="stick"><div id="knob"></div></div></div>
       <div class="actions">
@@ -208,75 +208,79 @@
         let avatar = null;
         let spriteAtlas = null;
         let currentCharacterView = -1;
-        const loaderMessage = 'Loading character skin, hair and animations…';
+        const loaderMessage = 'Loading reference sculpt and humanoid rig…';
         loading.textContent = loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-          const gltf = await new GLTFLoader().loadAsync('./assets/blank-body.glb?v=10');
-          if (!['Idle','Walk','Run','Jump'].every(name => gltf.animations.some(clip => clip.name === name))) throw new Error('Missing animated base clips');
-          characterModel = new THREE.Group();
-          characterModel.name = 'Urban Outlaw - Articulated blank body v1';
+          const { createReferenceClips } = await import('./scripts/reference-character-animations.js?v=1');
+          const gltf = await new GLTFLoader().loadAsync('./assets/reference-rig.glb?v=11');
           const imported = gltf.scene;
-          imported.name = 'Y-up neutral gray body, +Z facing';
-          let triangleCount = 0;
-          let meshCount = 0;
-          // This model is authored directly in glTF's Y-up coordinate convention.
-          let hairMeshes = 0, skinMeshes = 0;
+          imported.name = 'Urban Outlaw continuous reference-sculpted skinned character';
+          const rig = createReferenceClips(THREE, imported);
+          const clipNames = rig.clips.map(clip=>clip.name);
+          if (clipNames.join(',') !== 'Idle,Walk,Run,Jump') throw new Error('Missing humanoid animation clips');
+          let meshCount = 0, triangleCount = 0, skinnedMeshes = 0;
           imported.traverse(object => {
-            if (object.isMesh) {
-              if (/hair|bang|crown|scalp|spike|tuft|back hair tie|bandana/i.test(object.name)) hairMeshes++;
-              if (object.material && /skin/i.test(object.material.name)) skinMeshes++;
-              meshCount++;
-              const geometry = object.geometry;
-              triangleCount += geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
-              object.castShadow = true;
-              object.receiveShadow = false;
-              object.frustumCulled = false;
+            if(!object.isMesh) return;
+            meshCount++;
+            if(object.isSkinnedMesh)skinnedMeshes++;
+            const geo=object.geometry;
+            triangleCount += geo.index ? geo.index.count / 3 : geo.attributes.position.count / 3;
+            object.castShadow=true;
+            object.receiveShadow=false;
+            object.frustumCulled=false;
+            if(object.material) {
+              const mats=Array.isArray(object.material)?object.material:[object.material];
+              mats.forEach(m=>{m.roughness=Math.max(.58,m.roughness ?? .75);});
             }
           });
+          if (skinnedMeshes < 1 || rig.boneCount < 18 || triangleCount < 30000) {
+            throw new Error('Reference mesh is not a high-resolution skinned humanoid');
+          }
+
+          characterModel = new THREE.Group();
+          characterModel.name = 'Reference Sculpt Rig v1';
           characterModel.add(imported);
           player.add(characterModel);
           imported.updateMatrixWorld(true);
-          const initialBounds = new THREE.Box3().setFromObject(imported);
-          const initialSize = initialBounds.getSize(new THREE.Vector3());
-          if (initialBounds.isEmpty() || !Number.isFinite(initialSize.y) || initialSize.y < .2) {
-            throw new Error('3D model has invalid bounds');
+          const bounds=new THREE.Box3().setFromObject(imported);
+          const dimensions=bounds.getSize(new THREE.Vector3());
+          if(bounds.isEmpty() || !Number.isFinite(dimensions.y) || dimensions.y<.5){
+            throw new Error('Invalid reference character geometry');
           }
-          // Keep its proportions and position the feet at ground height.
-          const intendedHeight = 4.0; // shorter, stockier body proportions
-          imported.scale.setScalar(intendedHeight / initialSize.y);
-          // Widen the shoulders, chest, waist, arms and legs without stretching height.
-          imported.scale.x *= 1.12;
-          imported.scale.z *= 1.10;
+          // Preserve the sculpt's natural anatomical ratios, unlike the previous
+          // globally stretched mannequin. Only uniformly scale to the game height.
+          const intendedHeight=4.0;
+          imported.scale.setScalar(intendedHeight/dimensions.y);
           imported.updateMatrixWorld(true);
-          const scaledBounds = new THREE.Box3().setFromObject(imported);
-          const modelCenter = scaledBounds.getCenter(new THREE.Vector3());
-          imported.position.x -= modelCenter.x;
-          imported.position.z -= modelCenter.z;
-          imported.position.y -= scaledBounds.min.y;
+          const scaledBounds=new THREE.Box3().setFromObject(imported);
+          const center=scaledBounds.getCenter(new THREE.Vector3());
+          imported.position.x-=center.x;
+          imported.position.z-=center.z;
+          imported.position.y-=scaledBounds.min.y;
           imported.updateMatrixWorld(true);
-          const finalBounds = new THREE.Box3().setFromObject(imported);
-          if (Math.abs(finalBounds.min.y) > .025 || Math.abs(finalBounds.max.y - intendedHeight) > .07) {
-            throw new Error('3D character could not be grounded correctly');
+          const finalBounds=new THREE.Box3().setFromObject(imported);
+          if(Math.abs(finalBounds.min.y)>.06||Math.abs(finalBounds.max.y-intendedHeight)>.09){
+            throw new Error('Reference character placement failed');
           }
-          animationMixer = new THREE.AnimationMixer(imported);
-          animationActions = Object.fromEntries(gltf.animations.map(clip => [clip.name, animationMixer.clipAction(clip)]));
-          animationActions.Jump.setLoop(THREE.LoopOnce, 1);
-          animationActions.Jump.clampWhenFinished = true;
+
+          animationMixer=new THREE.AnimationMixer(imported);
+          animationActions=Object.fromEntries(rig.clips.map(clip=>[clip.name,animationMixer.clipAction(clip)]));
+          animationActions.Jump.setLoop(THREE.LoopOnce,1);
+          animationActions.Jump.clampWhenFinished=true;
           setCharacterAnimation('Idle');
-          const rigPartsFound = new Set(gltf.animations.flatMap(clip => clip.tracks.map(track => track.name.split('.')[0]))).size;
-          if (rigPartsFound < 10) throw new Error('Body animation tracks do not address enough joints');
-          document.getElementById('game').dataset.character = 'skin-hair-v1';
-          document.getElementById('game').dataset.animationClips = gltf.animations.map(clip=>clip.name).join(',');
-          document.getElementById('game').dataset.rigJoints = String(rigPartsFound);
-          document.getElementById('game').dataset.triangles = String(Math.round(triangleCount));
-          document.getElementById('game').dataset.meshGroups = String(meshCount);
-          document.getElementById('game').dataset.hairMeshes = String(hairMeshes);
-          document.getElementById('game').dataset.skinMeshes = String(skinMeshes);
-          if (hairMeshes < 25 || skinMeshes < 10) throw new Error('Skin or hair geometry missing from animated model');
-          document.getElementById('game').dataset.meshHeight = finalBounds.getSize(new THREE.Vector3()).y.toFixed(2);
+
+          const data=document.getElementById('game').dataset;
+          data.character='reference-rig-v1';
+          data.modelType='skinned-high-detail';
+          data.meshHeight=finalBounds.getSize(new THREE.Vector3()).y.toFixed(2);
+          data.triangles=String(Math.round(triangleCount));
+          data.meshGroups=String(meshCount);
+          data.skinnedMeshes=String(skinnedMeshes);
+          data.rigJoints=String(rig.boneCount);
+          data.animationClips=clipNames.join(',');
         } catch (error) {
-          console.error('Could not load articulated blank body GLB:', error);
+          console.error('Could not load reference sculpted GLB:', error);
           document.getElementById('game').dataset.character = 'fallback';
           if (characterModel) {
             player.remove(characterModel);
@@ -409,7 +413,7 @@
         setTouchControls(touchEnabled);
 
         let orbit = reviewMode ? 0 : Math.PI;
-        let elevation = reviewMode ? .10 : .34, distance = reviewMode ? 7.5 : 15;
+        let elevation = reviewMode ? .10 : .22, distance = reviewMode ? 7.5 : 9.5;
         const reviewAngles = {front:0, side:Math.PI/2, back:Math.PI, hero:-Math.PI/4};
         for (const button of document.querySelectorAll('[data-review-angle]')) {
           button.addEventListener('click', () => {
