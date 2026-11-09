@@ -63,7 +63,7 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 0.4</div>
+    <div class="ui version"><span class="dot"></span> BUILD 0.5 · 3D</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -77,6 +77,14 @@
     </div>
     <div id="loading" role="status" aria-live="polite">Loading playground...</div>
   </main>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+      }
+    }
+  </script>
   <script type="module">
     const loading = document.getElementById('loading');
     async function boot() {
@@ -148,43 +156,90 @@
         ground.receiveShadow = true;
         scene.add(ground);
 
-        // The user-approved character artwork is displayed as a camera-aware 2.5D
-        // multi-view sprite in a genuine 3D game world. This preserves the exact
-        // clothing, face and proportions shown in the approved concept sheet
-        // without falsely claiming the concept image is a rigged 3D model.
+        // True 3D model: actual GLB mesh built from the approved reference sheet.
+        // Geometry has genuine thickness and can be viewed freely from any angle.
+        // Front, profile and back fabric/face textures use the approved art.
         const player = new THREE.Group();
         scene.add(player);
-        const characterVisual = new THREE.Group();
-        player.add(characterVisual);
-        const spriteAtlas = await new THREE.TextureLoader().loadAsync('./assets/approved-ninja-turnaround.png');
-        spriteAtlas.colorSpace = THREE.SRGBColorSpace;
-        spriteAtlas.magFilter = THREE.LinearFilter;
-        spriteAtlas.minFilter = THREE.LinearMipmapLinearFilter;
-        spriteAtlas.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
-        spriteAtlas.wrapS = spriteAtlas.wrapT = THREE.ClampToEdgeWrapping;
-        spriteAtlas.repeat.set(0.25, 1);
-        spriteAtlas.offset.set(0, 0);
-        spriteAtlas.updateMatrix();
-        const spriteMaterial = new THREE.MeshBasicMaterial({
-          map: spriteAtlas,
-          transparent: true,
-          alphaTest: 0.075,
-          depthWrite: true,
-          side: THREE.DoubleSide,
-          toneMapped: false
-        });
-        const avatar = new THREE.Mesh(new THREE.PlaneGeometry(1.64, 4.5), spriteMaterial);
-        avatar.name = 'Approved ninja multi-view art';
-        avatar.position.y = 2.25;
-        avatar.castShadow = true;
-        avatar.frustumCulled = false;
-        characterVisual.add(avatar);
+        let characterModel = null;
+        let characterVisual = null;
+        let avatar = null;
+        let spriteAtlas = null;
+        let armLeft = null, armRight = null, legLeft = null, legRight = null;
         let currentCharacterView = -1;
-        function updateCharacterView(orbit, facing, moving) {
-          // Character forward is +Z. The camera faces in from orbit angle.
+        const loaderMessage = 'Loading the 3D ninja model…';
+        loading.textContent = loaderMessage;
+        try {
+          const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+          const gltf = await new GLTFLoader().loadAsync('./assets/ninja-character.glb?v=5');
+          characterModel = gltf.scene;
+          characterModel.name = 'Urban Outlaw - Approved 3D Ninja';
+          characterModel.traverse(object => {
+            if (object.isMesh) {
+              object.castShadow = true;
+              object.receiveShadow = false;
+              object.frustumCulled = false;
+            }
+          });
+          player.add(characterModel);
+
+          // Separate rigid mesh groups at anatomical shoulder/hip pivots.
+          // These meshes are real 3D parts, so the legs and arms move in depth.
+          const meshes = [];
+          characterModel.traverse(o => { if (o.isMesh) meshes.push(o); });
+          function makeJoint(name, prefix, x, y, z) {
+            const joint = new THREE.Group();
+            joint.name = name;
+            joint.position.set(x, y, z);
+            characterModel.add(joint);
+            characterModel.updateMatrixWorld(true);
+            for (const mesh of meshes) {
+              if (mesh.name.startsWith(prefix)) joint.attach(mesh);
+            }
+            return joint;
+          }
+          armLeft = makeJoint('Animated left shoulder', 'ARM_L_', -0.40, 3.18, 0);
+          armRight = makeJoint('Animated right shoulder', 'ARM_R_', 0.40, 3.18, 0);
+          legLeft = makeJoint('Animated left hip', 'LEG_L_', -0.19, 2.11, 0);
+          legRight = makeJoint('Animated right hip', 'LEG_R_', 0.19, 2.11, 0);
+          const bounds = new THREE.Box3().setFromObject(characterModel);
+          if (bounds.isEmpty() || !Number.isFinite(bounds.max.y) || bounds.max.y < 3) {
+            throw new Error('3D model bounds were invalid');
+          }
+        } catch (error) {
+          console.error('Could not load approved 3D mesh; reverting to multi-view artwork.', error);
+          if (characterModel) {
+            player.remove(characterModel);
+            characterModel = null;
+          }
+          // A genuinely playable fallback prevents the game failing to start
+          // when Safari has a temporary CDN/network error.
+          characterVisual = new THREE.Group();
+          player.add(characterVisual);
+          spriteAtlas = await new THREE.TextureLoader().loadAsync('./assets/approved-ninja-turnaround.png');
+          spriteAtlas.colorSpace = THREE.SRGBColorSpace;
+          spriteAtlas.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
+          spriteAtlas.wrapS = spriteAtlas.wrapT = THREE.ClampToEdgeWrapping;
+          spriteAtlas.repeat.set(0.25, 1);
+          const spriteMaterial = new THREE.MeshBasicMaterial({
+            map: spriteAtlas, transparent: true, alphaTest: 0.075,
+            depthWrite: true, side: THREE.DoubleSide, toneMapped: false
+          });
+          avatar = new THREE.Mesh(new THREE.PlaneGeometry(1.64, 4.5), spriteMaterial);
+          avatar.position.y = 2.25;
+          avatar.name = 'Fallback 2.5D character';
+          avatar.frustumCulled = false;
+          characterVisual.add(avatar);
+          const warning = document.createElement('div');
+          warning.textContent = '3D LOAD FAILED · FALLBACK VIEW';
+          warning.setAttribute('role', 'status');
+          warning.style.cssText = 'position:absolute;z-index:7;left:50%;top:max(90px,env(safe-area-inset-top));transform:translateX(-50%);background:#273b4cbd;border:1px solid #fff7;color:white;padding:8px 12px;border-radius:9px;font:700 10px system-ui,sans-serif;letter-spacing:1px;pointer-events:none';
+          document.getElementById('game').appendChild(warning);
+        }
+        function updateFallbackView(orbit, facing, moving) {
+          if (!avatar) return;
           const relative = Math.atan2(Math.sin(orbit - facing), Math.cos(orbit - facing));
           const angle = Math.abs(relative);
-          // Atlas frames: 0 front, 1 profile, 2 back, 3 three-quarter hero.
           let view = angle > 2.35 ? 2 : angle > 0.80 ? 1 : 0;
           if (!moving && relative > 0.43 && relative < 0.90) view = 3;
           if (view !== currentCharacterView) {
@@ -192,10 +247,7 @@
             spriteAtlas.offset.x = view * 0.25;
             spriteAtlas.updateMatrix();
           }
-          // Match side silhouette to whichever shoulder faces the camera.
           avatar.scale.x = view === 1 && relative < 0 ? -1 : 1;
-          // The sprite always faces the camera even though player navigation
-          // still uses normal 3D world-space rotation and movement.
           characterVisual.rotation.y = relative;
         }
 
@@ -372,12 +424,21 @@
             stride += dt * (sprinting ? 14 : 10.5) * Math.min(1, inputLength);
           }
           player.rotation.y = facing;
-          // Low-cost sprite motion: the actual approved painted design stays intact,
-          // with subtle jogging bob, lean, and bounce instead of fake limbs.
-          characterVisual.position.y = moving ? Math.abs(Math.sin(stride)) * 0.055 : Math.sin(performance.now() * 0.0017) * 0.012;
-          characterVisual.rotation.z = moving ? Math.sin(stride) * 0.018 * Math.min(1, inputLength) : 0;
-          characterVisual.scale.y = moving ? 1 + Math.sin(stride * 2) * 0.008 : 1;
-          updateCharacterView(orbit, facing, moving);
+          // Animate the actual 3D character's shoulder and hip mesh groups.
+          if (characterModel) {
+            const step = moving ? Math.sin(stride) * Math.min(1, inputLength) : 0;
+            const amplitude = sprinting ? .38 : .25;
+            armLeft.rotation.x = step * amplitude;
+            armRight.rotation.x = -step * amplitude;
+            legLeft.rotation.x = -step * amplitude;
+            legRight.rotation.x = step * amplitude;
+            characterModel.position.y = moving ? Math.abs(Math.sin(stride)) * .021 : Math.sin(performance.now() * .0013) * .006;
+            characterModel.rotation.x = moving ? -.024 : 0;
+          } else if (characterVisual) {
+            characterVisual.position.y = moving ? Math.abs(Math.sin(stride)) * .055 : 0;
+            characterVisual.rotation.z = moving ? Math.sin(stride) * .018 : 0;
+            updateFallbackView(orbit, facing, moving);
+          }
 
           if (jumpRequested && height <= .001) { verticalSpeed = 8.1; height = .002; }
           jumpRequested = false;
