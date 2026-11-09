@@ -14,8 +14,8 @@ const { chromium } = require('playwright');
     height:Number(document.getElementById('game')?.dataset.meshHeight),
     triangles:Number(document.getElementById('game')?.dataset.triangles),
     meshGroups:Number(document.getElementById('game')?.dataset.meshGroups),
-    hairMeshes:Number(document.getElementById('game')?.dataset.hairMeshes),
-    skinMeshes:Number(document.getElementById('game')?.dataset.skinMeshes),
+    skinnedMeshes:Number(document.getElementById('game')?.dataset.skinnedMeshes),
+    modelType:document.getElementById('game')?.dataset.modelType,
     rigJoints:Number(document.getElementById('game')?.dataset.rigJoints),
     clips:document.getElementById('game')?.dataset.animationClips,
     animation:document.getElementById('game')?.dataset.animation,
@@ -25,13 +25,13 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('1.0'))throw new Error('Old build loaded');
-  if(ui.character!=='skin-hair-v1')throw new Error('Blank body GLB did not load');
+  if(!ui.version.includes('1.1'))throw new Error('Old build loaded');
+  if(ui.character!=='reference-rig-v1')throw new Error('Blank body GLB did not load');
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
   if(ui.clips!=='Idle,Walk,Run,Jump')throw new Error('Incorrect animation clips: '+ui.clips);
   if(ui.rigJoints<10)throw new Error('Named joints are missing: '+ui.rigJoints);
-  if(ui.triangles<50000 || ui.triangles>110000)throw new Error('Unexpected character triangle count: '+ui.triangles);
-  if(ui.meshGroups<75 || ui.hairMeshes<25 || ui.skinMeshes<10)throw new Error('Skin/hair meshes not present: '+JSON.stringify(ui));
+  if(ui.triangles<35000 || ui.triangles>100000)throw new Error('Unexpected character triangle count: '+ui.triangles);
+  if(ui.skinnedMeshes < 1 || ui.rigJoints < 18 || ui.modelType !== 'skinned-high-detail')throw new Error('High-detail skinned rig not present: '+JSON.stringify(ui));
   if(Math.abs(ui.height-4.0)>.07)throw new Error('Model not normalized to expected height');
   if(ui.warning)throw new Error('3D load failed; fallback active');
   await page.keyboard.down('w');
