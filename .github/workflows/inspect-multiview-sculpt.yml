@@ -1,0 +1,16 @@
+name: Inspect Rejected Four-View Sculpt
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/inspect-multiview-sculpt.yml'
+      - 'scripts/inspect_multiview_sculpt.py'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install --quiet "numpy<3" "trimesh>=4,<5" Pillow networkx scipy
+      - run: python3 scripts/inspect_multiview_sculpt.py
