@@ -1,6 +1,6 @@
 # Urban Outlaw
 
-A small, playable browser-based 3D game prototype. **Version 0.5** contains a wide, empty grassy field and a real 3D ninja mesh reconstructed from the user-approved artwork. Its 3D GLB model is stored in `assets/ninja-character.glb`. It is a foundation for future game features.
+A small, playable browser-based 3D game prototype. **Version 0.6** contains a wide, empty grassy field and a repaired low-poly 3D ninja inspired by the supplied artwork. Its 3D GLB model is stored in `assets/ninja-character.glb`. It is a foundation for future game features.
 
 ## Play
 
@@ -26,7 +26,10 @@ Mouse wheel zooms in and out. Mobile controls are displayed automatically on tou
 
 - One static `index.html` contains the styles, UI, and game code.
 - Three.js renders the 3D scene. The browser automatically loads the GLB model and its embedded textures from this repository; the user does not need to upload assets manually.
-- `assets/ninja-character.glb` is real volumetric 3D geometry with separate arm and leg parts, textured from the approved front, side, and back views.
+- `assets/ninja-character.glb` has separate animated arm and leg parts. Version 0.6 removes duplicate side surfaces, corrects rear texture alignment, and widens the head/body.
+- `assets/character-details.js` adds rounded volumetric hair, smooth sleeves, and continuous bandage materials. Reference projections are retained where usable; background-contaminated limb projections are replaced.
+- This is a low-poly approximation, not a production-quality sculpt matching every detail of the approval sheet.
+- `scripts/repair-character.py original-v05.glb output.glb` documents the one-time asset migration; do not run it on the already repaired asset.
 - `assets/approved-ninja-turnaround.png` remains only as a fallback for devices that cannot load the GLB.
 - Movement, sprint, jump movement, mobile controls, and DualSense gamepad support are retained. The limbs use simple 3D joint-pivot animation; a full deformable skeletal rig and facial expressions are future improvements.
 - Three.js is loaded from jsDelivr with an unpkg fallback. The glTF loader uses the jsDelivr Three.js addon import map; a network connection is required.
