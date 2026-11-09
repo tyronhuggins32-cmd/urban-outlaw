@@ -250,20 +250,27 @@
           // when Safari has a temporary CDN/network error.
           characterVisual = new THREE.Group();
           player.add(characterVisual);
-          spriteAtlas = await new THREE.TextureLoader().loadAsync('./assets/approved-ninja-turnaround.png');
-          spriteAtlas.colorSpace = THREE.SRGBColorSpace;
-          spriteAtlas.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
-          spriteAtlas.wrapS = spriteAtlas.wrapT = THREE.ClampToEdgeWrapping;
-          spriteAtlas.repeat.set(0.25, 1);
-          const spriteMaterial = new THREE.MeshBasicMaterial({
-            map: spriteAtlas, transparent: true, alphaTest: 0.075,
-            depthWrite: true, side: THREE.DoubleSide, toneMapped: false
-          });
-          avatar = new THREE.Mesh(new THREE.PlaneGeometry(1.64, 4.5), spriteMaterial);
-          avatar.position.y = 2.25;
-          avatar.name = 'Fallback 2.5D character';
-          avatar.frustumCulled = false;
-          characterVisual.add(avatar);
+          // If GLB cannot load, display a neutral-gray 3D mannequin, not the old ninja.
+          const gray = new THREE.MeshStandardMaterial({color:0xcbd0d8,roughness:.84});
+          function emergencyPart(name, x,y,z, sx,sy,sz) {
+            const mesh = new THREE.Mesh(new THREE.SphereGeometry(1,20,12),gray);
+            mesh.name=name;
+            mesh.position.set(x,y,z);
+            mesh.scale.set(sx,sy,sz);
+            mesh.castShadow=true;
+            characterVisual.add(mesh);
+          }
+          emergencyPart('Head',0,4.0,0,.27,.35,.29);
+          emergencyPart('Neck',0,3.61,0,.13,.16,.13);
+          emergencyPart('Torso',0,3.01,0,.44,.65,.25);
+          emergencyPart('Pelvis',0,2.42,0,.35,.30,.27);
+          for (const sign of [-1,1]) {
+            emergencyPart('Arm',sign*.52,2.99,0,.14,.64,.14);
+            emergencyPart('Thigh',sign*.27,1.80,0,.23,.73,.22);
+            emergencyPart('Calf',sign*.28,.77,0,.16,.65,.16);
+            emergencyPart('Foot',sign*.28,.14,.20,.20,.12,.35);
+          }
+          document.getElementById('animationStatus').textContent = 'BLANK BODY · FALLBACK';
           const warning = document.createElement('div');
           warning.textContent = '3D LOAD FAILED · FALLBACK VIEW';
           warning.setAttribute('role', 'status');
