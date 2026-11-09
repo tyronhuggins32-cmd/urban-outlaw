@@ -64,12 +64,12 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 0.9 · ANIMATED BODY</div>
+    <div class="ui version"><span class="dot"></span> BUILD 1.0 · SKIN + HAIR</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
-    <div class="ui help">STAGE 1 · BLANK CHARACTER BODY</div>
-    <div class="ui animation-status" id="animationStatus">BLANK BODY · IDLE</div>
+    <div class="ui help">STAGE 2 · SKIN AND HAIR</div>
+    <div class="ui animation-status" id="animationStatus">SKIN + HAIR · IDLE</div>
     <div id="touchControls">
       <div class="stick-wrap" id="stickZone" aria-label="Movement joystick"><div id="stick"><div id="knob"></div></div></div>
       <div class="actions">
@@ -176,16 +176,16 @@
           nextAction.fadeIn(state === 'Jump' ? .10 : .20).play();
           activeAnimation = state;
           document.getElementById('game').dataset.animation = state.toLowerCase();
-          document.getElementById('animationStatus').textContent = 'BLANK BODY · ' + state.toUpperCase();
+          document.getElementById('animationStatus').textContent = 'SKIN + HAIR · ' + state.toUpperCase();
         }
         let avatar = null;
         let spriteAtlas = null;
         let currentCharacterView = -1;
-        const loaderMessage = 'Loading animated blank body…';
+        const loaderMessage = 'Loading character skin, hair and animations…';
         loading.textContent = loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-          const gltf = await new GLTFLoader().loadAsync('./assets/blank-body.glb?v=9');
+          const gltf = await new GLTFLoader().loadAsync('./assets/blank-body.glb?v=10');
           if (!['Idle','Walk','Run','Jump'].every(name => gltf.animations.some(clip => clip.name === name))) throw new Error('Missing animated base clips');
           characterModel = new THREE.Group();
           characterModel.name = 'Urban Outlaw - Articulated blank body v1';
@@ -194,8 +194,11 @@
           let triangleCount = 0;
           let meshCount = 0;
           // This model is authored directly in glTF's Y-up coordinate convention.
+          let hairMeshes = 0, skinMeshes = 0;
           imported.traverse(object => {
             if (object.isMesh) {
+              if (/hair|bang|crown|scalp|spike|tuft|back hair tie|bandana/i.test(object.name)) hairMeshes++;
+              if (object.material && /skin/i.test(object.material.name)) skinMeshes++;
               meshCount++;
               const geometry = object.geometry;
               triangleCount += geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
@@ -236,11 +239,14 @@
           setCharacterAnimation('Idle');
           const rigPartsFound = new Set(gltf.animations.flatMap(clip => clip.tracks.map(track => track.name.split('.')[0]))).size;
           if (rigPartsFound < 10) throw new Error('Body animation tracks do not address enough joints');
-          document.getElementById('game').dataset.character = 'blank-base-v1';
+          document.getElementById('game').dataset.character = 'skin-hair-v1';
           document.getElementById('game').dataset.animationClips = gltf.animations.map(clip=>clip.name).join(',');
           document.getElementById('game').dataset.rigJoints = String(rigPartsFound);
           document.getElementById('game').dataset.triangles = String(Math.round(triangleCount));
           document.getElementById('game').dataset.meshGroups = String(meshCount);
+          document.getElementById('game').dataset.hairMeshes = String(hairMeshes);
+          document.getElementById('game').dataset.skinMeshes = String(skinMeshes);
+          if (hairMeshes < 25 || skinMeshes < 10) throw new Error('Skin or hair geometry missing from animated model');
           document.getElementById('game').dataset.meshHeight = finalBounds.getSize(new THREE.Vector3()).y.toFixed(2);
         } catch (error) {
           console.error('Could not load articulated blank body GLB:', error);
@@ -273,7 +279,7 @@
             emergencyPart('Calf',sign*.28,.77,0,.16,.65,.16);
             emergencyPart('Foot',sign*.28,.14,.20,.20,.12,.35);
           }
-          document.getElementById('animationStatus').textContent = 'BLANK BODY · FALLBACK';
+          document.getElementById('animationStatus').textContent = 'SKIN + HAIR · FALLBACK';
           const warning = document.createElement('div');
           warning.textContent = '3D LOAD FAILED · FALLBACK VIEW';
           warning.setAttribute('role', 'status');
