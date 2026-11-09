@@ -1,0 +1,56 @@
+name: Build Blank Animated Body
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/build_blank_body.py'
+      - '.github/workflows/build-blank-body.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blank-body-builder
+  cancel-in-progress: false
+
+jobs:
+  make-base:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate articulated GLB and baked animations
+        run: |
+          python3 scripts/build_blank_body.py assets/blank-body.glb
+      - name: Verify exported GLB anatomy and animations
+        run: |
+          python3 - <<'PY'
+          import json, struct, os
+          raw = open('assets/blank-body.glb', 'rb').read()
+          magic, version, total = struct.unpack_from('<4sII', raw, 0)
+          assert magic == b'glTF' and version == 2 and total == len(raw)
+          size, chunk = struct.unpack_from('<I4s', raw, 12)
+          assert chunk == b'JSON'
+          model = json.loads(raw[20:20+size])
+          names = [node['name'] for node in model['nodes']]
+          clips = [clip['name'] for clip in model['animations']]
+          assert {'Hips','Spine','Head','UpperArm.L','UpperArm.R',
+              'Forearm.L','Forearm.R','UpperLeg.L','UpperLeg.R',
+              'LowerLeg.L','LowerLeg.R','Foot.L','Foot.R'}.issubset(names)
+          assert clips == ['Idle','Walk','Run','Jump'], clips
+          assert len(model['meshes']) >= 28
+          assert all(len(clip['channels']) >= 12 for clip in model['animations'])
+          assert os.stat('assets/blank-body.glb').st_size > 100000
+          print('Verified',len(model['meshes']),'meshes,',
+                len(names),'scene nodes,',clips)
+          PY
+      - name: Commit actual animated model into game assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/blank-body.glb
+          git diff --cached --quiet && exit 0
+          git commit -m "Add articulated neutral-gray base body and four embedded animations"
+          git pull --rebase origin main
+          git push origin HEAD:main
