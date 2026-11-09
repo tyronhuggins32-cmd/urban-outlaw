@@ -1,0 +1,48 @@
+name: Refine Urban Outlaw Character Mesh
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/upgrade_character.py"
+      - ".github/workflows/refine-character.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ninja-model-refine
+  cancel-in-progress: false
+
+jobs:
+  rebuild-character:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Fetch current game assets
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install free mesh-processing dependencies
+        run: |
+          python3 -m pip install --disable-pip-version-check "numpy<3" "scipy<2" "trimesh>=4,<5" "Pillow>=10,<13"
+      - name: Rebuild the game GLB
+        run: |
+          python3 scripts/upgrade_character.py assets/ninja-character.glb assets/ninja-character.refined.glb
+          python3 - <<'PY'
+          import trimesh, os
+          a=trimesh.load("assets/ninja-character.refined.glb",force="scene")
+          assert len(a.geometry)>=38 and len(a.geometry)<=60
+          assert sum(len(g.faces) for g in a.geometry.values())>=120000
+          assert os.path.getsize("assets/ninja-character.refined.glb")>1000000
+          print("Validated",len(a.geometry),"renderable mesh groups")
+          PY
+          mv assets/ninja-character.refined.glb assets/ninja-character.glb
+      - name: Commit refined asset to the playable game
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/ninja-character.glb
+          git diff --cached --quiet && exit 0
+          git commit -m "Replace playable ninja GLB with improved garment and hair geometry"
+          git push origin HEAD:main
