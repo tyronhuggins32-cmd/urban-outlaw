@@ -139,8 +139,8 @@
         renderer.outputColorSpace = THREE.SRGBColorSpace;
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x9ed5f3);
-        scene.fog = new THREE.Fog(0x9ed5f3, 100, 280);
+        scene.background = new THREE.Color(reviewMode ? 0xcfd2dc : 0x9ed5f3);
+        scene.fog = new THREE.Fog(reviewMode ? 0xcfd2dc : 0x9ed5f3, 100, 280);
         const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 700);
 
         const ambient = new THREE.HemisphereLight(0xf2fcff, 0x5d7c40, 2.2);
@@ -179,7 +179,7 @@
         grass.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
         const ground = new THREE.Mesh(
           new THREE.PlaneGeometry(1200, 1200),
-          new THREE.MeshStandardMaterial({ map: grass, roughness: 1 })
+          new THREE.MeshStandardMaterial(reviewMode ? { color:0xc9cbd5, roughness:1 } : { map:grass, roughness:1 })
         );
         ground.rotation.x = -Math.PI / 2;
         ground.receiveShadow = true;
@@ -203,7 +203,7 @@
           nextAction.fadeIn(state === 'Jump' ? .10 : .20).play();
           activeAnimation = state;
           document.getElementById('game').dataset.animation = state.toLowerCase();
-          document.getElementById('animationStatus').textContent = 'SKIN + HAIR · ' + state.toUpperCase();
+          document.getElementById('animationStatus').textContent = 'SCULPTED · ' + state.toUpperCase();
         }
         let avatar = null;
         let spriteAtlas = null;
@@ -252,6 +252,8 @@
           // globally stretched mannequin. Only uniformly scale to the game height.
           const intendedHeight=4.0;
           imported.scale.setScalar(intendedHeight/dimensions.y);
+          imported.scale.x*=.94; // correct source sculpt's broad shoulders/arms
+          imported.scale.z*=.94; // lessen exaggerated torso thickness
           imported.updateMatrixWorld(true);
           const scaledBounds=new THREE.Box3().setFromObject(imported);
           const center=scaledBounds.getCenter(new THREE.Vector3());
@@ -310,7 +312,7 @@
             emergencyPart('Calf',sign*.28,.77,0,.16,.65,.16);
             emergencyPart('Foot',sign*.28,.14,.20,.20,.12,.35);
           }
-          document.getElementById('animationStatus').textContent = 'SKIN + HAIR · FALLBACK';
+          document.getElementById('animationStatus').textContent = 'SCULPTED · FALLBACK';
           const warning = document.createElement('div');
           warning.textContent = '3D LOAD FAILED · FALLBACK VIEW';
           warning.setAttribute('role', 'status');
