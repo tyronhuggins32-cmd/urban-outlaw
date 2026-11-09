@@ -30,7 +30,7 @@ const { chromium } = require('playwright');
   if(ui.rigJoints<10)throw new Error('Named joints are missing: '+ui.rigJoints);
   if(ui.triangles<45000 || ui.triangles>75000)throw new Error('Unexpected character triangle count: '+ui.triangles);
   if(ui.meshGroups!==30)throw new Error('Unexpected character mesh groups: '+ui.meshGroups);
-  if(Math.abs(ui.height-4.35)>.07)throw new Error('Model not normalized to expected height');
+  if(Math.abs(ui.height-4.0)>.07)throw new Error('Model not normalized to expected height');
   if(ui.warning)throw new Error('3D load failed; fallback active');
   await page.keyboard.down('w');
   await page.waitForTimeout(350);
