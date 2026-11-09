@@ -1,6 +1,6 @@
 # Urban Outlaw
 
-A small, playable browser-based 3D game prototype. **Version 0.2** deliberately contains only a wide, empty grassy field and a classic blocky avatar. It is a foundation for future game features.
+A small, playable browser-based 3D game prototype. **Version 0.3** contains a wide, empty grassy field and a custom 3D anime-style ninja character inspired by the supplied reference images. It is a foundation for future game features.
 
 ## Play
 
@@ -26,7 +26,8 @@ Mouse wheel zooms in and out. Mobile controls are displayed automatically on tou
 
 - One static `index.html` contains the styles, UI, and game code.
 - Three.js renders the 3D scene. No 3D models, textures, or game assets need to be downloaded separately.
-- The character and grass details are generated in code.
+- The ninja character is modeled procedurally in Three.js with layered spiky hair, a forehead protector, a navy high-collar tunic, fan crest, light shorts, cloth wraps, and sandals. The grass texture is generated in code.
+- Movement, sprint, jump animations, mobile controls, and DualSense gamepad support are retained.
 - Three.js is loaded from jsDelivr with an unpkg fallback; an internet connection is required for the first load.
 - No build step or backend is required.
 
