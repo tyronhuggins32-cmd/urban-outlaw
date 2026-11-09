@@ -27,6 +27,11 @@
     #loading { position: absolute; z-index: 9; left: 50%; top: 50%; transform: translate(-50%,-50%); min-width: 200px; text-align: center; padding: 16px 24px; background: #122739bd; border: 1px solid #ffffff44; border-radius: 15px; font-size: 13px; font-weight: 700; backdrop-filter: blur(12px); }
     #loading.hidden { display: none; }
     #touchControls { display: none; }
+    #game.touch-disabled #touchControls { display: none !important; }
+    #touchToggle { display:none; position:absolute; z-index:8; top:calc(max(22px, env(safe-area-inset-top)) + 45px); right:max(20px, env(safe-area-inset-right)); align-items:center; justify-content:center; border:1px solid #ffffff98; border-radius:10px; background:#17405fb3; color:white; min-height:40px; padding:10px 13px; font:800 11px system-ui,sans-serif; letter-spacing:.7px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); touch-action:manipulation; cursor:pointer; }
+    #game.touch-disabled #touchToggle { background:#263a4ed9; }
+    #controllerStatus { display:none; position:absolute; z-index:8; right:max(20px, env(safe-area-inset-right)); top:calc(max(22px, env(safe-area-inset-top)) + 94px); border:1px solid #b4ffd099; background:#153e3fb3; color:#e7fff0; border-radius:9px; padding:9px 11px; font:750 10px system-ui,sans-serif; letter-spacing:.45px; pointer-events:none; }
+    #controllerStatus.connected { display:block; }
     .stick-wrap { position: absolute; bottom: max(30px, env(safe-area-inset-bottom)); left: max(25px, env(safe-area-inset-left)); width: 136px; height: 136px; display: grid; place-items: center; pointer-events: auto; touch-action: none; }
     #stick { width: 122px; height: 122px; border-radius: 50%; background: #16395630; border: 2px solid #ffffff99; box-shadow: 0 6px 26px #35536f25, inset 0 0 25px #ffffff20; display: grid; place-items: center; touch-action: none; }
     #knob { width: 56px; height: 56px; border-radius: 50%; background: #fff9; border: 2px solid #fff; box-shadow: 0 4px 14px #2f50684d; pointer-events: none; transform: translate(0,0); }
@@ -38,6 +43,7 @@
     #jump:active { background: #ffeb99; }
     @media (pointer: coarse) {
       #touchControls { display: block; }
+      #touchToggle { display: flex; }
       .hint { display: none; }
       .help { display: none; }
       .version { padding: 8px 11px; font-size: 9px; }
@@ -57,8 +63,10 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 0.1</div>
-    <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag to rotate camera · Shift to run · Scroll to zoom · Gamepad supported</p></div>
+    <div class="ui version"><span class="dot"></span> BUILD 0.2</div>
+    <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
+    <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
+    <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
     <div class="ui help">EMPTY WORLD · YOUR FIRST CHARACTER</div>
     <div id="touchControls">
       <div class="stick-wrap" id="stickZone" aria-label="Movement joystick"><div id="stick"><div id="knob"></div></div></div>
@@ -253,15 +261,33 @@
         runButton.addEventListener('pointercancel', stopRun);
         runButton.addEventListener('lostpointercapture', stopRun);
 
+        const gameRoot = document.getElementById('game');
+        const touchToggle = document.getElementById('touchToggle');
+        let touchEnabled = true;
+        try { touchEnabled = localStorage.getItem('urban-outlaw-touch') !== 'off'; } catch {}
+        function setTouchControls(enabled) {
+          touchEnabled = enabled;
+          gameRoot.classList.toggle('touch-disabled', !enabled);
+          touchToggle.textContent = enabled ? 'TOUCH: ON' : 'TOUCH: OFF';
+          touchToggle.setAttribute('aria-pressed', String(!enabled));
+          touchToggle.setAttribute('aria-label', enabled ? 'Hide touchscreen controls' : 'Show touchscreen controls');
+          if (!enabled) { stickPointer = null; stickX = stickY = 0; updateKnob(); stopRun(); }
+          try { localStorage.setItem('urban-outlaw-touch', enabled ? 'on' : 'off'); } catch {}
+        }
+        touchToggle.addEventListener('click', () => setTouchControls(!touchEnabled));
+        setTouchControls(touchEnabled);
+
         let orbit = Math.PI, elevation = .34, distance = 15;
         let dragging = null, lastX = 0, lastY = 0;
         canvas.addEventListener('pointerdown', event => {
+          if (event.pointerType === 'touch' && !touchEnabled) return;
           if (dragging !== null) return;
           dragging = event.pointerId;
           lastX = event.clientX; lastY = event.clientY;
           canvas.setPointerCapture(event.pointerId);
         });
         canvas.addEventListener('pointermove', event => {
+          if (event.pointerType === 'touch' && !touchEnabled) return;
           if (event.pointerId !== dragging) return;
           const dx = event.clientX - lastX, dy = event.clientY - lastY;
           orbit -= dx * .006;
@@ -286,19 +312,40 @@
         const forward = new THREE.Vector3(), right = new THREE.Vector3();
         const desiredCamera = new THREE.Vector3(), look = new THREE.Vector3();
         let height = 0, verticalSpeed = 0, stride = 0, facing = 0;
-        const deadzone = n => Math.abs(n) < .15 ? 0 : n;
+        // Standard DualSense mapping supported by Safari's Gamepad API.
+        const deadzone = value => !Number.isFinite(value) || Math.abs(value) < .16 ? 0 :
+          Math.sign(value) * Math.min(1, (Math.abs(value) - .16) / .84);
+        const axis = (pad, i) => pad && pad.axes && Number.isFinite(pad.axes[i]) ? pad.axes[i] : 0;
+        const down = (pad, i) => !!(pad && pad.buttons && pad.buttons[i] &&
+          (pad.buttons[i].pressed || pad.buttons[i].value > .55));
+        const controllerStatus = document.getElementById('controllerStatus');
+        let currentPadId = null;
+        function refreshPadStatus(pad) {
+          const id = pad ? pad.index + ':' + pad.id : null;
+          if (id === currentPadId) return;
+          currentPadId = id;
+          controllerStatus.classList.toggle('connected', !!pad);
+          if (pad) {
+            controllerStatus.textContent = /dualsense|dualshock|wireless controller|playstation|sony|054c/i.test(pad.id)
+              ? 'PLAYSTATION CONTROLLER CONNECTED' : 'CONTROLLER CONNECTED';
+          }
+        }
+        window.addEventListener('gamepaddisconnected', () => {
+          currentPadId = null; controllerStatus.classList.remove('connected'); previousPadJump = false;
+        });
 
         function frame() {
           const dt = Math.min(last.getDelta(), .05);
           const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-          const pad = Array.from(pads || []).find(p => p && p.connected);
-          const padX = pad ? deadzone(pad.axes[0] || 0) : 0;
-          const padY = pad ? -deadzone(pad.axes[1] || 0) : 0;
-          const padCamX = pad ? deadzone(pad.axes[2] || 0) : 0;
-          const padCamY = pad ? deadzone(pad.axes[3] || 0) : 0;
-          orbit -= padCamX * 2.5 * dt;
-          elevation = THREE.MathUtils.clamp(elevation + padCamY * 1.5 * dt, .15, 1.05);
-          const padJump = !!(pad && pad.buttons[0] && pad.buttons[0].pressed);
+          const pad = Array.from(pads || []).find(p => p && p.connected) || null;
+          refreshPadStatus(pad);
+          // Left stick: move. Right stick: orbit camera. D-pad: alternate movement.
+          const padX = deadzone(axis(pad, 0)) + (down(pad, 15) ? 1 : 0) - (down(pad, 14) ? 1 : 0);
+          const padY = -deadzone(axis(pad, 1)) + (down(pad, 12) ? 1 : 0) - (down(pad, 13) ? 1 : 0);
+          orbit -= deadzone(axis(pad, 2)) * 2.5 * dt;
+          elevation = THREE.MathUtils.clamp(elevation + deadzone(axis(pad, 3)) * 1.5 * dt, .15, 1.05);
+          // Cross: jump on press, not while held.
+          const padJump = down(pad, 0);
           if (padJump && !previousPadJump) jumpRequested = true;
           previousPadJump = padJump;
 
@@ -312,7 +359,7 @@
           const moveX = forward.x * y + right.x * x;
           const moveZ = forward.z * y + right.z * x;
           const moving = Math.hypot(moveX, moveZ) > .07;
-          const sprinting = pressed.has('shift') || touchRun || !!(pad && pad.buttons[5] && pad.buttons[5].pressed);
+          const sprinting = pressed.has('shift') || touchRun || down(pad, 7) || down(pad, 5) || down(pad, 10);
           const speed = sprinting ? 9.5 : 6.1;
           player.position.x += moveX * speed * dt;
           player.position.z += moveZ * speed * dt;
