@@ -5,7 +5,6 @@ on:
   push:
     paths:
       - "scripts/upgrade_character.py"
-      - ".github/workflows/refine-character.yml"
 
 permissions:
   contents: write
@@ -28,7 +27,9 @@ jobs:
           python3 -m pip install --disable-pip-version-check "numpy<3" "scipy<2" "trimesh>=4,<5" "Pillow>=10,<13"
       - name: Rebuild the game GLB
         run: |
-          python3 scripts/upgrade_character.py assets/ninja-character.glb assets/ninja-character.refined.glb
+          # Always rebuild from the verified original v5 commit, never compound edits.
+          git show 888fba02f2e83ef8f261721e996b47773aa94497:assets/ninja-character.glb > /tmp/ninja-character-base-v5.glb
+          python3 scripts/upgrade_character.py /tmp/ninja-character-base-v5.glb assets/ninja-character.refined.glb
           python3 - <<'PY'
           import trimesh, os
           a=trimesh.load("assets/ninja-character.refined.glb",force="scene")
