@@ -253,7 +253,7 @@
         runButton.addEventListener('pointercancel', stopRun);
         runButton.addEventListener('lostpointercapture', stopRun);
 
-        let orbit = Math.PI, elevation = .34, distance = 10.5;
+        let orbit = Math.PI, elevation = .34, distance = 15;
         let dragging = null, lastX = 0, lastY = 0;
         canvas.addEventListener('pointerdown', event => {
           if (dragging !== null) return;
@@ -274,7 +274,7 @@
         canvas.addEventListener('lostpointercapture', () => dragging = null);
         canvas.addEventListener('wheel', event => {
           event.preventDefault();
-          distance = THREE.MathUtils.clamp(distance + event.deltaY * .008, 6, 17);
+          distance = THREE.MathUtils.clamp(distance + event.deltaY * .008, 6, 25);
         }, { passive: false });
         window.addEventListener('resize', () => {
           camera.aspect = window.innerWidth / window.innerHeight;
