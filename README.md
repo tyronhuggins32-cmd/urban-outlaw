@@ -1,6 +1,6 @@
 # Urban Outlaw
 
-A small, playable browser-based 3D game prototype. **Version 0.1** deliberately contains only a wide, empty grassy field and a classic blocky avatar. It is a foundation for future game features.
+A small, playable browser-based 3D game prototype. **Version 0.2** deliberately contains only a wide, empty grassy field and a classic blocky avatar. It is a foundation for future game features.
 
 ## Play
 
@@ -18,9 +18,9 @@ Then visit `http://localhost:8000`.
 |---|---|---|---|---|
 | Keyboard + mouse | WASD / arrows | Drag | Space | Shift |
 | Phone or tablet | On-screen joystick | Swipe the world | JUMP | Hold RUN |
-| Controller (standard gamepad) | Left stick | Right stick | Bottom face button (Cross / A) | Right shoulder trigger |
+| PS5 DualSense (Bluetooth) | Left stick or D-pad | Right stick | Cross (×) | Hold R2, R1, or L3 |
 
-Mouse wheel zooms in and out. Mobile controls are displayed automatically on touchscreen devices.
+Mouse wheel zooms in and out. Mobile controls are displayed automatically on touchscreen devices. Tap **TOUCH: ON** at the upper right to hide the joystick, jump/run buttons, and touch camera gestures. Tap **TOUCH: OFF** to restore them. The preference is saved for future visits when browser storage is available. When a gamepad is detected, the game displays a controller-connected indicator. On an iPhone, pair the DualSense in iOS Bluetooth settings and press a button once in Safari to let the browser detect it.
 
 ## How it works
 
