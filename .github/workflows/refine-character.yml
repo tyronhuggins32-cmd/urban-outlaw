@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "scripts/upgrade_character.py"
+      - ".github/workflows/refine-character.yml"
 
 permissions:
   contents: write
@@ -22,6 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: true
+          fetch-depth: 0
       - name: Install free mesh-processing dependencies
         run: |
           python3 -m pip install --disable-pip-version-check "numpy<3" "scipy<2" "trimesh>=4,<5" "Pillow>=10,<13"
