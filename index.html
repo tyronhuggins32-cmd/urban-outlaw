@@ -213,8 +213,11 @@
             throw new Error('3D model has invalid bounds');
           }
           // Keep its proportions and position the feet at ground height.
-          const intendedHeight = 4.35;
+          const intendedHeight = 4.0; // shorter, stockier body proportions
           imported.scale.setScalar(intendedHeight / initialSize.y);
+          // Widen the shoulders, chest, waist, arms and legs without stretching height.
+          imported.scale.x *= 1.12;
+          imported.scale.z *= 1.10;
           imported.updateMatrixWorld(true);
           const scaledBounds = new THREE.Box3().setFromObject(imported);
           const modelCenter = scaledBounds.getCenter(new THREE.Vector3());
