@@ -1,0 +1,31 @@
+name: Verify Urban Outlaw 3D Character
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/browser-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.56.0
+      - run: npx playwright install chromium --with-deps
+      - name: Test 3D browser gameplay boot
+        run: |
+          python3 -m http.server 8000 >/tmp/urban-server.log 2>&1 &
+          sleep 2
+          node tests/browser-smoke.cjs
+      - name: Save screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: urban-3d-mobile-smoke
+          path: urban-3d-test.png
+          if-no-files-found: ignore
