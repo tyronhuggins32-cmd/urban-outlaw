@@ -193,7 +193,9 @@ def clip(title,duration,pose,frames=25):
     for name in names:
         result=[]
         for t in times:
-            x,y,z,up=pose(t/duration,name)
+            values=pose(t/duration,name)
+            x,y,z=values[:3]
+            up=values[3] if len(values)>3 else 0.
             result.append((0.,1.+up,0.) if name=="Hips" else quat(x,y,z))
         target="translation" if name=="Hips" else "rotation"
         out=acc(result,"f",3 if name=="Hips" else 4)
