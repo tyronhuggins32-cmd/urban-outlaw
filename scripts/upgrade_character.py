@@ -22,7 +22,20 @@ for name,geometry in scene.geometry.items():
         v=mesh.vertices.copy()
         mask=(v[:,2]>1.64)&(v[:,1]>.13)
         v[mask,1]=.13+(v[mask,1]-.13)*.88
+        crown=v[:,2]>1.73
+        v[crown,2]=1.73+(v[crown,2]-1.73)*.42
+        v[crown,1]+=.015
         mesh.vertices=v
+    if name=='skin_light':
+        centroids=mesh.triangles_center
+        knees=(centroids[:,2]>.478)&(centroids[:,2]<.540)&(np.abs(centroids[:,0])>.050)&(np.abs(centroids[:,0])<.165)
+        mesh.update_faces(~knees)
+        mesh.remove_unreferenced_vertices()
+    if name=='shorts_lit':
+        centroids=mesh.triangles_center
+        waistband=(centroids[:,2]>.865)&(centroids[:,2]<.930)
+        mesh.update_faces(~waistband)
+        mesh.remove_unreferenced_vertices()
     result.add_geometry(mesh,geom_name=name,node_name=name)
 
 def mat(name,color,roughness=.95):
@@ -78,16 +91,16 @@ def tube(points,radii,material,tag,sides=9):
 
 for s in (-1,1):
     curved_shell([
-        (s*.168,-.005,1.266,.065,.079),
-        (s*.184,-.008,1.246,.076,.084),
-        (s*.211,-.011,1.209,.080,.083),
-        (s*.231,-.011,1.170,.076,.079),
-        (s*.248,-.012,1.121,.067,.073),
-    ],fabric,f'soft_sleeve_{s}',seed=2*s,relief=.08)
+        (s*.166,-.005,1.266,.057,.071),
+        (s*.180,-.008,1.246,.063,.076),
+        (s*.205,-.011,1.209,.068,.076),
+        (s*.225,-.011,1.170,.067,.073),
+        (s*.244,-.012,1.121,.058,.068),
+    ],fabric,f'soft_sleeve_{s}',seed=2*s,relief=.035)
     for i in range(32):
         a=2*np.pi*i/32; b=2*np.pi*(i+1)/32
-        tube([(s*.248+.067*math.cos(a),-.012+.073*math.sin(a),1.124),
-              (s*.248+.067*math.cos(b),-.012+.073*math.sin(b),1.124)],
+        tube([(s*.244+.058*math.cos(a),-.012+.068*math.sin(a),1.124),
+              (s*.244+.058*math.cos(b),-.012+.068*math.sin(b),1.124)],
              [.0023,.0023],cuff,f'sleeve_hem_{s}_{i}',5)
 
 for s in (-1,1):
@@ -112,8 +125,8 @@ for s in (-1,1):
              for a in np.linspace(0,2*np.pi,85)]
     tube(cuffpts,[.0020]*len(cuffpts),soft_stitch,f'short_hem_{s}',6)
 
-curved_shell([(0,0,.795,.149,.078),(0,-.002,.831,.169,.085),
-              (0,-.002,.883,.174,.088),(0,-.002,.909,.145,.080)],
+curved_shell([(0,.035,.803,.140,.040),(0,.034,.831,.153,.044),
+              (0,.033,.883,.168,.051),(0,.030,.909,.144,.048)],
              soft_shorts,'shorts_waist_bridge',azimuth=64,sub=6,relief=.05)
 
 for s in (-1,1):
