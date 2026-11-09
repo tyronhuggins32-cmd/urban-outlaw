@@ -63,7 +63,7 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 0.5 · 3D</div>
+    <div class="ui version"><span class="dot"></span> BUILD 0.6 · 3D</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -165,49 +165,53 @@
         let characterVisual = null;
         let avatar = null;
         let spriteAtlas = null;
-        let armLeft = null, armRight = null, legLeft = null, legRight = null;
         let currentCharacterView = -1;
         const loaderMessage = 'Loading the 3D ninja model…';
         loading.textContent = loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-          const gltf = await new GLTFLoader().loadAsync('./assets/ninja-character.glb?v=5');
-          characterModel = gltf.scene;
-          characterModel.name = 'Urban Outlaw - Approved 3D Ninja';
-          characterModel.traverse(object => {
+          const gltf = await new GLTFLoader().loadAsync('./assets/ninja-character.glb?v=6');
+          characterModel = new THREE.Group();
+          characterModel.name = 'Urban Outlaw - User-supplied sculpted ninja v5';
+          const imported = gltf.scene;
+          imported.name = 'Scalable Z-up character mesh';
+          imported.rotation.x = -Math.PI / 2; // GLB Z-up to Three.js Y-up; original -Y face -> +Z
+          imported.traverse(object => {
             if (object.isMesh) {
               object.castShadow = true;
               object.receiveShadow = false;
               object.frustumCulled = false;
             }
           });
+          characterModel.add(imported);
           player.add(characterModel);
-
-          // Separate rigid mesh groups at anatomical shoulder/hip pivots.
-          // These meshes are real 3D parts, so the legs and arms move in depth.
-          const meshes = [];
-          characterModel.traverse(o => { if (o.isMesh) meshes.push(o); });
-          function makeJoint(name, prefix, x, y, z) {
-            const joint = new THREE.Group();
-            joint.name = name;
-            joint.position.set(x, y, z);
-            characterModel.add(joint);
-            characterModel.updateMatrixWorld(true);
-            for (const mesh of meshes) {
-              if (mesh.name.startsWith(prefix)) joint.attach(mesh);
-            }
-            return joint;
+          imported.updateMatrixWorld(true);
+          const initialBounds = new THREE.Box3().setFromObject(imported);
+          const initialSize = initialBounds.getSize(new THREE.Vector3());
+          if (initialBounds.isEmpty() || !Number.isFinite(initialSize.y) || initialSize.y < .2) {
+            throw new Error('3D model has invalid bounds');
           }
-          armLeft = makeJoint('Animated left shoulder', 'ARM_L_', -0.40, 3.18, 0);
-          armRight = makeJoint('Animated right shoulder', 'ARM_R_', 0.40, 3.18, 0);
-          legLeft = makeJoint('Animated left hip', 'LEG_L_', -0.19, 2.11, 0);
-          legRight = makeJoint('Animated right hip', 'LEG_R_', 0.19, 2.11, 0);
-          const bounds = new THREE.Box3().setFromObject(characterModel);
-          if (bounds.isEmpty() || !Number.isFinite(bounds.max.y) || bounds.max.y < 3) {
-            throw new Error('3D model bounds were invalid');
+          // Keep its proportions and position the feet at ground height.
+          const intendedHeight = 4.35;
+          imported.scale.setScalar(intendedHeight / initialSize.y);
+          imported.updateMatrixWorld(true);
+          const scaledBounds = new THREE.Box3().setFromObject(imported);
+          const modelCenter = scaledBounds.getCenter(new THREE.Vector3());
+          imported.position.x -= modelCenter.x;
+          imported.position.z -= modelCenter.z;
+          imported.position.y -= scaledBounds.min.y;
+          imported.updateMatrixWorld(true);
+          const finalBounds = new THREE.Box3().setFromObject(imported);
+          if (Math.abs(finalBounds.min.y) > .025 || Math.abs(finalBounds.max.y - intendedHeight) > .07) {
+            throw new Error('3D character could not be grounded correctly');
           }
+          // The supplied mesh groups by MATERIAL, not by animated limbs.
+          // Do not attach entire material groups to fake joints; that tears the mesh apart.
+          document.getElementById('game').dataset.character = 'sculpted-v5';
+          document.getElementById('game').dataset.meshHeight = finalBounds.getSize(new THREE.Vector3()).y.toFixed(2);
         } catch (error) {
-          console.error('Could not load approved 3D mesh; reverting to multi-view artwork.', error);
+          console.error('Could not load sculpted 3D mesh; reverting to multi-view artwork.', error);
+          document.getElementById('game').dataset.character = 'fallback';
           if (characterModel) {
             player.remove(characterModel);
             characterModel = null;
@@ -424,16 +428,14 @@
             stride += dt * (sprinting ? 14 : 10.5) * Math.min(1, inputLength);
           }
           player.rotation.y = facing;
-          // Animate the actual 3D character's shoulder and hip mesh groups.
+          // The uploaded model is unrigged; animate the model's whole-body
+          // motion without falsely swinging material-group meshes as limbs.
           if (characterModel) {
             const step = moving ? Math.sin(stride) * Math.min(1, inputLength) : 0;
-            const amplitude = sprinting ? .38 : .25;
-            armLeft.rotation.x = step * amplitude;
-            armRight.rotation.x = -step * amplitude;
-            legLeft.rotation.x = -step * amplitude;
-            legRight.rotation.x = step * amplitude;
-            characterModel.position.y = moving ? Math.abs(Math.sin(stride)) * .021 : Math.sin(performance.now() * .0013) * .006;
-            characterModel.rotation.x = moving ? -.024 : 0;
+            characterModel.position.y = moving ? Math.abs(Math.sin(stride)) * .023
+              : Math.sin(performance.now() * .0013) * .007;
+            characterModel.rotation.x = moving ? -.023 : 0;
+            characterModel.rotation.z = moving ? step * .013 : 0;
           } else if (characterVisual) {
             characterVisual.position.y = moving ? Math.abs(Math.sin(stride)) * .055 : 0;
             characterVisual.rotation.z = moving ? Math.sin(stride) * .018 : 0;
