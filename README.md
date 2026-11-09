@@ -1,47 +1,40 @@
 # Urban Outlaw
 
-A small, playable browser-based 3D game prototype. **Version 0.8** contains the wide grassy field and an upgraded, directly playable 3D ninja model built from the user-supplied v5 asset. Its 3D GLB model is stored in `assets/ninja-character.glb`. It is a foundation for future game features.
+**Build 0.9: Animated blank body, stage 1.** A third-person browser game with the neutral-gray, youthful body base as the playable character. This stage intentionally has no hair, eyes, facial details, clothing, or weapons. Proportions can be approved before adding details individually.
 
 ## Play
 
-Open the site when GitHub Pages is enabled, or serve this repository with a small local HTTP server and visit `index.html`.
+[Launch Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/)
 
-```bash
-python3 -m http.server 8000
-```
-
-Then visit `http://localhost:8000`.
+For local play: run **python3 -m http.server 8000** in the repository folder and visit http://localhost:8000. The game needs an internet connection to load Three.js.
 
 ## Controls
 
-| Device | Move | Look | Jump | Run |
+| Device | Move | Look | Jump | Sprint |
 |---|---|---|---|---|
-| Keyboard + mouse | WASD / arrows | Drag | Space | Shift |
-| Phone or tablet | On-screen joystick | Swipe the world | JUMP | Hold RUN |
-| PS5 DualSense (Bluetooth) | Left stick or D-pad | Right stick | Cross (×) | Hold R2, R1, or L3 |
+| Keyboard/mouse | WASD / arrows | Drag | Space | Shift |
+| Phone/tablet | On-screen joystick | Swipe | JUMP | Hold RUN |
+| PS5 DualSense | Left stick / D-pad | Right stick | Cross (×) | R2 / R1 / L3 |
 
-Mouse wheel zooms in and out. Mobile controls are displayed automatically on touchscreen devices. Tap **TOUCH: ON** at the upper right to hide the joystick, jump/run buttons, and touch camera gestures. Tap **TOUCH: OFF** to restore them. The preference is saved for future visits when browser storage is available. When a gamepad is detected, the game displays a controller-connected indicator. On an iPhone, pair the DualSense in iOS Bluetooth settings and press a button once in Safari to let the browser detect it.
+The TOUCH toggle hides or restores mobile controls; the saved setting persists.
 
-## How it works
+## Animated base body
 
-- One static `index.html` contains the styles, UI, and game code.
-- Three.js renders the 3D scene. The browser automatically loads the GLB model and its embedded textures from this repository; the user does not need to upload assets manually.
-- `assets/ninja-character.glb` is the refined **v0.8** model, with a high-collar shirt, softer draped sleeves, irregular fabric shorts, woven wraps, sandals, face, layered black-blue hair, metal forehead protector, and red-and-white back crest. It is grouped by material, not animation bones. The GLB is ~126,584 triangles in ~40 GPU mesh groups.
-- `assets/approved-ninja-turnaround.png` remains only as a fallback for devices that cannot load the GLB.
-- Movement, sprint, jump movement, mobile controls, and DualSense gamepad support are retained. This refined model has no skeletal rig, so animation uses gentle whole-body walking/idle bob without distorting material groups. Rigged arms, legs, and facial animations are future work.
-- Three.js is loaded from jsDelivr with an unpkg fallback. The glTF loader uses the jsDelivr Three.js addon import map; a network connection is required.
-- No build step or backend is required.
+- **Active GLB:** assets/blank-body.glb
+- **Editable generator:** scripts/build_blank_body.py
+- 30 independently modeled gray anatomical meshes with rounded, smooth normals. Authored height approximately 1.73m and about 6.7 heads tall, with a slender youthful build.
+- 19 named articulation joints: root, hips, spine, neck, head, and bilateral shoulders, upper arms, forearms, hands, thighs, lower legs, and feet.
+- Four **real glTF animation clips** built into the GLB: Idle, Walk, Run, and Jump. Each clip animates 13 actual nodes. Three.js AnimationMixer blends them based on player motion.
+- Y-up, +Z forward. The game scales the model to 4.35 world units and grounds its feet.
+- The old clothed ninja is retained as an inactive backup in assets/ninja-character.glb. It no longer appears as the normal playable character.
+- This model is articulated using parent-child nodes rather than skin weights, so elbows and knees still need a continuous skinned model for fully seamless deformations. This is an honest early-stage body model, not a finished realistic character.
 
-## GitHub Pages
+## Building the asset free
 
-To make the game playable from a public link: in the repository, open **Settings → Pages**, choose **Deploy from a branch**, then select **main** and **/(root)**, and save. GitHub will provide the playable site URL once deployment succeeds.
+Run **python3 scripts/build_blank_body.py assets/blank-body.glb**. No proprietary programs, subscriptions, or Python dependencies are needed. The GitHub workflow at .github/workflows/build-blank-body.yml generates, validates, and commits the model.
 
-This is a starter prototype; additional gameplay and multiplayer are not implemented yet.
+## Tests
 
-### Character details (v0.7)
+The GitHub workflow at .github/workflows/browser-smoke.yml uses Playwright to open the mobile-sized game and check that the correct GLB loaded, it has plausible bounds, the joints and all four clips are present, and the animation changes from Idle to Walk, Run, and Jump when corresponding controls are pressed.
 
-The original asset was Z-up, facing -Y. The game converts it to Three.js Y-up, faces the character toward +Z, scales it to 4.35 game units tall and puts its feet on the field. When a model load fails, the old 2.5D avatar loads as a fallback. These conversions are applied at runtime; the character asset is edited in-repository by a reproducible free Python script, not a paid generator.
-
-## Rebuilding the character (free)
-
-Run `python3 scripts/upgrade_character.py original.glb refined.glb` after installing `trimesh`, `numpy` and `scipy`. The GitHub workflow `.github/workflows/refine-character.yml` builds and checks the replacement GLB from the original sculpt, then commits the result into `assets/ninja-character.glb` so the browser can load it directly. The workflow explicitly rebuilds from the original v5 Git commit, preventing cumulative mesh distortions. The model is **not yet an exact match** to the submitted 3D approval sheet and is **not rigged**. Visual fidelity, clean skinned topology, and skeletal animation remain future work. The browser smoke test checks the correct version, loaded mesh count and triangles rather than only the presence of a canvas.
+The earlier body-proportion approval image is a reference, not a 3D file. The actual 3D geometry and animation are reproducible from the Python source.
