@@ -1,0 +1,41 @@
+name: Prepare Multiview Sculpt References
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/extract_character_reference.py'
+      - '.github/workflows/character-reference.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  crop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m pip install --quiet Pillow
+      - name: Extract exact four views of reference art
+        env:
+          NINJA_REFERENCE_SOURCE_URL: https://d2ol7oe51mr4n9.cloudfront.net/user_3J3FsehSSM8aaRaK5HcNwjYb3e6/81d563d9-99b8-44b8-9fec-df8942c66112.jpg
+        run: |
+          python3 scripts/extract_character_reference.py
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          for name in ('hero','front','side','back','face'):
+              p=Path(f'assets/reference/{name}.jpg')
+              im=Image.open(p)
+              assert im.width>130 and im.height>200, (name, im.size)
+          PY
+      - name: Publish reference crops for 3D reconstruction
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/reference
+          git diff --cached --quiet && exit 0
+          git commit -m "Add isolated full-body turnaround crops for model reconstruction"
+          git pull --rebase origin main
+          git push origin HEAD:main
