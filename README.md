@@ -1,6 +1,6 @@
 # Urban Outlaw
 
-A small, playable browser-based 3D game prototype. **Version 0.7** contains the wide grassy field and an upgraded, directly playable 3D ninja model built from the user-supplied v5 asset. Its 3D GLB model is stored in `assets/ninja-character.glb`. It is a foundation for future game features.
+A small, playable browser-based 3D game prototype. **Version 0.8** contains the wide grassy field and an upgraded, directly playable 3D ninja model built from the user-supplied v5 asset. Its 3D GLB model is stored in `assets/ninja-character.glb`. It is a foundation for future game features.
 
 ## Play
 
@@ -26,7 +26,7 @@ Mouse wheel zooms in and out. Mobile controls are displayed automatically on tou
 
 - One static `index.html` contains the styles, UI, and game code.
 - Three.js renders the 3D scene. The browser automatically loads the GLB model and its embedded textures from this repository; the user does not need to upload assets manually.
-- `assets/ninja-character.glb` is the refined **v0.7** model, with a high-collar shirt, softer draped sleeves, irregular fabric shorts, woven wraps, sandals, face, layered black-blue hair, metal forehead protector, and red-and-white back crest. It is grouped by material, not animation bones. The GLB is ~127,248 triangles in ~40 GPU mesh groups.
+- `assets/ninja-character.glb` is the refined **v0.8** model, with a high-collar shirt, softer draped sleeves, irregular fabric shorts, woven wraps, sandals, face, layered black-blue hair, metal forehead protector, and red-and-white back crest. It is grouped by material, not animation bones. The GLB is ~126,584 triangles in ~40 GPU mesh groups.
 - `assets/approved-ninja-turnaround.png` remains only as a fallback for devices that cannot load the GLB.
 - Movement, sprint, jump movement, mobile controls, and DualSense gamepad support are retained. This refined model has no skeletal rig, so animation uses gentle whole-body walking/idle bob without distorting material groups. Rigged arms, legs, and facial animations are future work.
 - Three.js is loaded from jsDelivr with an unpkg fallback. The glTF loader uses the jsDelivr Three.js addon import map; a network connection is required.
@@ -44,4 +44,4 @@ The original asset was Z-up, facing -Y. The game converts it to Three.js Y-up, f
 
 ## Rebuilding the character (free)
 
-Run `python3 scripts/upgrade_character.py original.glb refined.glb` after installing `trimesh`, `numpy` and `scipy`. The GitHub workflow `.github/workflows/refine-character.yml` builds and checks the replacement GLB from the original sculpt, then commits the result into `assets/ninja-character.glb` so the browser can load it directly. The model is **not yet an exact match** to the submitted 3D approval sheet and is **not rigged**. Visual fidelity, clean skinned topology, and skeletal animation remain future work. The browser smoke test checks the correct version, loaded mesh count and triangles rather than only the presence of a canvas.
+Run `python3 scripts/upgrade_character.py original.glb refined.glb` after installing `trimesh`, `numpy` and `scipy`. The GitHub workflow `.github/workflows/refine-character.yml` builds and checks the replacement GLB from the original sculpt, then commits the result into `assets/ninja-character.glb` so the browser can load it directly. The workflow explicitly rebuilds from the original v5 Git commit, preventing cumulative mesh distortions. The model is **not yet an exact match** to the submitted 3D approval sheet and is **not rigged**. Visual fidelity, clean skinned topology, and skeletal animation remain future work. The browser smoke test checks the correct version, loaded mesh count and triangles rather than only the presence of a canvas.
