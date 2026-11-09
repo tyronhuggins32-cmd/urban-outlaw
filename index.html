@@ -63,7 +63,7 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 0.5 · 3D</div>
+    <div class="ui version"><span class="dot"></span> BUILD 0.6 · 3D</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -156,9 +156,7 @@
         ground.receiveShadow = true;
         scene.add(ground);
 
-        // True 3D model: actual GLB mesh built from the approved reference sheet.
-        // Geometry has genuine thickness and can be viewed freely from any angle.
-        // Front, profile and back fabric/face textures use the approved art.
+        // Volumetric character with corrected proportions and reference-based textures.
         const player = new THREE.Group();
         scene.add(player);
         let characterModel = null;
@@ -171,16 +169,19 @@
         loading.textContent = loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-          const gltf = await new GLTFLoader().loadAsync('./assets/ninja-character.glb?v=5');
+          const gltf = await new GLTFLoader().loadAsync('./assets/ninja-character.glb?v=6');
           characterModel = gltf.scene;
           characterModel.name = 'Urban Outlaw - Approved 3D Ninja';
           characterModel.traverse(object => {
             if (object.isMesh) {
+              object.geometry.computeVertexNormals();
               object.castShadow = true;
               object.receiveShadow = false;
               object.frustumCulled = false;
             }
           });
+          const { refineCharacter } = await import('./assets/character-details.js?v=6');
+          refineCharacter(THREE, characterModel);
           player.add(characterModel);
 
           // Separate rigid mesh groups at anatomical shoulder/hip pivots.
@@ -198,10 +199,10 @@
             }
             return joint;
           }
-          armLeft = makeJoint('Animated left shoulder', 'ARM_L_', -0.40, 3.18, 0);
-          armRight = makeJoint('Animated right shoulder', 'ARM_R_', 0.40, 3.18, 0);
-          legLeft = makeJoint('Animated left hip', 'LEG_L_', -0.19, 2.11, 0);
-          legRight = makeJoint('Animated right hip', 'LEG_R_', 0.19, 2.11, 0);
+          armLeft = makeJoint('Animated left shoulder', 'ARM_L_', -0.472, 3.18, 0);
+          armRight = makeJoint('Animated right shoulder', 'ARM_R_', 0.472, 3.18, 0);
+          legLeft = makeJoint('Animated left hip', 'LEG_L_', -0.2242, 2.11, 0);
+          legRight = makeJoint('Animated right hip', 'LEG_R_', 0.2242, 2.11, 0);
           const bounds = new THREE.Box3().setFromObject(characterModel);
           if (bounds.isEmpty() || !Number.isFinite(bounds.max.y) || bounds.max.y < 3) {
             throw new Error('3D model bounds were invalid');
@@ -331,7 +332,7 @@
         touchToggle.addEventListener('click', () => setTouchControls(!touchEnabled));
         setTouchControls(touchEnabled);
 
-        let orbit = Math.PI, elevation = .34, distance = 15;
+        let orbit = .35, elevation = .22, distance = 11;
         let dragging = null, lastX = 0, lastY = 0;
         canvas.addEventListener('pointerdown', event => {
           if (event.pointerType === 'touch' && !touchEnabled) return;
