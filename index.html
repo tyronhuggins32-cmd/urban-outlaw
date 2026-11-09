@@ -42,6 +42,16 @@
     #run { width: 68px; height: 68px; }
     #jump { width: 92px; height: 92px; background: #ffdb72b0; border-color: #fff4cb; color: #263544; }
     #jump:active { background: #ffeb99; }
+    #modelReviewPanel { display:none; position:absolute; inset:0; pointer-events:none; z-index:7; }
+    #game.review #modelReviewPanel { display:block; }
+    #game.review #touchControls, #game.review #touchToggle, #game.review .hint, #game.review .help { display:none !important; }
+    .review-reference { position:absolute; left:12px; bottom:max(88px, env(safe-area-inset-bottom)); width:min(31vw, 158px); border-radius:10px; overflow:hidden; background:#20344abb; border:1px solid #ffffff9a; box-shadow:0 6px 24px #0003; }
+    .review-reference img { width:100%; max-height:40vh; object-fit:contain; display:block; background:#e1e1eb; }
+    .review-reference p { margin:6px; text-align:center; font:800 10px system-ui; letter-spacing:.8px; }
+    .review-views { position:absolute; right:13px; bottom:max(90px, env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:7px; pointer-events:auto; }
+    .review-views button { color:#f7f9ff; border:1px solid #dde3f1a0; background:#1a2b3cbf; padding:10px; border-radius:8px; font:800 11px system-ui; min-width:76px; }
+    .review-views button[aria-pressed=true] { background:#5075a6; border-color:white; }
+    .review-headline { position:absolute; top:max(135px,env(safe-area-inset-top)); left:12px; font:800 10px system-ui; color:white; padding:8px 10px; background:#233849b9; border-radius:7px; letter-spacing:.7px; }
     @media (pointer: coarse) {
       #touchControls { display: block; }
       #touchToggle { display: flex; }
@@ -78,6 +88,20 @@
       </div>
     </div>
     <div id="loading" role="status" aria-live="polite">Loading playground...</div>
+    <div id="modelReviewPanel" aria-label="Reference comparison mode">
+      <div class="review-headline">ACTUAL 3D MODEL VS. REFERENCE</div>
+      <div class="review-reference">
+        <img id="reviewReference" src="./assets/reference/front.jpg" alt="Character approval reference"/>
+        <p id="reviewReferenceLabel">FRONT REFERENCE</p>
+      </div>
+      <div class="review-views">
+        <button type="button" data-review-angle="front" aria-pressed="true">FRONT</button>
+        <button type="button" data-review-angle="side" aria-pressed="false">SIDE</button>
+        <button type="button" data-review-angle="back" aria-pressed="false">BACK</button>
+        <button type="button" data-review-angle="hero" aria-pressed="false">3/4</button>
+        <button type="button" id="reviewExit">PLAY</button>
+      </div>
+    </div>
   </main>
   <script type="importmap">
     {
@@ -104,6 +128,9 @@
 
       try {
         const canvas = document.getElementById('viewport');
+        const reviewMode = new URLSearchParams(location.search).get('review') === '1';
+        document.getElementById('game').classList.toggle('review', reviewMode);
+        if (reviewMode) document.getElementById('game').dataset.reviewView = 'front';
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -381,7 +408,21 @@
         touchToggle.addEventListener('click', () => setTouchControls(!touchEnabled));
         setTouchControls(touchEnabled);
 
-        let orbit = Math.PI, elevation = .34, distance = 15;
+        let orbit = reviewMode ? 0 : Math.PI;
+        let elevation = reviewMode ? .10 : .34, distance = reviewMode ? 7.5 : 15;
+        const reviewAngles = {front:0, side:Math.PI/2, back:Math.PI, hero:-Math.PI/4};
+        for (const button of document.querySelectorAll('[data-review-angle]')) {
+          button.addEventListener('click', () => {
+            const view=button.dataset.reviewAngle;
+            orbit=reviewAngles[view];
+            elevation=.10; distance=7.5;
+            document.getElementById('reviewReference').src='./assets/reference/'+view+'.jpg';
+            document.getElementById('reviewReferenceLabel').textContent=(view==='hero'?'3/4':view.toUpperCase())+' REFERENCE';
+            document.getElementById('game').dataset.reviewView=view;
+            for(const other of document.querySelectorAll('[data-review-angle]')) other.setAttribute('aria-pressed',String(other===button));
+          });
+        }
+        document.getElementById('reviewExit').addEventListener('click',()=>{ location.href=location.pathname; });
         let dragging = null, lastX = 0, lastY = 0;
         canvas.addEventListener('pointerdown', event => {
           if (event.pointerType === 'touch' && !touchEnabled) return;
@@ -457,13 +498,14 @@
           let y = (pressed.has('w') || pressed.has('arrowup') ? 1 : 0) - (pressed.has('s') || pressed.has('arrowdown') ? 1 : 0) + stickY + padY;
           const inputLength = Math.hypot(x, y);
           if (inputLength > 1) { x /= inputLength; y /= inputLength; }
+          if (reviewMode) { x=0; y=0; jumpRequested=false; }
 
           forward.set(-Math.sin(orbit), 0, -Math.cos(orbit));
           right.set(forward.z, 0, -forward.x);
           const moveX = forward.x * y + right.x * x;
           const moveZ = forward.z * y + right.z * x;
           const moving = Math.hypot(moveX, moveZ) > .07;
-          const sprinting = pressed.has('shift') || touchRun || down(pad, 7) || down(pad, 5) || down(pad, 10);
+          const sprinting = !reviewMode && (pressed.has('shift') || touchRun || down(pad, 7) || down(pad, 5) || down(pad, 10));
           const speed = sprinting ? 9.5 : 6.1;
           player.position.x += moveX * speed * dt;
           player.position.z += moveZ * speed * dt;
