@@ -7,6 +7,8 @@ on:
       - 'index.html'
       - 'assets/ninja-character.glb'
       - 'assets/blank-body.glb'
+      - 'assets/reference-rig.glb'
+      - 'scripts/reference-character-animations.js'
       - 'assets/reference/**'
       - 'tests/model-review.cjs'
       - 'tests/browser-smoke.cjs'
