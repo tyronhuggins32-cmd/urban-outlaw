@@ -422,6 +422,16 @@
             const view=button.dataset.reviewAngle;
             orbit=reviewAngles[view];
             elevation=.10; distance=7.5;
+            // Snap review camera around the subject: Cartesian lerp across a
+            // 180-degree turn can pass through the character and magnify it.
+            const reviewLook = new THREE.Vector3(player.position.x, player.position.y+1.85, player.position.z);
+            const reviewHorizontal = Math.cos(elevation)*distance;
+            camera.position.set(
+              reviewLook.x+Math.sin(orbit)*reviewHorizontal,
+              reviewLook.y+Math.sin(elevation)*distance,
+              reviewLook.z+Math.cos(orbit)*reviewHorizontal
+            );
+            camera.lookAt(reviewLook);
             document.getElementById('reviewReference').src='./assets/reference/'+view+'.jpg';
             document.getElementById('reviewReferenceLabel').textContent=(view==='hero'?'3/4':view.toUpperCase())+' REFERENCE';
             document.getElementById('game').dataset.reviewView=view;
