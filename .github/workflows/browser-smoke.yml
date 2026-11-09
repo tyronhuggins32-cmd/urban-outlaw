@@ -6,6 +6,9 @@ on:
       - '.github/workflows/browser-smoke.yml'
       - 'index.html'
       - 'assets/ninja-character.glb'
+      - 'assets/blank-body.glb'
+      - 'assets/reference/**'
+      - 'tests/model-review.cjs'
       - 'tests/browser-smoke.cjs'
 permissions:
   contents: read
@@ -25,10 +28,13 @@ jobs:
           python3 -m http.server 8000 >/tmp/urban-server.log 2>&1 &
           sleep 2
           node tests/browser-smoke.cjs
+          node tests/model-review.cjs
       - name: Save screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: urban-3d-mobile-smoke
-          path: urban-3d-test.png
+          path: |
+            urban-3d-test.png
+            urban-review-*.png
           if-no-files-found: ignore
