@@ -63,7 +63,7 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 0.7 · REFINED 3D</div>
+    <div class="ui version"><span class="dot"></span> BUILD 0.8 · REFINED 3D</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -170,9 +170,9 @@
         loading.textContent = loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-          const gltf = await new GLTFLoader().loadAsync('./assets/ninja-character.glb?v=7');
+          const gltf = await new GLTFLoader().loadAsync('./assets/ninja-character.glb?v=8');
           characterModel = new THREE.Group();
-          characterModel.name = 'Urban Outlaw - Refined playable ninja v7';
+          characterModel.name = 'Urban Outlaw - Refined playable ninja v8';
           const imported = gltf.scene;
           imported.name = 'Scalable Z-up character mesh';
           let triangleCount = 0;
@@ -212,7 +212,7 @@
           }
           // The refined mesh groups by MATERIAL, not by animated limbs.
           // Do not attach entire material groups to fake joints; that tears the mesh apart.
-          document.getElementById('game').dataset.character = 'refined-v7';
+          document.getElementById('game').dataset.character = 'refined-v8';
           document.getElementById('game').dataset.triangles = String(Math.round(triangleCount));
           document.getElementById('game').dataset.meshGroups = String(meshCount);
           document.getElementById('game').dataset.meshHeight = finalBounds.getSize(new THREE.Vector3()).y.toFixed(2);
