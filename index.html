@@ -63,7 +63,7 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 0.3</div>
+    <div class="ui version"><span class="dot"></span> BUILD 0.4</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -148,263 +148,55 @@
         ground.receiveShadow = true;
         scene.add(ground);
 
-        // Stylized anime ninja modeled entirely in Three.js, with no external assets.
-        // The silhouette, palette and gear take direction from the two supplied images.
+        // The user-approved character artwork is displayed as a camera-aware 2.5D
+        // multi-view sprite in a genuine 3D game world. This preserves the exact
+        // clothing, face and proportions shown in the approved concept sheet
+        // without falsely claiming the concept image is a rigged 3D model.
         const player = new THREE.Group();
         scene.add(player);
-
-        const clothBlue = new THREE.MeshStandardMaterial({ color: 0x193a67, roughness: .89, flatShading: true });
-        const clothHighlight = new THREE.MeshStandardMaterial({ color: 0x28517c, roughness: .9, flatShading: true });
-        const clothDark = new THREE.MeshStandardMaterial({ color: 0x101d35, roughness: .91, flatShading: true });
-        const seam = new THREE.MeshStandardMaterial({ color: 0x304c73, roughness: .94 });
-        const shorts = new THREE.MeshStandardMaterial({ color: 0xc4c5ba, roughness: .97, flatShading: true });
-        const shortsShadow = new THREE.MeshStandardMaterial({ color: 0x999e9b, roughness: .97 });
-        const wraps = new THREE.MeshStandardMaterial({ color: 0xc0c4c4, roughness: 1 });
-        const wrapShadow = new THREE.MeshStandardMaterial({ color: 0x8c979f, roughness: 1 });
-        const skin = new THREE.MeshStandardMaterial({ color: 0xe7c5b4, roughness: .93 });
-        const hair = new THREE.MeshStandardMaterial({ color: 0x111829, roughness: .82, flatShading: true });
-        const hairLight = new THREE.MeshStandardMaterial({ color: 0x20304a, roughness: .84, flatShading: true });
-        const sandals = new THREE.MeshStandardMaterial({ color: 0x142541, roughness: .95 });
-        const metal = new THREE.MeshStandardMaterial({ color: 0xabb7c5, metalness: .46, roughness: .43 });
-        const rivetMetal = new THREE.MeshStandardMaterial({ color: 0x445266, metalness: .5, roughness: .49 });
-        const gear = new THREE.MeshStandardMaterial({ color: 0x8e8478, roughness: .94 });
-
-        function part(parent, geometry, material, x = 0, y = 0, z = 0) {
-          const object = new THREE.Mesh(geometry, material);
-          object.position.set(x, y, z);
-          object.castShadow = true;
-          object.receiveShadow = true;
-          parent.add(object);
-          return object;
-        }
-        function cube(parent, material, sx, sy, sz, x, y, z) {
-          return part(parent, new THREE.BoxGeometry(sx, sy, sz), material, x, y, z);
-        }
-        function ball(parent, material, rx, ry, rz, x, y, z) {
-          const object = part(parent, new THREE.SphereGeometry(1, 16, 12), material, x, y, z);
-          object.scale.set(rx, ry, rz);
-          return object;
-        }
-        function cylinder(parent, material, top, bottom, height, x, y, z, segments = 10) {
-          return part(parent, new THREE.CylinderGeometry(top, bottom, height, segments), material, x, y, z);
-        }
-        function strand(parent, material, from, to, width, sides = 5) {
-          const a = new THREE.Vector3(...from);
-          const b = new THREE.Vector3(...to);
-          const direction = b.clone().sub(a);
-          const object = part(parent, new THREE.ConeGeometry(width, direction.length(), sides), material,
-            (a.x + b.x) * .5, (a.y + b.y) * .5, (a.z + b.z) * .5);
-          object.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
-          return object;
-        }
-
-        // Body proportions are slim and slightly angular rather than Roblox cubes.
-        const body = cylinder(player, clothBlue, .59, .48, 1.22, 0, 2.64, 0, 9);
-        body.scale.z = .73;
-        ball(player, clothBlue, .60, .20, .37, 0, 3.12, 0);
-        cylinder(player, clothDark, .50, .44, .18, 0, 2.06, 0, 10);
-        cube(player, seam, .93, .065, .69, 0, 2.075, 0);
-        cube(player, clothHighlight, .075, .81, .018, -.16, 2.69, .423);
-
-        // Raised collar, with the front opening where the chin meets the shirt.
-        const collar = part(player,
-          new THREE.CylinderGeometry(.46, .55, .60, 22, 1, true, .44, Math.PI * 2 - .88),
-          clothBlue, 0, 3.31, 0);
-        collar.scale.z = .86;
-        const collarInside = part(player,
-          new THREE.CylinderGeometry(.438, .524, .56, 22, 1, true, .46, Math.PI * 2 - .92),
-          clothDark, 0, 3.315, 0);
-        collarInside.scale.z = .84;
-        const collarRim = part(player,
-          new THREE.TorusGeometry(.46, .019, 5, 25, Math.PI * 2 - .88),
-          seam, 0, 3.61, 0);
-        collarRim.rotation.x = Math.PI / 2;
-        collarRim.rotation.z = -.45;
-        collarRim.scale.y = .86;
-
-        // Uchiha-inspired two-color fan crest, printed on the back of the blue shirt.
-        function makeCrest() {
-          const canvas = document.createElement('canvas');
-          canvas.width = canvas.height = 256;
-          const c = canvas.getContext('2d');
-          c.lineJoin = 'round';
-          c.fillStyle = '#f7f2e5';
-          c.beginPath();
-          c.moveTo(74, 128); c.lineTo(182, 128); c.lineTo(151, 169);
-          c.lineTo(145, 213); c.lineTo(111, 213); c.lineTo(105, 169);
-          c.closePath(); c.fill();
-          c.fillStyle = '#d85d4e';
-          c.beginPath(); c.arc(128, 122, 64, Math.PI, 2 * Math.PI);
-          c.lineTo(192, 129); c.lineTo(64, 129); c.closePath(); c.fill();
-          c.strokeStyle = '#19294b'; c.lineWidth = 6;
-          c.beginPath(); c.arc(128, 122, 64, Math.PI, 2 * Math.PI);
-          c.lineTo(192, 129); c.lineTo(151, 169); c.lineTo(145, 213);
-          c.lineTo(111, 213); c.lineTo(105, 169); c.lineTo(64, 129); c.closePath(); c.stroke();
-          c.beginPath(); c.moveTo(66, 130); c.lineTo(190, 130); c.stroke();
-          return canvas;
-        }
-        const crestMap = new THREE.CanvasTexture(makeCrest());
-        crestMap.colorSpace = THREE.SRGBColorSpace;
-        const crest = part(player, new THREE.PlaneGeometry(.59, .61),
-          new THREE.MeshBasicMaterial({ map: crestMap, transparent: true, side: THREE.DoubleSide, depthWrite: false }),
-          0, 2.77, -.399);
-        crest.rotation.y = Math.PI;
-
-        // Hips and loose light-gray shorts.
-        ball(player, shorts, .48, .29, .38, 0, 1.995, 0);
-        const leftLeg = new THREE.Group();
-        const rightLeg = new THREE.Group();
-        leftLeg.position.set(-.265, 1.91, 0);
-        rightLeg.position.set(.265, 1.91, 0);
-        player.add(leftLeg, rightLeg);
-
-        function makeLeg(group, side) {
-          const thigh = cylinder(group, shorts, .33, .335, .69, 0, -.315, 0, 9);
-          thigh.scale.z = 1.05;
-          cylinder(group, shortsShadow, .316, .322, .045, 0, -.653, 0, 10);
-          ball(group, skin, .205, .23, .20, 0, -.80, 0);
-          cylinder(group, wraps, .208, .173, .55, 0, -1.13, 0, 10);
-          for (let i = 0; i < 5; i++) {
-            const stripe = cylinder(group, i % 2 ? wraps : wrapShadow,
-              .207 - i * .007, .205 - i * .007, .035,
-              0, -.89 - i * .105, 0, 12);
-            stripe.rotation.z = (side === 1 ? 1 : -1) * .10;
+        const characterVisual = new THREE.Group();
+        player.add(characterVisual);
+        const spriteAtlas = await new THREE.TextureLoader().loadAsync('./assets/approved-ninja-turnaround.png');
+        spriteAtlas.colorSpace = THREE.SRGBColorSpace;
+        spriteAtlas.magFilter = THREE.LinearFilter;
+        spriteAtlas.minFilter = THREE.LinearMipmapLinearFilter;
+        spriteAtlas.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
+        spriteAtlas.wrapS = spriteAtlas.wrapT = THREE.ClampToEdgeWrapping;
+        spriteAtlas.repeat.set(0.25, 1);
+        spriteAtlas.offset.set(0, 0);
+        spriteAtlas.updateMatrix();
+        const spriteMaterial = new THREE.MeshBasicMaterial({
+          map: spriteAtlas,
+          transparent: true,
+          alphaTest: 0.075,
+          depthWrite: true,
+          side: THREE.DoubleSide,
+          toneMapped: false
+        });
+        const avatar = new THREE.Mesh(new THREE.PlaneGeometry(1.64, 4.5), spriteMaterial);
+        avatar.name = 'Approved ninja multi-view art';
+        avatar.position.y = 2.25;
+        avatar.castShadow = true;
+        avatar.frustumCulled = false;
+        characterVisual.add(avatar);
+        let currentCharacterView = -1;
+        function updateCharacterView(orbit, facing, moving) {
+          // Character forward is +Z. The camera faces in from orbit angle.
+          const relative = Math.atan2(Math.sin(orbit - facing), Math.cos(orbit - facing));
+          const angle = Math.abs(relative);
+          // Atlas frames: 0 front, 1 profile, 2 back, 3 three-quarter hero.
+          let view = angle > 2.35 ? 2 : angle > 0.80 ? 1 : 0;
+          if (!moving && relative > 0.43 && relative < 0.90) view = 3;
+          if (view !== currentCharacterView) {
+            currentCharacterView = view;
+            spriteAtlas.offset.x = view * 0.25;
+            spriteAtlas.updateMatrix();
           }
-          cylinder(group, sandals, .205, .22, .30, 0, -1.52, 0, 10);
-          const shoe = ball(group, sandals, .258, .16, .39, 0, -1.73, .14);
-          shoe.scale.y = .72;
-          cube(group, skin, .34, .065, .22, 0, -1.786, .38);
-          cube(group, sandals, .38, .065, .12, 0, -1.76, .26);
-          if (side === 1) {
-            // Side leg pouch with crossed straps.
-            const pouch = cube(group, gear, .18, .37, .24, .34, -.38, 0);
-            pouch.rotation.z = -.08;
-            const strap = cube(group, wraps, .12, .39, .43, .30, -.34, 0);
-            strap.rotation.z = .45;
-            cube(group, wrapShadow, .19, .055, .27, .35, -.29, 0);
-          }
-        }
-        makeLeg(leftLeg, -1);
-        makeLeg(rightLeg, 1);
-
-        // Articulated arms with blue sleeves, pale hands and cloth forearm wraps.
-        const leftArm = new THREE.Group();
-        const rightArm = new THREE.Group();
-        leftArm.position.set(-.62, 3.03, 0);
-        rightArm.position.set(.62, 3.03, 0);
-        player.add(leftArm, rightArm);
-        function makeArm(group, side) {
-          const sleeve = cylinder(group, clothBlue, .25, .23, .52, side * .09, -.26, 0, 9);
-          sleeve.rotation.z = -side * .14;
-          cylinder(group, seam, .23, .225, .07, side * .14, -.505, 0, 9);
-          ball(group, skin, .196, .24, .19, side * .14, -.67, 0);
-          cylinder(group, wraps, .193, .17, .48, side * .15, -.91, 0, 10);
-          for (let i = 0; i < 4; i++) {
-            const stripe = cylinder(group, wrapShadow, .195 - i * .006, .19 - i * .006, .021,
-              side * .15, -.725 - i * .115, 0, 12);
-            stripe.rotation.z = side * .12;
-          }
-          ball(group, skin, .185, .19, .14, side * .15, -1.25, .01);
-          for (let i = 0; i < 4; i++) {
-            cube(group, skin, .07, .14, .11, side * .15 + (i - 1.5) * .068, -1.40, .01);
-          }
-        }
-        makeArm(leftArm, -1);
-        makeArm(rightArm, 1);
-        leftArm.rotation.z = -.10;
-        rightArm.rotation.z = .10;
-
-        // Head, narrow jaw, serious eyes and small anime-style features.
-        ball(player, skin, .407, .48, .377, 0, 3.86, .012);
-        const jaw = ball(player, skin, .32, .25, .29, 0, 3.59, .07);
-        jaw.scale.y = .90;
-        ball(player, skin, .086, .16, .083, -.406, 3.82, 0);
-        ball(player, skin, .086, .16, .083, .406, 3.82, 0);
-
-        const faceCanvas = document.createElement('canvas');
-        faceCanvas.width = faceCanvas.height = 512;
-        const f = faceCanvas.getContext('2d');
-        f.lineCap = 'round'; f.lineJoin = 'round';
-        function ink(points, stroke, width) {
-          f.beginPath();
-          f.moveTo(points[0][0], points[0][1]);
-          for (let i = 1; i < points.length; i++) f.lineTo(points[i][0], points[i][1]);
-          f.strokeStyle = stroke; f.lineWidth = width; f.stroke();
-        }
-        // Asymmetric eyebrows and thin, sharp upper eyelids.
-        ink([[82,152],[158,165],[197,174]], '#24242f', 15);
-        ink([[315,174],[354,162],[431,149]], '#24242f', 15);
-        f.fillStyle = '#f5eee8';
-        for (const x of [158, 351]) {
-          f.beginPath(); f.ellipse(x, 212, 55, 20, 0, 0, Math.PI * 2); f.fill();
-          f.fillStyle = '#353c46'; f.beginPath(); f.ellipse(x, 212, 16, 21, 0, 0, Math.PI * 2); f.fill();
-          f.fillStyle = '#151b28'; f.beginPath(); f.ellipse(x, 213, 9, 15, 0, 0, Math.PI * 2); f.fill();
-          f.fillStyle = '#f5eee8';
-        }
-        ink([[103,207],[151,190],[207,209]], '#191d2b', 12);
-        ink([[301,207],[355,189],[411,206]], '#191d2b', 12);
-        ink([[130,236],[182,239]], '#ae8f86', 3);
-        ink([[329,239],[385,236]], '#ae8f86', 3);
-        ink([[257,248],[250,308],[269,315]], '#ae8d84', 4);
-        ink([[226,377],[255,384],[284,376]], '#775f62', 5);
-        const faceMap = new THREE.CanvasTexture(faceCanvas);
-        const face = part(player, new THREE.PlaneGeometry(.70, .67),
-          new THREE.MeshBasicMaterial({ map: faceMap, transparent: true, depthWrite: false }),
-          0, 3.79, .398);
-
-        // Konoha-style forehead protector: dark cloth, silver plate and stylized leaf spiral.
-        const band = cylinder(player, clothDark, .421, .426, .184, 0, 4.13, 0, 22);
-        band.scale.z = 1.05;
-        cube(player, metal, .56, .185, .078, 0, 4.14, .426);
-        for (const x of [-.237,.237]) {
-          ball(player, rivetMetal, .019, .019, .011, x, 4.14, .474);
-        }
-        const insigniaCanvas = document.createElement('canvas');
-        insigniaCanvas.width = 256; insigniaCanvas.height = 96;
-        const k = insigniaCanvas.getContext('2d');
-        k.strokeStyle = '#354154'; k.lineWidth = 9; k.lineCap = 'round'; k.lineJoin = 'round';
-        k.beginPath();
-        k.moveTo(79, 65); k.bezierCurveTo(96, 21, 155, 20, 163, 52);
-        k.bezierCurveTo(164, 73, 135, 79, 129, 55);
-        k.bezierCurveTo(128, 41, 151, 42, 151, 50);
-        k.stroke();
-        k.beginPath(); k.moveTo(165, 51); k.lineTo(193, 35); k.moveTo(164, 51); k.lineTo(194, 61); k.stroke();
-        k.beginPath(); k.moveTo(99, 67); k.lineTo(86, 83); k.stroke();
-        const insignia = part(player, new THREE.PlaneGeometry(.43, .15),
-          new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(insigniaCanvas), transparent: true, depthWrite: false }),
-          0, 4.143, .472);
-
-        // Layered black/navy hair: a dark cap, back spikes, tall crown and long bangs.
-        ball(player, hair, .447, .255, .419, 0, 4.286, -.016);
-        // Back-facing spike silhouette, visible during third-person play.
-        const backSpikes = [
-          [[-.30,4.39,-.24],[-.90,4.66,-.72],.22],
-          [[-.18,4.45,-.28],[-.57,4.84,-.89],.23],
-          [[0,4.50,-.28],[-.12,4.91,-1.04],.27],
-          [[.16,4.45,-.25],[.42,4.85,-.90],.24],
-          [[.29,4.37,-.24],[.90,4.63,-.64],.22],
-          [[.32,4.28,-.27],[.84,4.28,-.78],.20],
-          [[-.34,4.27,-.25],[-.84,4.34,-.75],.21],
-          [[0,4.28,-.35],[.12,4.44,-.89],.25]
-        ];
-        for (const [a,b,r] of backSpikes) strand(player, hair, a, b, r, 5);
-        const topSpikes = [
-          [[-.30,4.37,0],[-.58,4.88,-.16],.19],
-          [[-.13,4.44,0],[-.30,5.04,-.20],.20],
-          [[.05,4.46,0],[.04,5.09,-.12],.22],
-          [[.24,4.39,0],[.38,5.00,-.18],.20],
-          [[.36,4.30,.02],[.68,4.84,-.18],.17],
-          [[-.37,4.28,.04],[-.70,4.70,-.21],.17]
-        ];
-        for (const [a,b,r] of topSpikes) strand(player, hairLight, a, b, r, 5);
-        strand(player, hair, [-.34,4.30,.25], [-.42,3.57,.41], .185);
-        strand(player, hair, [.33,4.30,.20], [.45,3.64,.38], .18);
-        strand(player, hair, [-.14,4.31,.35], [-.20,3.77,.45], .19);
-        strand(player, hair, [.17,4.31,.35], [.27,3.93,.47], .15);
-        strand(player, hair, [-.27,4.36,.22], [-.12,4.01,.49], .14);
-        for (const side of [-1,1]) {
-          strand(player, hair, [side*.40,4.26,0], [side*.53,3.58,-.21], .18);
-          strand(player, hairLight, [side*.42,4.28,-.10], [side*.57,3.77,-.39], .11);
+          // Match side silhouette to whichever shoulder faces the camera.
+          avatar.scale.x = view === 1 && relative < 0 ? -1 : 1;
+          // The sprite always faces the camera even though player navigation
+          // still uses normal 3D world-space rotation and movement.
+          characterVisual.rotation.y = relative;
         }
 
         const shadow = new THREE.Mesh(
@@ -580,11 +372,12 @@
             stride += dt * (sprinting ? 14 : 10.5) * Math.min(1, inputLength);
           }
           player.rotation.y = facing;
-          const swing = moving ? Math.sin(stride) * .65 * Math.min(1, inputLength) : 0;
-          leftArm.rotation.x = swing;
-          rightArm.rotation.x = -swing;
-          leftLeg.rotation.x = -swing;
-          rightLeg.rotation.x = swing;
+          // Low-cost sprite motion: the actual approved painted design stays intact,
+          // with subtle jogging bob, lean, and bounce instead of fake limbs.
+          characterVisual.position.y = moving ? Math.abs(Math.sin(stride)) * 0.055 : Math.sin(performance.now() * 0.0017) * 0.012;
+          characterVisual.rotation.z = moving ? Math.sin(stride) * 0.018 * Math.min(1, inputLength) : 0;
+          characterVisual.scale.y = moving ? 1 + Math.sin(stride * 2) * 0.008 : 1;
+          updateCharacterView(orbit, facing, moving);
 
           if (jumpRequested && height <= .001) { verticalSpeed = 8.1; height = .002; }
           jumpRequested = false;
