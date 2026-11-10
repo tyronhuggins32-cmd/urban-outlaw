@@ -9,7 +9,7 @@ const data=await page.evaluate(async()=>{
   const THREE=await import('three');
   const {GLTFLoader}=await import('three/addons/loaders/GLTFLoader.js');
   const {createReferenceClips}=await import('./scripts/reference-character-animations.js');
-  const gltf=await new GLTFLoader().loadAsync('./assets/reference-rig.glb');
+  const gltf=await new GLTFLoader().loadAsync('./assets/reference-rig-separated.glb');
   const root=gltf.scene;
   const rig=createReferenceClips(THREE,root);
   root.updateMatrixWorld(true);
