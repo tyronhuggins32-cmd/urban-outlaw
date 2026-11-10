@@ -28,7 +28,7 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('1.5'))throw new Error('Old build loaded');
+  if(!ui.version.includes('1.6'))throw new Error('Old build loaded');
   if(ui.character!=='reference-rig-v1')throw new Error('Blank body GLB did not load');
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
   if(ui.clips!=='Idle,Walk,Run,Jump')throw new Error('Incorrect animation clips: '+ui.clips);
