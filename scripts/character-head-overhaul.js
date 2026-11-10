@@ -99,7 +99,7 @@ export function polishNinjaHead(THREE, root) {
   ellipsoid('scalp volume',[0,1.607,-.010],[.105,.107,.102],blackHair);
   ellipsoid('front low underhair',[0,1.575,.030],[.110,.080,.084],hairDark);
   // Crown loops overlap in broad curved fans. Rear = -Z.
-  for(let layer=0;layer<3;layer++){
+  for(let layer=0;layer<2;layer++){
     for(let i=0;i<7;i++){
       const side=(i<3?-1:i>3?1:0);
       const u=i/6, lateral=(u-.5)*2;
@@ -114,7 +114,7 @@ export function polishNinjaHead(THREE, root) {
            [baseX*1.20,1.690-.026*layer,z-.030],
            [endX*.82,endY+.010,z-.125],
            [endX,endY,z-len]],
-          .032-.003*layer+(i%3)*.002,
+          .040-.004*layer+(i%3)*.002,
           (layer+i)%4===0?hairMid:hairDark);
     }
   }
@@ -135,12 +135,12 @@ export function polishNinjaHead(THREE, root) {
       [side*.061,1.684,.078],
       [side*.077,1.588,.108],
       [side*.076,1.486,.112],
-      [side*.081,1.387,.079]],.027,hairDark,24,13);
+      [side*.081,1.470,.079]],.027,hairDark,24,13);
     lock('outer cheek bang '+side,[
       [side*.070,1.686,.032],
       [side*.093,1.661,.090],
       [side*.106,1.555,.109],
-      [side*.115,1.458,.079]],.025,hairMid,22,12);
+      [side*.115,1.495,.079]],.025,hairMid,22,12);
     lock('temple side lock '+side,[
       [side*.094,1.647,.015],
       [side*.119,1.607,.049],
@@ -222,6 +222,9 @@ export function polishNinjaHead(THREE, root) {
     for(const g of geometries)if(g!==joined)g.dispose();
   }
   // Attach the entire sculpt to the existing animated skull joint.
+  // Match the existing skinned face: forehead plate and bangs were 15 cm too high
+  // in source sculpt coordinates. Align the overlay before bone attachment.
+  sourceGroup.position.y-=.150;
   root.updateMatrixWorld(true);
   head.attach(sourceGroup);
   sourceGroup.updateMatrixWorld(true);
