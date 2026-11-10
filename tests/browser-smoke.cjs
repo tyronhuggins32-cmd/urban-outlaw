@@ -33,7 +33,7 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('2.1'))throw new Error('Old build loaded');
+  if(!ui.version.includes('2.2'))throw new Error('Old build loaded');
   if(ui.character!=='reference-head-v3')throw new Error('Blank body GLB did not load');
   if(ui.hairLocks<35 || ui.hairDrawGroups<4)throw new Error('Sculpted 3D hair and headplate absent: '+JSON.stringify(ui));
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
