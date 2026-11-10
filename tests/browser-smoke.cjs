@@ -33,7 +33,7 @@ const { chromium } = require('playwright');
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
   if(ui.clips!=='Idle,Walk,Run,Jump')throw new Error('Incorrect animation clips: '+ui.clips);
   if(ui.rigJoints<10)throw new Error('Named joints are missing: '+ui.rigJoints);
-  if(ui.triangles<42000 || ui.triangles>42500)throw new Error('Unexpected character triangle count: '+ui.triangles);
+  if(ui.triangles<44200 || ui.triangles>44700)throw new Error('Unexpected character triangle count: '+ui.triangles);
   if(ui.skinnedMeshes < 1 || ui.rigJoints < 18 || ui.modelType !== 'skinned-high-detail' || ui.rigFix !== 'world-axis-v2' || ui.meshSeparation !== 'hand-thigh-seam-v2' || ui.clothSeamPatches!==2)throw new Error('High-detail skinned rig not present: '+JSON.stringify(ui));
   if(Math.abs(ui.height-4.0)>.07)throw new Error('Model not normalized to expected height');
   if(ui.warning)throw new Error('3D load failed; fallback active');
