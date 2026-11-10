@@ -1,0 +1,21 @@
+name: Export Character Meshes for Topology Repair
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/export-character-meshes.yml'
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: raw-and-separated-character-glbs
+          path: |
+            assets/reference-rig.glb
+            assets/reference-rig-separated.glb
+          if-no-files-found: error
+          retention-days: 2
