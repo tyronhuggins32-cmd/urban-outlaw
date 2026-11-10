@@ -160,7 +160,7 @@ export function polishNinjaHead(THREE, root) {
   // Deep-indigo cloth strip around brow; silver metal leaf plate is in front.
   const band=new THREE.TorusGeometry(.102,.011,9,54);
   band.rotateX(Math.PI/2);
-  band.translate(0,1.602,.091);
+  band.translate(0,1.529,.091);
   append(band,bandMat);
   // Slightly curved, bevelled metal with raised border.
   const plateShape=new THREE.Shape();
@@ -171,26 +171,62 @@ export function polishNinjaHead(THREE, root) {
   plateShape.lineTo(-w+r,h);plateShape.quadraticCurveTo(-w,h,-w,h-r);
   plateShape.lineTo(-w,-h+r);plateShape.quadraticCurveTo(-w,-h,-w+r,-h);
   const extrude=new THREE.ExtrudeGeometry(plateShape,{depth:.006,bevelEnabled:true,bevelSize:.003,bevelThickness:.002,bevelSegments:3,curveSegments:6});
-  extrude.translate(0,1.614,.205);
+  extrude.translate(0,1.541,.205);
   append(extrude,steelMat);
   // Small edge rivets.
-  for(const x of [-.063,.063])for(const y of [1.593,1.636]){
+  for(const x of [-.063,.063])for(const y of [1.520,1.563]){
     ellipsoid('metal rivet',[x,y,.219],[.003,.003,.0027],blackMat,9,8);
   }
   // Engraved spiral insignia approximating the reference leaf-symbol.
   const segments=[];
   for(let i=0;i<=45;i++){
     const t=i/45,theta=2.6*Math.PI*t+Math.PI*.18,rad=.003+.019*t;
-    segments.push(new THREE.Vector3(rad*Math.cos(theta),1.613+rad*Math.sin(theta),.221));
+    segments.push(new THREE.Vector3(rad*Math.cos(theta),1.540+rad*Math.sin(theta),.221));
   }
   const swirl=new THREE.CatmullRomCurve3(segments);
   append(new THREE.TubeGeometry(swirl,46,.00225,6,false),blackMat);
   const tail=new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-.020,1.613,.220),
-    new THREE.Vector3(-.035,1.600,.220),
-    new THREE.Vector3(-.021,1.589,.220),
+    new THREE.Vector3(-.020,1.540,.220),
+    new THREE.Vector3(-.035,1.527,.220),
+    new THREE.Vector3(-.021,1.516,.220),
   ]);
   append(new THREE.TubeGeometry(tail,12,.0024,6,false),blackMat);
+
+  // Sculpted eyes and brow ridges. The original texture supplied an extremely
+  // indistinct painted face, so these dimensional details restore the close-up
+  // expression without affecting the character skeleton or skin weights.
+  const sclera=new THREE.MeshStandardMaterial({name:'Natural ivory sclera',color:0xd2c8b8,roughness:.72});
+  const iris=new THREE.MeshStandardMaterial({name:'Deep brown iris',color:0x29201e,roughness:.40,metalness:.06});
+  const pupil=new THREE.MeshStandardMaterial({name:'Dark pupils and eyeliner',color:0x0e0f14,roughness:.49});
+  const skinLid=new THREE.MeshStandardMaterial({name:'Shadowed upper eyelids',color:0x76574c,roughness:.82});
+  const glint=new THREE.MeshStandardMaterial({name:'Eye reflections',color:0xcdd7da,roughness:.18});
+  for(const side of [-1,1]){
+    const x=side*.038;
+    ellipsoid('almond sclera '+side,[x,1.477,.202],[.0225,.009,.0035],sclera,24,12);
+    ellipsoid('iris '+side,[x+side*.002,1.476,.208],[.0105,.0087,.0023],iris,20,12);
+    ellipsoid('pupil '+side,[x+side*.002,1.476,.211],[.005,.006,.0015],pupil,16,10);
+    ellipsoid('eye glint '+side,[x-side*.003,1.479,.213],[.0021,.0022,.0009],glint,10,8);
+    const upper=new THREE.CatmullRomCurve3([
+      new THREE.Vector3(x-side*.025,1.477,.211),
+      new THREE.Vector3(x-side*.012,1.489,.213),
+      new THREE.Vector3(x+side*.012,1.489,.213),
+      new THREE.Vector3(x+side*.026,1.479,.209)
+    ]);
+    append(new THREE.TubeGeometry(upper,16,.0029,6,false),pupil);
+    const lower=new THREE.CatmullRomCurve3([
+      new THREE.Vector3(x-side*.023,1.472,.207),
+      new THREE.Vector3(x,1.467,.213),
+      new THREE.Vector3(x+side*.022,1.470,.209)
+    ]);
+    append(new THREE.TubeGeometry(lower,14,.0016,5,false),skinLid);
+    // Stern, slightly inward-tilted dark eyebrow.
+    const brow=new THREE.CatmullRomCurve3([
+      new THREE.Vector3(x-side*.025,1.509,.205),
+      new THREE.Vector3(x,1.511,.211),
+      new THREE.Vector3(x+side*.025,1.502,.205)
+    ]);
+    append(new THREE.TubeGeometry(brow,14,.0035,6,false),hairDark);
+  }
 
   // Rear tied indigo knot and two tapered cloth bands.
   ellipsoid('headband rear knot',[0,1.551,-.119],[.032,.021,.018],bandMat);
