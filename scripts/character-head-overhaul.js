@@ -148,13 +148,13 @@ export function polishNinjaHead(THREE, root) {
       [side*.116,1.469,-.012]],.022,hairDark,18,10);
   }
   // Overlapping center bangs split above the forehead plate.
-  for(let k=0;k<4;k++){
-    const x=(-1.5+k)*.024;
+  for(let k=0;k<2;k++){
+    const x=(-.5+k)*.042;
     lock('eyebrow fringe '+k,[
-      [x,1.715,.108],
-      [x*1.12,1.677,.180],
-      [x*1.27,1.609,.216],
-      [x*1.24,1.660,.198]],.016,k%2?hairMid:hairDark,16,10);
+      [x,1.677,.121],
+      [x*1.65,1.632,.173],
+      [x*2.70,1.559,.179],
+      [x*3.00,1.526,.167]],.016,k%2?hairMid:hairDark,16,10);
   }
 
   // Deep-indigo cloth strip around brow; silver metal leaf plate is in front.
@@ -195,37 +195,37 @@ export function polishNinjaHead(THREE, root) {
   // Sculpted eyes and brow ridges. The original texture supplied an extremely
   // indistinct painted face, so these dimensional details restore the close-up
   // expression without affecting the character skeleton or skin weights.
-  const sclera=new THREE.MeshStandardMaterial({name:'Natural ivory sclera',color:0xd2c8b8,roughness:.72});
-  const iris=new THREE.MeshStandardMaterial({name:'Deep brown iris',color:0x29201e,roughness:.40,metalness:.06});
+  const sclera=new THREE.MeshStandardMaterial({name:'Natural ivory sclera',color:0x9b8476,roughness:.72});
+  const iris=new THREE.MeshStandardMaterial({name:'Deep brown iris',color:0x292521,roughness:.40,metalness:.06});
   const pupil=new THREE.MeshStandardMaterial({name:'Dark pupils and eyeliner',color:0x0e0f14,roughness:.49});
   const skinLid=new THREE.MeshStandardMaterial({name:'Shadowed upper eyelids',color:0x76574c,roughness:.82});
   const glint=new THREE.MeshStandardMaterial({name:'Eye reflections',color:0xcdd7da,roughness:.18});
   for(const side of [-1,1]){
     const x=side*.038;
-    ellipsoid('almond sclera '+side,[x,1.477,.202],[.0225,.009,.0035],sclera,24,12);
-    ellipsoid('iris '+side,[x+side*.002,1.476,.208],[.0105,.0087,.0023],iris,20,12);
-    ellipsoid('pupil '+side,[x+side*.002,1.476,.211],[.005,.006,.0015],pupil,16,10);
-    ellipsoid('eye glint '+side,[x-side*.003,1.479,.213],[.0021,.0022,.0009],glint,10,8);
+    ellipsoid('almond sclera '+side,[x,1.477,.202],[.0170,.0059,.0028],sclera,24,12);
+    ellipsoid('iris '+side,[x+side*.002,1.477,.208],[.0067,.0058,.0019],iris,20,12);
+    ellipsoid('pupil '+side,[x+side*.002,1.477,.211],[.0035,.0044,.0011],pupil,16,10);
+    ellipsoid('eye glint '+side,[x-side*.002,1.479,.213],[.0015,.0015,.0006],glint,10,8);
     const upper=new THREE.CatmullRomCurve3([
-      new THREE.Vector3(x-side*.025,1.477,.211),
-      new THREE.Vector3(x-side*.012,1.489,.213),
-      new THREE.Vector3(x+side*.012,1.489,.213),
-      new THREE.Vector3(x+side*.026,1.479,.209)
+      new THREE.Vector3(x-side*.020,1.478,.211),
+      new THREE.Vector3(x-side*.010,1.484,.213),
+      new THREE.Vector3(x+side*.010,1.484,.213),
+      new THREE.Vector3(x+side*.020,1.479,.209)
     ]);
-    append(new THREE.TubeGeometry(upper,16,.0029,6,false),pupil);
+    append(new THREE.TubeGeometry(upper,16,.0020,6,false),pupil);
     const lower=new THREE.CatmullRomCurve3([
-      new THREE.Vector3(x-side*.023,1.472,.207),
-      new THREE.Vector3(x,1.467,.213),
-      new THREE.Vector3(x+side*.022,1.470,.209)
+      new THREE.Vector3(x-side*.019,1.472,.207),
+      new THREE.Vector3(x,1.472,.213),
+      new THREE.Vector3(x+side*.018,1.471,.209)
     ]);
-    append(new THREE.TubeGeometry(lower,14,.0016,5,false),skinLid);
+    append(new THREE.TubeGeometry(lower,14,.0012,5,false),skinLid);
     // Stern, slightly inward-tilted dark eyebrow.
     const brow=new THREE.CatmullRomCurve3([
-      new THREE.Vector3(x-side*.025,1.509,.205),
-      new THREE.Vector3(x,1.511,.211),
-      new THREE.Vector3(x+side*.025,1.502,.205)
+      new THREE.Vector3(x-side*.022,1.507,.205),
+      new THREE.Vector3(x,1.510,.211),
+      new THREE.Vector3(x+side*.022,1.503,.205)
     ]);
-    append(new THREE.TubeGeometry(brow,14,.0035,6,false),hairDark);
+    append(new THREE.TubeGeometry(brow,14,.0023,6,false),hairDark);
   }
 
   // Rear tied indigo knot and two tapered cloth bands.
