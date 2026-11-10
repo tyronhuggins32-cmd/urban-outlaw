@@ -74,7 +74,7 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 2.5 · SCULPTED FACE AND HAIR</div>
+    <div class="ui version"><span class="dot"></span> BUILD 2.6 · FACIAL REFINEMENT</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -217,7 +217,7 @@
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
           const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=1');
           const { attachSeamPatches } = await import('./scripts/cloth-seam-patches.js?v=2');
-          const { polishNinjaHead } = await import('./scripts/character-head-overhaul.js?v=6');
+          const { polishNinjaHead } = await import('./scripts/character-head-overhaul.js?v=7');
           const gltf = await new GLTFLoader().loadAsync('./assets/reference-rig-fluid.glb?v=20');
           const imported = gltf.scene;
           imported.name = 'Urban Outlaw continuous reference-sculpted skinned character';
