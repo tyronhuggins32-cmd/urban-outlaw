@@ -131,36 +131,36 @@ export function polishNinjaHead(THREE, root) {
   // 3D face-framing bangs, thick near the scalp, long flattened ends.
   for(const side of [-1,1]){
     lock('main face framing bang '+side,[
-      [side*.032,1.675,.045],
-      [side*.072,1.662,.078],
-      [side*.093,1.578,.105],
-      [side*.099,1.513,.102],
-      [side*.105,1.484,.078]],.022,hairDark,24,13);
+      [side*.032,1.675,.130],
+      [side*.072,1.662,.182],
+      [side*.093,1.578,.212],
+      [side*.099,1.513,.215],
+      [side*.105,1.484,.181]],.022,hairDark,24,13);
     lock('outer cheek bang '+side,[
-      [side*.081,1.671,.032],
-      [side*.105,1.634,.080],
-      [side*.121,1.545,.096],
-      [side*.126,1.492,.079]],.020,hairMid,22,12);
+      [side*.081,1.671,.136],
+      [side*.105,1.634,.182],
+      [side*.121,1.545,.206],
+      [side*.126,1.492,.181]],.020,hairMid,22,12);
     lock('temple side lock '+side,[
-      [side*.094,1.647,.015],
-      [side*.119,1.607,.049],
-      [side*.134,1.531,.044],
+      [side*.094,1.647,.088],
+      [side*.119,1.607,.128],
+      [side*.134,1.531,.135],
       [side*.116,1.469,-.012]],.022,hairDark,18,10);
   }
   // Overlapping center bangs split above the forehead plate.
   for(let k=0;k<4;k++){
     const x=(-1.5+k)*.024;
     lock('eyebrow fringe '+k,[
-      [x,1.715,.020],
-      [x*1.12,1.677,.088],
-      [x*1.27,1.609,.114],
-      [x*1.24,1.660,.104]],.016,k%2?hairMid:hairDark,16,10);
+      [x,1.715,.108],
+      [x*1.12,1.677,.180],
+      [x*1.27,1.609,.216],
+      [x*1.24,1.660,.198]],.016,k%2?hairMid:hairDark,16,10);
   }
 
   // Deep-indigo cloth strip around brow; silver metal leaf plate is in front.
   const band=new THREE.TorusGeometry(.102,.011,9,54);
   band.rotateX(Math.PI/2);
-  band.translate(0,1.656,.012);
+  band.translate(0,1.602,.091);
   append(band,bandMat);
   // Slightly curved, bevelled metal with raised border.
   const plateShape=new THREE.Shape();
@@ -171,24 +171,24 @@ export function polishNinjaHead(THREE, root) {
   plateShape.lineTo(-w+r,h);plateShape.quadraticCurveTo(-w,h,-w,h-r);
   plateShape.lineTo(-w,-h+r);plateShape.quadraticCurveTo(-w,-h,-w+r,-h);
   const extrude=new THREE.ExtrudeGeometry(plateShape,{depth:.006,bevelEnabled:true,bevelSize:.003,bevelThickness:.002,bevelSegments:3,curveSegments:6});
-  extrude.translate(0,1.668,.113);
+  extrude.translate(0,1.614,.205);
   append(extrude,steelMat);
   // Small edge rivets.
-  for(const x of [-.063,.063])for(const y of [1.647,1.690]){
-    ellipsoid('metal rivet',[x,y,.126],[.003,.003,.0027],blackMat,9,8);
+  for(const x of [-.063,.063])for(const y of [1.593,1.636]){
+    ellipsoid('metal rivet',[x,y,.219],[.003,.003,.0027],blackMat,9,8);
   }
   // Engraved spiral insignia approximating the reference leaf-symbol.
   const segments=[];
   for(let i=0;i<=45;i++){
     const t=i/45,theta=2.6*Math.PI*t+Math.PI*.18,rad=.003+.019*t;
-    segments.push(new THREE.Vector3(rad*Math.cos(theta),1.667+rad*Math.sin(theta),.1284));
+    segments.push(new THREE.Vector3(rad*Math.cos(theta),1.613+rad*Math.sin(theta),.221));
   }
   const swirl=new THREE.CatmullRomCurve3(segments);
   append(new THREE.TubeGeometry(swirl,46,.00225,6,false),blackMat);
   const tail=new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-.020,1.667,.128),
-    new THREE.Vector3(-.035,1.654,.128),
-    new THREE.Vector3(-.021,1.643,.128),
+    new THREE.Vector3(-.020,1.613,.220),
+    new THREE.Vector3(-.035,1.600,.220),
+    new THREE.Vector3(-.021,1.589,.220),
   ]);
   append(new THREE.TubeGeometry(tail,12,.0024,6,false),blackMat);
 
