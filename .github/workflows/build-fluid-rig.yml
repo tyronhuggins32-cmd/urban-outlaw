@@ -1,0 +1,52 @@
+name: Build Fluid 44-Bone Character Rig
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/upgrade_fluid_rig.py'
+      - '.github/workflows/build-fluid-rig.yml'
+permissions:
+  contents: write
+concurrency:
+  group: urban-fluid-character-rig
+  cancel-in-progress: false
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install --quiet "numpy>=1.26,<3"
+      - name: Retain the source character while adding 10 weighted bones
+        run: |
+          python3 scripts/upgrade_fluid_rig.py assets/reference-rig-separated.glb assets/reference-rig-fluid.glb
+      - name: Validate skin weights and 44-bone hierarchy
+        run: |
+          python3 - <<'PY'
+          import json,struct,os
+          raw=open('assets/reference-rig-fluid.glb','rb').read()
+          assert struct.unpack_from('<4sII',raw,0)==(b'glTF',2,len(raw))
+          n=struct.unpack_from('<I',raw,12)[0]
+          doc=json.loads(raw[20:20+n])
+          assert len(doc['skins'][0]['joints'])==44
+          names=[node.get('name','') for node in doc['nodes']]
+          for part in ['LeftUpperArmSoft','RightUpperArmSoft','LeftForeArmTwist',
+                       'RightForeArmTwist','LeftThighSoft','RightThighSoft',
+                       'LeftCalfTwist','RightCalfTwist','ChestBreath','NeckFollow']:
+            assert 'UO_'+part in names,part
+          assert len(doc['images'])>=1 and len(doc['materials'])>=1
+          assert os.stat('assets/reference-rig-fluid.glb').st_size>5000000
+          print('VERIFIED: 44 actual skin joints, 10 corrective helpers, original PBR textures')
+          PY
+      - name: Commit real new GLB to the game
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/reference-rig-fluid.glb
+          git diff --cached --quiet && exit 0
+          git commit -m "Add 44-bone fluid deformation rig with real vertex weights"
+          git pull --rebase origin main
+          git push origin HEAD:main
