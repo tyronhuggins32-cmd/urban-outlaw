@@ -1,0 +1,15 @@
+name: Diagnose Hand-Leg Mesh Bridges
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/diagnose-hand-leg-bridges.py'
+      - '.github/workflows/diagnose-hand-leg-bridges.yml'
+permissions:
+  contents: read
+jobs:
+  examine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/diagnose-hand-leg-bridges.py assets/reference-rig.glb
