@@ -9,6 +9,8 @@ on:
       - 'assets/blank-body.glb'
       - 'assets/reference-rig.glb'
       - 'assets/reference-rig-separated.glb'
+      - 'assets/reference-rig-fluid.glb'
+      - 'scripts/reference-character-animations-v2.js'
       - 'scripts/diagnose-hand-leg-bridges.py'
       - 'assets/reference/**'
       - 'tests/model-review.cjs'
@@ -30,7 +32,7 @@ jobs:
       - run: npm install --no-save playwright@1.56.0
       - run: npx playwright install chromium --with-deps
       - name: Assert hands are no longer fused to the thighs
-        run: python3 scripts/diagnose-hand-leg-bridges.py assets/reference-rig-separated.glb --assert-separated
+        run: python3 scripts/diagnose-hand-leg-bridges.py assets/reference-rig-fluid.glb --assert-separated
       - name: Test 3D browser gameplay boot
         run: |
           python3 -m http.server 8000 >/tmp/urban-server.log 2>&1 &
