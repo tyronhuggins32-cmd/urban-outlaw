@@ -73,4 +73,6 @@ for mesh in g['meshes']:
     print("BRIDGE_FACES_HAND_LEG",len(bridges),"INTERFACE_COUNTS",dict(f_pairs),"HAND/FOREARM_TO_LOWER",len(sensitive))
     print('SAMPLES',bridges[:15])
     print('SENSITIVE SAMPLES',sensitive[:15])
+    if '--assert-separated' in sys.argv and sensitive:
+        raise SystemExit('ERROR: hand and thigh still connected by mesh faces: '+str(len(sensitive)))
     print("HAND VERTEX RANGE",[(k,round(min(x[j] for i,x in enumerate(xyz) if dominant[i]=='HAND'),3),round(max(x[j] for i,x in enumerate(xyz) if dominant[i]=='HAND'),3)) for j,k in enumerate('XYZ')] if counts['HAND'] else [])
