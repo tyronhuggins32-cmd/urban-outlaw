@@ -20,6 +20,9 @@ const { chromium } = require('playwright');
     meshSeparation:document.getElementById('game')?.dataset.meshSeparation,
     clothSeamPatches:Number(document.getElementById('game')?.dataset.clothSeamPatches),
     rigJoints:Number(document.getElementById('game')?.dataset.rigJoints),
+    hairLocks:Number(document.getElementById('game')?.dataset.hairLocks),
+    hairDrawGroups:Number(document.getElementById('game')?.dataset.hairDrawGroups),
+    oldHairRemoved:Number(document.getElementById('game')?.dataset.oldHairRemoved),
     helperBones:Number(document.getElementById('game')?.dataset.helperBones),
     animatedBones:Number(document.getElementById('game')?.dataset.animatedBones),
     clips:document.getElementById('game')?.dataset.animationClips,
@@ -30,12 +33,13 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('2.0'))throw new Error('Old build loaded');
-  if(ui.character!=='fluid-rig-v2')throw new Error('Blank body GLB did not load');
+  if(!ui.version.includes('2.1'))throw new Error('Old build loaded');
+  if(ui.character!=='reference-head-v3')throw new Error('Blank body GLB did not load');
+  if(ui.hairLocks<35 || ui.hairDrawGroups<4)throw new Error('Sculpted 3D hair and headplate absent: '+JSON.stringify(ui));
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
   if(ui.clips!=='Idle,Walk,Run,Jump,Land')throw new Error('Incorrect animation clips: '+ui.clips);
   if(ui.rigJoints!==44)throw new Error('Named joints are missing: '+ui.rigJoints);
-  if(ui.triangles<42000 || ui.triangles>42500)throw new Error('Unexpected character triangle count: '+ui.triangles);
+  if(ui.triangles<47000 || ui.triangles>115000)throw new Error('Unexpected character triangle count: '+ui.triangles);
   if(ui.skinnedMeshes < 1 || ui.rigJoints < 18 || ui.modelType !== 'skinned-fluid-44' || ui.rigFix !== 'world-axis-v3' || ui.meshSeparation !== 'hand-thigh-seam-v2' || ui.clothSeamPatches!==2 || ui.helperBones!==10 || ui.animatedBones<40)throw new Error('High-detail skinned rig not present: '+JSON.stringify(ui));
   if(Math.abs(ui.height-4.0)>.07)throw new Error('Model not normalized to expected height');
   if(ui.warning)throw new Error('3D load failed; fallback active');
