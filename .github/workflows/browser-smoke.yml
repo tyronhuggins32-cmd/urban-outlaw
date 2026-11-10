@@ -15,6 +15,7 @@ on:
       - 'scripts/diagnose-hand-leg-bridges.py'
       - 'assets/reference/**'
       - 'tests/model-review.cjs'
+      - 'tests/head-review.cjs'
       - 'tests/browser-smoke.cjs'
       - 'tests/rig-diagnostics.cjs'
       - 'scripts/reference-character-animations.js'
@@ -40,6 +41,7 @@ jobs:
           sleep 2
           node tests/browser-smoke.cjs
           node tests/model-review.cjs
+          node tests/head-review.cjs
           node tests/rig-diagnostics.cjs
       - name: Save screenshot
         if: always()
@@ -51,4 +53,5 @@ jobs:
             urban-animation-*.png
             urban-body-animated-test.png
             urban-review-*.png
+            urban-head-*.png
           if-no-files-found: ignore
