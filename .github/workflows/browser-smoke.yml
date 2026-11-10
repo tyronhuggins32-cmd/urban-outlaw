@@ -11,6 +11,7 @@ on:
       - 'assets/reference-rig-separated.glb'
       - 'assets/reference-rig-fluid.glb'
       - 'scripts/reference-character-animations-v2.js'
+      - 'scripts/character-head-overhaul.js'
       - 'scripts/diagnose-hand-leg-bridges.py'
       - 'assets/reference/**'
       - 'tests/model-review.cjs'
