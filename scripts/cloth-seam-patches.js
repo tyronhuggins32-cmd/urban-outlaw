@@ -19,7 +19,7 @@ export function attachSeamPatches(THREE,root){
   cloth.side=THREE.DoubleSide;
   cloth.roughness=Math.max(.88,cloth.roughness??.9);
   const patches=[];
-  for(const [sign,bone,name,uv] of [[-1,left,'Left',[.6056,.3548]],[1,right,'Right',[.9369,.8739]]]){
+  for(const [sign,bone,name,uv] of [[-1,left,'Left',[.3681,.7223]],[1,right,'Right',[.8405,.5706]]]){
     const verts=[],tex=[],faces=[];
     const nx=26,ny=20;
     // Curved side wall, with soft taper at waist and hem. The patch sits just
@@ -29,7 +29,7 @@ export function attachSeamPatches(THREE,root){
       const envelope=.82+.18*Math.sin(Math.PI*t);
       for(let ai=0;ai<=nx;ai++){
         const a=-1.25+2.5*ai/nx;
-        const x=sign*(.158+.032*Math.cos(a)*envelope);
+        const x=sign*(.118+.066*Math.cos(a)*envelope);
         const z=.020+.097*Math.sin(a);
         const point=bone.worldToLocal(new THREE.Vector3(x,y,z));
         verts.push(point.x,point.y,point.z);
