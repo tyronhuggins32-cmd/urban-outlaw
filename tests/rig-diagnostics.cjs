@@ -42,5 +42,38 @@ const data=await page.evaluate(async()=>{
   return output;
 });
 console.log('RIGDATA',JSON.stringify(data));
+
+const foot=(state,t,part)=>data.states[state].find(x=>x.t===t).bones[part];
+const rest=data.rest;
+for(const state of ['Walk','Run']){
+  const left25=foot(state,.25,'LeftFoot'), right25=foot(state,.25,'RightFoot');
+  const left75=foot(state,.75,'LeftFoot'), right75=foot(state,.75,'RightFoot');
+  if(left25[2] < rest.LeftFoot[2]+.09 || right25[2] > rest.RightFoot[2]-.09){
+    throw new Error(state+' gait reversed or sideways at quarter-cycle');
+  }
+  if(left75[2] > rest.LeftFoot[2]-.09 || right75[2] < rest.RightFoot[2]+.09){
+    throw new Error(state+' gait reversed or sideways at three-quarter-cycle');
+  }
+  for(const side of ['Left','Right']){
+    for(const t of [.25,.75]){
+      const current=foot(state,t,side+'Foot');
+      if(Math.abs(current[0]-rest[side+'Foot'][0])>.045){
+        throw new Error(state+' foot drifting laterally instead of striding forward: '+side);
+      }
+    }
+  }
+}
+for(const state of ['Idle','Walk','Run','Jump']){
+  for(const f of data.states[state]){
+    for(const side of ['Left','Right']){
+      const hand=f.bones[side+'Hand'];
+      if(Math.abs(hand[0])<.265){
+        throw new Error(state+' hand clips shorts/hip at phase '+f.t+': '+side+' x='+hand[0]);
+      }
+    }
+  }
+}
+console.log('RIG MOTION VERIFIED: world-forward/back strides, no lateral leg swing, hands clear of shorts in 4 clips');
+
 await b.close();
 })().catch(e=>{console.error(e);process.exit(1)});
