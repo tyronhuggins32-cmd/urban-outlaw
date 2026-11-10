@@ -1,37 +1,46 @@
 # Urban Outlaw
 
-**Build 1.1: continuous, skinned reference sculpt.** The previous blocky mannequin has been replaced by a more detailed single-mesh 3D ninja with layered black-blue hair, a forehead protector, natural skin coloring, fitted dark-gray shorts, and bare feet. The revised sculpt was generated from the supplied character sheet, then rigged and adapted for this browser game.
+**Build 2.0: Fluid 44-Bone Ninja.** Playable third-person mobile-friendly browser game using a single reference-sculpted, textured character with a deformable skeleton. The character's face, hair, shorts and body sculpt remain the same. The skeleton and motion have been upgraded so the original model no longer behaves as a rigid action figure.
 
-[Play Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/) | [Inspect live model against reference](https://tyronhuggins32-cmd.github.io/urban-outlaw/?review=1)
+[Play Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/) | [Inspect the 3D model against the reference](https://tyronhuggins32-cmd.github.io/urban-outlaw/?review=1)
 
-## Model quality and known limitations
+## Actual game assets
 
-- Active model: `assets/reference-rig.glb` (42,727 triangles, one **SkinnedMesh**, humanoid skeleton).
-- Actual vertex skin weights and bone deformations, unlike the previous 80-part procedural mannequin.
-- Source silhouette is compact with bangs, swept spiky hair, tied back section, teen build, plain fitted shorts and exposed skin.
-- Current sculpt is **not an exact replica**. Front comparison shows a small indistinct face, overly muscular limbs and simplified hands; the hair is more jagged than the reference. Keep the reference sheet as the acceptance target.
-- Original previous procedural model is retained at `assets/blank-body.glb` as an archive, not the active character.
-- The 4 reference angles plus face reference are under `assets/reference/`. Select **FRONT**, **SIDE**, **BACK**, **3/4** inside the review mode to compare genuine rendered mesh with the supplied reference.
-- Studio comparison uses a neutral floor and backdrop, while normal game mode retains the grassy world.
+- **Playable character:** `assets/reference-rig-fluid.glb`. This is a real skinned GLB with the original PBR material, face, hair and clothing textures.
+- **44 real skin-weighted joints:** 34 from the underlying Mixamo-style humanoid skeleton plus 10 new corrective deformation joints: left/right upper-arm soft joints, forearm twists, thigh soft joints, calf twists, chest breathing and neck follow-through.
+- **Source model preserved:** `assets/reference-rig-separated.glb` remains the approved body-sculpt input to the rig builder, with the prior hand/shorts intersections corrected. `assets/reference-rig.glb` is the unmodified original source.
+- **Model generator:** `scripts/upgrade_fluid_rig.py`. This adjusts the GLB's glTF skin joints, inverse bind matrices and live vertex weights. The helper bones have genuine deforming vertices, not decorative empty transform nodes.
+- **Clean shorts seam:** two independently attached thigh-following fabric panels remain separate from the hands.
+- The reference turnarounds live at `assets/reference/`, and the four-angle model reviewer shows the actual GLB next to the target artwork.
 
-## Animation
+## New animation system
 
-`scripts/reference-character-animations.js` creates Idle, Walk, Run, Jump clips from the Mixamo-style humanoid bones using sampled quaternion keyframes. Three.js AnimationMixer blends them in response to movement, sprint and jump. The model is **Y-up** and rendered at 4.0 game units tall. Animations deform the single skinned surface rather than rotating material groups.
+`scripts/reference-character-animations-v2.js` contains five movement clips:
 
-## Controls
+- **Idle:** subtle chest breathing, shoulder relaxation, hand movement, neck follow-through and head movement.
+- **Walk:** coordinated opposing arms and legs, hip sway, soft upper-arm and thigh deformation, toe movement and relaxed finger motion.
+- **Run:** stronger stride and arm movement, forward torso lean, recoil, pelvis bounce, elbow flex and calf corrections.
+- **Jump:** anticipation crouch, airborne leg tuck, arm counterbalance and foot extension.
+- **Land:** knee compression, torso absorption and a short recovery before returning to normal movement.
 
-| Device | Move | Camera | Jump | Sprint |
+All animation rotations are converted from the sculpt's original world-oriented rest axes into each local bone space. This avoids the previous sideways leg-swing problem. AnimationMixer blends transitions with shorter fades for jumps and landings. The fifth clip is triggered by the actual gameplay landing.
+
+## Input
+
+| Device | Move | Look | Jump | Sprint |
 |---|---|---|---|---|
-| Keyboard | WASD / arrows | Mouse drag | Space | Shift |
-| Mobile | Virtual joystick | Swipe | JUMP | Hold RUN |
-| PS5 DualSense | Left stick or D-pad | Right stick | Cross | R2/R1/L3 |
+| Keyboard and mouse | WASD/arrows | Drag | Space | Shift |
+| iPhone and Android | Virtual joystick | Swipe | JUMP | Hold RUN |
+| PS5 DualSense | Left stick / D-pad | Right stick | Cross | R2/R1/L3 |
 
-Tap TOUCH to toggle virtual buttons. Tap or click a review angle to rotate the model for comparison.
+The TOUCH toggle enables or hides touch controls.
 
-## Build and verification
+## Reproduction and QA
 
-Serve the repository from its root with `python3 -m http.server 8000`. No frontend build step. Three.js imports from CDN.
+The free GitHub Action `.github/workflows/build-fluid-rig.yml` builds the 44-bone GLB from the existing repaired model and runs matrix/joint validation. The browser test `.github/workflows/browser-smoke.yml` opens the mobile-sized game and tests the actual loaded skinned GLB, confirms all 44 bones and at least 10 weighted corrective joints, exercises Idle/Walk/Run/Jump/Land state changes, verifies forward/back foot travel and hand clearance, and captures multi-angle comparison screenshots.
 
-`.github/workflows/import-reference-character.yml` retrieves and validates the source GLB, and `.github/workflows/browser-smoke.yml` runs Playwright checks on mobile viewport, including skinned mesh loading, four animation state transitions and four matching reference views. Review screenshots are saved as CI artifacts.
+To test locally: `python3 -m http.server 8000` from repository root. Three.js loads through a browser CDN. To rebuild manually, install numpy and run `python3 scripts/upgrade_fluid_rig.py assets/reference-rig-separated.glb assets/reference-rig-fluid.glb`.
 
-Previous experimental generators remain in `scripts/` for historical reference and must not overwrite `assets/reference-rig.glb` without an explicit model-quality review.
+## Remaining visual work
+
+This is a significant rig and animation upgrade, **not a claim of exact reference likeness**. The face, haircut and anatomy still need sculpt refinement, and procedural walk cycles may show some foot sliding. No full inverse-kinematics foot-planting or motion-captured animation library is included yet.
