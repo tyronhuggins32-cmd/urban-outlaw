@@ -30,32 +30,46 @@ export function createReferenceClips(THREE, root) {
   const missing = required.filter(k => !bones[k]);
   if (missing.length) throw new Error('Skinned humanoid rig is missing bones: ' + missing.join(','));
 
+  // Imported Mixamo-style GLBs have heavily pre-rotated local joint axes.
+  // Save both the bind-pose local orientation AND the parent world orientation.
+  // A plain Euler(x,0,0) on a leg's local axis made the shin move sideways.
+  root.updateMatrixWorld(true);
   const rest = Object.fromEntries(Object.entries(bones)
       .filter(([,bone]) => bone)
       .map(([name,bone]) => [name,bone.quaternion.clone()]));
+  const parentWorldRest = Object.fromEntries(Object.entries(bones)
+      .filter(([,bone]) => bone)
+      .map(([name,bone]) => [name,bone.parent.getWorldQuaternion(new THREE.Quaternion())]));
   const trig = (x) => Math.sin(2*Math.PI*x);
   const angles = (x=0,y=0,z=0) => [x,y,z];
   const idle = (t,k) => {
     const breathe = Math.sin(2*Math.PI*t);
     if (k === 'spine1') return angles(.012*breathe,0,.007*breathe);
     if (k === 'head') return angles(-.008*breathe,.014*Math.sin(Math.PI*t),0);
-    if (k === 'leftArm') return angles(.008*breathe,0,-.018);
-    if (k === 'rightArm') return angles(.008*breathe,0,.018);
+    // Deliberate little elbow/hand-to-waist clearance. The actual mesh is
+    // skinned, so offset the upper arms at the shoulder, not the hands.
+    if (k === 'leftArm') return angles(.008*breathe,0,.175);
+    if (k === 'rightArm') return angles(.008*breathe,0,-.175);
+    if (k === 'leftForeArm'||k === 'rightForeArm')return angles(-.055);
     return angles();
   };
   const locomotion = (t,k,fast) => {
     const s=trig(t), c=Math.cos(2*Math.PI*t);
-    const stride=fast?.63:.38, swing=fast?.48:.31;
+    const stride=fast?.58:.34, swing=fast?.39:.27;
     if(k==='leftLeg')return angles(-stride*s);
     if(k==='rightLeg')return angles(stride*s);
-    if(k==='leftKnee')return angles(Math.max(0,-s)*(fast?.68:.44));
-    if(k==='rightKnee')return angles(Math.max(0,s)*(fast?.68:.44));
+    // Positive world X flexes the knees backwards, rather than twisting
+    // them out sideways along the bones' arbitrary local X axes.
+    if(k==='leftKnee')return angles(Math.max(0,-s)*(fast?.66:.43));
+    if(k==='rightKnee')return angles(Math.max(0,s)*(fast?.66:.43));
     if(k==='leftFoot')return angles(-.08*Math.max(0,-s));
     if(k==='rightFoot')return angles(-.08*Math.max(0,s));
-    if(k==='leftArm')return angles(swing*s,0,-.035);
-    if(k==='rightArm')return angles(-swing*s,0,.035);
-    if(k==='leftForeArm')return angles(-.14-(fast?.24:.10)*Math.max(0,s));
-    if(k==='rightForeArm')return angles(-.14-(fast?.24:.10)*Math.max(0,-s));
+    // Arms swing opposite the same-side leg. Keep a constant outward roll so
+    // the wrists cannot graze the shorts even during cross-fade.
+    if(k==='leftArm')return angles(swing*s,0,fast?.20:.175);
+    if(k==='rightArm')return angles(-swing*s,0,fast?-.20:-.175);
+    if(k==='leftForeArm')return angles(-.11-(fast?.20:.08)*Math.max(0,s));
+    if(k==='rightForeArm')return angles(-.11-(fast?.20:.08)*Math.max(0,-s));
     if(k==='spine1')return angles(fast?.085:.018,.018*s,.018*c);
     if(k==='head')return angles(fast?-.03:-.01,-.014*s);
     return angles();
@@ -68,8 +82,8 @@ export function createReferenceClips(THREE, root) {
     if(k==='rightLeg')return angles(-.17*s);
     if(k==='leftKnee')return angles(.48*s);
     if(k==='rightKnee')return angles(.39*s);
-    if(k==='leftArm')return angles(-.61*s,0,-.16*s);
-    if(k==='rightArm')return angles(-.61*s,0,.16*s);
+    if(k==='leftArm')return angles(-.48*s,0,.18);
+    if(k==='rightArm')return angles(-.48*s,0,-.18);
     if(k==='leftForeArm'||k==='rightForeArm')return angles(-.20*s);
     return angles();
   };
@@ -83,8 +97,14 @@ export function createReferenceClips(THREE, root) {
       const vals=[];
       for(let i=0;i<=frames;i++) {
         const [x,y,z]=pose(i/frames,key);
-        const delta=new THREE.Quaternion().setFromEuler(new THREE.Euler(x,y,z,'XYZ'));
-        const q=rest[key].clone().multiply(delta).normalize();
+        // Interpret pitch, yaw, and roll in the character's rested WORLD
+        // directions, then convert to this bone's actual local frame:
+        // localQ = inv(parentWorldBind) * worldDelta * parentWorldBind * bindQ.
+        // This fixes sideways leg swing on pre-rotated Mixamo rigs.
+        const worldDelta=new THREE.Quaternion().setFromEuler(new THREE.Euler(x,y,z,'XYZ'));
+        const p=parentWorldRest[key];
+        const localDelta=p.clone().invert().multiply(worldDelta).multiply(p);
+        const q=localDelta.multiply(rest[key]).normalize();
         vals.push(q.x,q.y,q.z,q.w);
       }
       tracks.push(new THREE.QuaternionKeyframeTrack(obj.uuid+'.quaternion',times,vals));
