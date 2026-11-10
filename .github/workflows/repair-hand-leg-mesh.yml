@@ -1,0 +1,44 @@
+name: Repair Fused Hands and Thighs
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/separate-hand-leg-mesh.py'
+      - '.github/workflows/repair-hand-leg-mesh.yml'
+permissions:
+  contents: write
+concurrency:
+  group: urban-hand-leg-repair
+  cancel-in-progress: false
+jobs:
+  separate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cut accidental connecting triangles from GLB
+        run: |
+          python3 scripts/separate-hand-leg-mesh.py assets/reference-rig.glb assets/reference-rig-separated.glb
+      - name: Validate repaired model still has full skinned rig
+        run: |
+          python3 - <<'PY'
+          import json,struct
+          raw=open('assets/reference-rig-separated.glb','rb').read()
+          n=struct.unpack_from('<I',raw,12)[0]
+          d=json.loads(raw[20:20+n])
+          assert len(d['skins'])>=1
+          assert len(d['skins'][0]['joints'])>=30
+          assert len(d['meshes'])>=1
+          assert len(d['materials'])>=1
+          assert len(d['images'])>=1
+          print('SKINNED CHARACTER MATERIALS AND ARMATURE PRESERVED')
+          PY
+      - name: Commit separated GLB to playable repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/reference-rig-separated.glb
+          git diff --cached --quiet && exit 0
+          git commit -m "Add repaired character GLB with hands detached from thighs"
+          git pull --rebase origin main
+          git push origin HEAD:main
