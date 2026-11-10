@@ -129,6 +129,8 @@
       try {
         const canvas = document.getElementById('viewport');
         const reviewMode = new URLSearchParams(location.search).get('review') === '1';
+        const headReviewMode = reviewMode && new URLSearchParams(location.search).get('head')==='1';
+        if(headReviewMode)document.getElementById('game').dataset.headReview='active';
         document.getElementById('game').classList.toggle('review', reviewMode);
         if (reviewMode) document.getElementById('game').dataset.reviewView = 'front';
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -430,16 +432,16 @@
         setTouchControls(touchEnabled);
 
         let orbit = reviewMode ? 0 : Math.PI;
-        let elevation = reviewMode ? .10 : .22, distance = reviewMode ? 7.5 : 9.5;
+        let elevation = reviewMode ? .10 : .22, distance = headReviewMode ? 2.55 : reviewMode ? 7.5 : 9.5;
         const reviewAngles = {front:0, side:Math.PI/2, back:Math.PI, hero:-Math.PI/4};
         for (const button of document.querySelectorAll('[data-review-angle]')) {
           button.addEventListener('click', () => {
             const view=button.dataset.reviewAngle;
             orbit=reviewAngles[view];
-            elevation=.10; distance=7.5;
+            elevation=.10; distance=headReviewMode ? 2.55 : 7.5;
             // Snap review camera around the subject: Cartesian lerp across a
             // 180-degree turn can pass through the character and magnify it.
-            const reviewLook = new THREE.Vector3(player.position.x, player.position.y+1.85, player.position.z);
+            const reviewLook = new THREE.Vector3(player.position.x, player.position.y+(headReviewMode ? 3.47 : 1.85), player.position.z);
             const reviewHorizontal = Math.cos(elevation)*distance;
             camera.position.set(
               reviewLook.x+Math.sin(orbit)*reviewHorizontal,
@@ -590,7 +592,7 @@
           sun.target.position.set(player.position.x, 0, player.position.z);
           sun.target.updateMatrixWorld();
 
-          look.set(player.position.x, player.position.y + 1.85, player.position.z);
+          look.set(player.position.x, player.position.y + (headReviewMode ? 3.47 : 1.85), player.position.z);
           const horizontal = Math.cos(elevation) * distance;
           desiredCamera.set(
             look.x + Math.sin(orbit) * horizontal,
@@ -604,8 +606,8 @@
         }
 
         const startHorizontal = Math.cos(elevation) * distance;
-        camera.position.set(Math.sin(orbit) * startHorizontal, 1.85 + Math.sin(elevation) * distance, Math.cos(orbit) * startHorizontal);
-        camera.lookAt(0, 1.85, 0);
+        camera.position.set(Math.sin(orbit) * startHorizontal, (headReviewMode ? 3.47 : 1.85) + Math.sin(elevation) * distance, Math.cos(orbit) * startHorizontal);
+        camera.lookAt(0, headReviewMode ? 3.47 : 1.85, 0);
         loading.classList.add('hidden');
         frame();
       } catch (err) {
