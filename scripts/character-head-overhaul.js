@@ -19,13 +19,13 @@ export function polishNinjaHead(THREE, root) {
     if(o.isSkinnedMesh && !body)body=o;
   });
   if(!head || !body) throw new Error('Reference head overhaul requires original skinned head bone');
-  const hairDark=new THREE.MeshStandardMaterial({name:'Sculpted deep blue-black hair',color:0x151c30,roughness:.67,metalness:.035});
-  const hairMid=new THREE.MeshStandardMaterial({name:'Sculpted indigo strand layers',color:0x202941,roughness:.64,metalness:.02});
-  const hairLight=new THREE.MeshStandardMaterial({name:'Fine hair reflections',color:0x303d5a,roughness:.60,metalness:.02});
+  const hairDark=new THREE.MeshStandardMaterial({name:'Sculpted deep blue-black hair',color:0x252d46,roughness:.67,metalness:.035});
+  const hairMid=new THREE.MeshStandardMaterial({name:'Sculpted indigo strand layers',color:0x303b57,roughness:.64,metalness:.02});
+  const hairLight=new THREE.MeshStandardMaterial({name:'Fine hair reflections',color:0x4a5674,roughness:.60,metalness:.02});
   const bandMat=new THREE.MeshStandardMaterial({name:'Indigo fabric forehead wrap',color:0x1b2d66,roughness:.97});
   const steelMat=new THREE.MeshStandardMaterial({name:'Brushed silver headplate',color:0xbac6d2,metalness:.79,roughness:.31});
   const blackMat=new THREE.MeshStandardMaterial({name:'Raised black leaf engraving',color:0x101723,roughness:.80});
-  const blackHair=new THREE.MeshStandardMaterial({name:'Inner hair underlayer',color:0x0e1423,roughness:.84});
+  const blackHair=new THREE.MeshStandardMaterial({name:'Inner hair underlayer',color:0x172039,roughness:.84});
   const meshesByMaterial=new Map();
   const sourceGroup=new THREE.Group();
   sourceGroup.name='Ninja Head: reference v3, attached to skull joint';
@@ -96,25 +96,25 @@ export function polishNinjaHead(THREE, root) {
   }
 
   // Base silhouette smooth and low against the scalp. Layers sit outside it.
-  ellipsoid('scalp volume',[0,1.607,-.010],[.105,.107,.102],blackHair);
-  ellipsoid('front low underhair',[0,1.575,.030],[.110,.080,.084],hairDark);
+  ellipsoid('scalp volume',[0,1.591,-.010],[.096,.082,.093],blackHair);
+  ellipsoid('front low underhair',[0,1.568,.030],[.099,.068,.077],hairDark);
   // Crown loops overlap in broad curved fans. Rear = -Z.
   for(let layer=0;layer<2;layer++){
     for(let i=0;i<7;i++){
       const side=(i<3?-1:i>3?1:0);
       const u=i/6, lateral=(u-.5)*2;
-      const y=1.692-.028*layer-.006*Math.abs(lateral);
+      const y=1.668-.026*layer-.005*Math.abs(lateral);
       const z=-.010-.023*layer;
-      const len=.192+.029*Math.cos(i*.77)+.020*(layer===0);
+      const len=.159+.026*Math.cos(i*.77)+.010*(layer===0);
       const endX=lateral*(.118+.02*layer)+.012*Math.sin(i*2.4);
-      const endY=y+.018+(.025*(1-Math.abs(lateral)))-.027*layer;
+      const endY=y+.016+(.017*(1-Math.abs(lateral)))-.026*layer;
       const baseX=lateral*.061;
       lock('long swept hair '+layer+' '+i,
-          [[baseX,1.650-.023*layer,z+.032],
-           [baseX*1.20,1.690-.026*layer,z-.030],
+          [[baseX,1.634-.022*layer,z+.032],
+           [baseX*1.20,1.666-.024*layer,z-.030],
            [endX*.82,endY+.010,z-.125],
            [endX,endY,z-len]],
-          .040-.004*layer+(i%3)*.002,
+          .027-.003*layer+(i%3)*.002,
           (layer+i)%4===0?hairMid:hairDark);
     }
   }
@@ -131,16 +131,16 @@ export function polishNinjaHead(THREE, root) {
   // 3D face-framing bangs, thick near the scalp, long flattened ends.
   for(const side of [-1,1]){
     lock('main face framing bang '+side,[
-      [side*.028,1.691,.044],
-      [side*.061,1.684,.078],
-      [side*.077,1.588,.108],
-      [side*.076,1.486,.112],
-      [side*.081,1.470,.079]],.027,hairDark,24,13);
+      [side*.032,1.675,.045],
+      [side*.072,1.662,.078],
+      [side*.093,1.578,.105],
+      [side*.099,1.513,.102],
+      [side*.105,1.484,.078]],.022,hairDark,24,13);
     lock('outer cheek bang '+side,[
-      [side*.070,1.686,.032],
-      [side*.093,1.661,.090],
-      [side*.106,1.555,.109],
-      [side*.115,1.495,.079]],.025,hairMid,22,12);
+      [side*.081,1.671,.032],
+      [side*.105,1.634,.080],
+      [side*.121,1.545,.096],
+      [side*.126,1.492,.079]],.020,hairMid,22,12);
     lock('temple side lock '+side,[
       [side*.094,1.647,.015],
       [side*.119,1.607,.049],
@@ -154,13 +154,13 @@ export function polishNinjaHead(THREE, root) {
       [x,1.715,.020],
       [x*1.12,1.677,.088],
       [x*1.27,1.609,.114],
-      [x*1.24,1.559,.106]],.020,k%2?hairMid:hairDark,16,10);
+      [x*1.24,1.610,.104]],.016,k%2?hairMid:hairDark,16,10);
   }
 
   // Deep-indigo cloth strip around brow; silver metal leaf plate is in front.
   const band=new THREE.TorusGeometry(.102,.011,9,54);
   band.rotateX(Math.PI/2);
-  band.translate(0,1.560,.012);
+  band.translate(0,1.602,.012);
   append(band,bandMat);
   // Slightly curved, bevelled metal with raised border.
   const plateShape=new THREE.Shape();
@@ -171,24 +171,24 @@ export function polishNinjaHead(THREE, root) {
   plateShape.lineTo(-w+r,h);plateShape.quadraticCurveTo(-w,h,-w,h-r);
   plateShape.lineTo(-w,-h+r);plateShape.quadraticCurveTo(-w,-h,-w+r,-h);
   const extrude=new THREE.ExtrudeGeometry(plateShape,{depth:.006,bevelEnabled:true,bevelSize:.003,bevelThickness:.002,bevelSegments:3,curveSegments:6});
-  extrude.translate(0,1.572,.113);
+  extrude.translate(0,1.614,.113);
   append(extrude,steelMat);
   // Small edge rivets.
-  for(const x of [-.063,.063])for(const y of [1.551,1.594]){
+  for(const x of [-.063,.063])for(const y of [1.593,1.636]){
     ellipsoid('metal rivet',[x,y,.126],[.003,.003,.0027],blackMat,9,8);
   }
   // Engraved spiral insignia approximating the reference leaf-symbol.
   const segments=[];
   for(let i=0;i<=45;i++){
     const t=i/45,theta=2.6*Math.PI*t+Math.PI*.18,rad=.003+.019*t;
-    segments.push(new THREE.Vector3(rad*Math.cos(theta),1.571+rad*Math.sin(theta),.1284));
+    segments.push(new THREE.Vector3(rad*Math.cos(theta),1.613+rad*Math.sin(theta),.1284));
   }
   const swirl=new THREE.CatmullRomCurve3(segments);
   append(new THREE.TubeGeometry(swirl,46,.00225,6,false),blackMat);
   const tail=new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-.020,1.571,.128),
-    new THREE.Vector3(-.035,1.558,.128),
-    new THREE.Vector3(-.021,1.547,.128),
+    new THREE.Vector3(-.020,1.613,.128),
+    new THREE.Vector3(-.035,1.600,.128),
+    new THREE.Vector3(-.021,1.589,.128),
   ]);
   append(new THREE.TubeGeometry(tail,12,.0024,6,false),blackMat);
 
@@ -257,7 +257,11 @@ export function polishNinjaHead(THREE, root) {
         const a=original[i],b=original[i+1],c=original[i+2];
         const hairCount=isHair[a]+isHair[b]+isHair[c];
         const upper=(vertex.getY(a)+vertex.getY(b)+vertex.getY(c))/3>1.39;
-        if(upper && hairCount>=2){stats.maskedHairTriangles++;continue}
+        const z=(vertex.getZ(a)+vertex.getZ(b)+vertex.getZ(c))/3;
+        const x=(vertex.getX(a)+vertex.getX(b)+vertex.getX(c))/3;
+        // Keep dark eyes, brows and eyelashes at the front of the face.
+        const faceProtected=(z>.027 && Math.abs(x)<.106 && (vertex.getY(a)+vertex.getY(b)+vertex.getY(c))/3<1.54);
+        if(upper && hairCount>=2 && !faceProtected){stats.maskedHairTriangles++;continue}
         remain.push(a,b,c);
       }
       if(stats.maskedHairTriangles>100 && stats.maskedHairTriangles<9000){
