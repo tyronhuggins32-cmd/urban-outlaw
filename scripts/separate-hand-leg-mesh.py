@@ -2,8 +2,8 @@
 """Remove accidental HAND-THIGH voxel bridges from the reference-sculpted GLB.
 
 Usage: python3 scripts/separate-hand-leg-mesh.py assets/reference-rig.glb assets/reference-rig-separated.glb
-The sculpt, materials, original vertex weights, bone hierarchy and 4 animations are preserved.
-Only offending cross-anatomy triangle indices are removed, without reordering vertices.
+The sculpt, materials, original materials, bone hierarchy and 4 animations are preserved.
+Offending cross-anatomy faces are removed; mixed skin weights are assigned to the correct limb.
 No third-party dependencies. Built from the immutable original GLB each time.
 """
 import json,struct,sys,pathlib,collections,math
@@ -56,6 +56,46 @@ for mesh in doc['meshes']:
         assert int(idx)<len(group)
         totals[group[int(idx)]]+=max(0,float(weight))
       scores.append(max(totals,key=totals.get))
+    # Separate mixed skin weights at the fused contact. Leaving a vertex
+    # driven 50% by the hand and 50% by the thigh makes sharp elastic spikes
+    # when the wrist moves, even after deleting cross-group triangles.
+    positions=read_acc(a['POSITION'])
+    weightacc=doc['accessors'][a['WEIGHTS_0']]
+    weightview=doc['bufferViews'][weightacc['bufferView']]
+    assert weightacc['componentType']==5126 and weightacc['type']=='VEC4'
+    weight_stride=weightview.get('byteStride',16)
+    weight_offset=weightview.get('byteOffset',0)+weightacc.get('byteOffset',0)
+    posacc=doc['accessors'][a['POSITION']]
+    posview=doc['bufferViews'][posacc['bufferView']]
+    pos_stride=posview.get('byteStride',12)
+    pos_offset=posview.get('byteOffset',0)+posacc.get('byteOffset',0)
+    weights_fixed=0;vertices_shifted=0
+    for i,(jj,ww) in enumerate(zip(joints,weights)):
+      x,y,z=positions[i]
+      if not (.50<y<.81 and .10<abs(x)<.29):continue
+      hand_weight=sum(float(w) for bone,w in zip(jj,ww) if group[int(bone)]=='HAND')
+      thigh_weight=sum(float(w) for bone,w in zip(jj,ww) if group[int(bone)]=='THIGH')
+      if hand_weight>.02 and thigh_weight>.02:
+        hand_side=hand_weight>=thigh_weight
+        new=list(ww)
+        for k,(bone,w) in enumerate(zip(jj,ww)):
+          if (hand_side and group[int(bone)] in ('THIGH','LEG','HIP')) or (
+              not hand_side and group[int(bone)] in ('HAND','FOREARM')):
+            new[k]=0.
+        total=sum(new)
+        if total>0:
+          new=[w/total for w in new]
+          struct.pack_into('<4f',data,weight_offset+i*weight_stride,*new)
+          weights_fixed+=1
+      # At the very bottom of the fist, pull its surface slightly away from
+      # the shorts, tapering to zero at the wrist. No changes to limb length.
+      if hand_weight>.75 and thigh_weight<.10 and .54<y<.74:
+        ease=min(1.,max(0.,(.74-y)/.15))
+        move=.013*ease
+        struct.pack_into('<3f',data,pos_offset+i*pos_stride,
+                         x+(move if x>0 else -move),y,z)
+        vertices_shifted+=1
+    print('SEAM WEIGHTS',weights_fixed,'hand vertices shifted',vertices_shifted)
     original=read_acc(primitive['indices'])
     faces=[tuple(int(x[0]) for x in original[k:k+3]) for k in range(0,len(original),3)]
     assert len(faces)>30000
