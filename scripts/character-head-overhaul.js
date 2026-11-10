@@ -154,13 +154,13 @@ export function polishNinjaHead(THREE, root) {
       [x,1.715,.020],
       [x*1.12,1.677,.088],
       [x*1.27,1.609,.114],
-      [x*1.24,1.610,.104]],.016,k%2?hairMid:hairDark,16,10);
+      [x*1.24,1.660,.104]],.016,k%2?hairMid:hairDark,16,10);
   }
 
   // Deep-indigo cloth strip around brow; silver metal leaf plate is in front.
   const band=new THREE.TorusGeometry(.102,.011,9,54);
   band.rotateX(Math.PI/2);
-  band.translate(0,1.602,.012);
+  band.translate(0,1.656,.012);
   append(band,bandMat);
   // Slightly curved, bevelled metal with raised border.
   const plateShape=new THREE.Shape();
@@ -171,24 +171,24 @@ export function polishNinjaHead(THREE, root) {
   plateShape.lineTo(-w+r,h);plateShape.quadraticCurveTo(-w,h,-w,h-r);
   plateShape.lineTo(-w,-h+r);plateShape.quadraticCurveTo(-w,-h,-w+r,-h);
   const extrude=new THREE.ExtrudeGeometry(plateShape,{depth:.006,bevelEnabled:true,bevelSize:.003,bevelThickness:.002,bevelSegments:3,curveSegments:6});
-  extrude.translate(0,1.614,.113);
+  extrude.translate(0,1.668,.113);
   append(extrude,steelMat);
   // Small edge rivets.
-  for(const x of [-.063,.063])for(const y of [1.593,1.636]){
+  for(const x of [-.063,.063])for(const y of [1.647,1.690]){
     ellipsoid('metal rivet',[x,y,.126],[.003,.003,.0027],blackMat,9,8);
   }
   // Engraved spiral insignia approximating the reference leaf-symbol.
   const segments=[];
   for(let i=0;i<=45;i++){
     const t=i/45,theta=2.6*Math.PI*t+Math.PI*.18,rad=.003+.019*t;
-    segments.push(new THREE.Vector3(rad*Math.cos(theta),1.613+rad*Math.sin(theta),.1284));
+    segments.push(new THREE.Vector3(rad*Math.cos(theta),1.667+rad*Math.sin(theta),.1284));
   }
   const swirl=new THREE.CatmullRomCurve3(segments);
   append(new THREE.TubeGeometry(swirl,46,.00225,6,false),blackMat);
   const tail=new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-.020,1.613,.128),
-    new THREE.Vector3(-.035,1.600,.128),
-    new THREE.Vector3(-.021,1.589,.128),
+    new THREE.Vector3(-.020,1.667,.128),
+    new THREE.Vector3(-.035,1.654,.128),
+    new THREE.Vector3(-.021,1.643,.128),
   ]);
   append(new THREE.TubeGeometry(tail,12,.0024,6,false),blackMat);
 
@@ -229,48 +229,26 @@ export function polishNinjaHead(THREE, root) {
   head.attach(sourceGroup);
   sourceGroup.updateMatrixWorld(true);
 
-  // Remove old dark hair polygons only, preserving the reference face and rig.
-  // The source mesh contains an atlas, so use texture pixel color to isolate
-  // hair instead of crudely cutting the whole head off.
+  // Remove only the original upper crown. The previous texture-based
+  // deletion also cut dark eye polygons and left isolated triangles hanging
+  // above the hairstyle. A geometric crown trim is deterministic and keeps
+  // every original eyebrow, eyelid and cheek below the upper hairline.
   const geo=body.geometry;
-  const texture=Array.isArray(body.material)?body.material[0]?.map:body.material?.map;
-  if(texture?.image && typeof document!=='undefined'){
-    try{
-      const cv=document.createElement('canvas');
-      cv.width=texture.image.width;cv.height=texture.image.height;
-      const ctx=cv.getContext('2d',{willReadFrequently:true});
-      ctx.drawImage(texture.image,0,0);
-      const pixels=ctx.getImageData(0,0,cv.width,cv.height).data;
-      const vertex=geo.getAttribute('position'),uv=geo.getAttribute('uv');
-      const original=geo.index.array;
-      const isHair=new Uint8Array(vertex.count);
-      for(let i=0;i<vertex.count;i++){
-        if(vertex.getY(i)<1.37)continue;
-        const u=Math.max(0,Math.min(cv.width-1,Math.floor(uv.getX(i)*cv.width)));
-        const v=Math.max(0,Math.min(cv.height-1,Math.floor((1-uv.getY(i))*cv.height)));
-        const q=(v*cv.width+u)*4;
-        const red=pixels[q],green=pixels[q+1],blue=pixels[q+2];
-        if(red<100 && green<110 && blue<135)isHair[i]=1;
-      }
-      const remain=[];
-      for(let i=0;i<original.length;i+=3){
-        const a=original[i],b=original[i+1],c=original[i+2];
-        const hairCount=isHair[a]+isHair[b]+isHair[c];
-        const upper=(vertex.getY(a)+vertex.getY(b)+vertex.getY(c))/3>1.39;
-        const z=(vertex.getZ(a)+vertex.getZ(b)+vertex.getZ(c))/3;
-        const x=(vertex.getX(a)+vertex.getX(b)+vertex.getX(c))/3;
-        // Keep dark eyes, brows and eyelashes at the front of the face.
-        const faceProtected=(z>.027 && Math.abs(x)<.106 && (vertex.getY(a)+vertex.getY(b)+vertex.getY(c))/3<1.54);
-        if(upper && hairCount>=2 && !faceProtected){stats.maskedHairTriangles++;continue}
-        remain.push(a,b,c);
-      }
-      if(stats.maskedHairTriangles>100 && stats.maskedHairTriangles<9000){
-        geo.setIndex(remain);geo.computeBoundingSphere();
-      }else stats.maskedHairTriangles=0;
-    }catch(err){
-      // Retain the original head underneath rather than fail to load the game.
-      console.warn('Preserving old hair beneath new sculpt:',err);
-    }
+  const position=geo.getAttribute('position');
+  const input=geo.index.array;
+  const remain=[];
+  for(let i=0;i<input.length;i+=3){
+    const a=input[i],b=input[i+1],c=input[i+2];
+    const y=(position.getY(a)+position.getY(b)+position.getY(c))/3;
+    // Source head crown is above 1.515 metres; the new locks cover this rim.
+    if(y>1.515)stats.maskedHairTriangles++;
+    else remain.push(a,b,c);
+  }
+  if(stats.maskedHairTriangles>100 && stats.maskedHairTriangles<9000){
+    geo.setIndex(remain);
+    geo.computeBoundingSphere();
+  }else{
+    stats.maskedHairTriangles=0;
   }
   return stats;
 }
