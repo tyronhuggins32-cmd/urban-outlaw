@@ -276,8 +276,13 @@ export function polishNinjaHead(THREE, root) {
   for(let i=0;i<input.length;i+=3){
     const a=input[i],b=input[i+1],c=input[i+2];
     const y=(position.getY(a)+position.getY(b)+position.getY(c))/3;
-    // Source head crown is above 1.515 metres; the new locks cover this rim.
-    if(y>1.515)stats.maskedHairTriangles++;
+    const z=(position.getZ(a)+position.getZ(b)+position.getZ(c))/3;
+    // The old sculpt still carries a forest of back-facing black spikes under
+    // the new broad layers. Trim only crown and rear-volume triangles; face
+    // features, eyebrows, eyelids and ears remain in the front half-space.
+    const oldCrown=y>1.515;
+    const oldRearHair=y>1.445 && z<-.032;
+    if(oldCrown||oldRearHair)stats.maskedHairTriangles++;
     else remain.push(a,b,c);
   }
   if(stats.maskedHairTriangles>100 && stats.maskedHairTriangles<9000){
