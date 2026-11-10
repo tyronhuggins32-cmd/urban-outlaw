@@ -20,6 +20,8 @@ const { chromium } = require('playwright');
     meshSeparation:document.getElementById('game')?.dataset.meshSeparation,
     clothSeamPatches:Number(document.getElementById('game')?.dataset.clothSeamPatches),
     rigJoints:Number(document.getElementById('game')?.dataset.rigJoints),
+    helperBones:Number(document.getElementById('game')?.dataset.helperBones),
+    animatedBones:Number(document.getElementById('game')?.dataset.animatedBones),
     clips:document.getElementById('game')?.dataset.animationClips,
     animation:document.getElementById('game')?.dataset.animation,
     warning:document.body.innerText.includes('3D LOAD FAILED'),
@@ -28,13 +30,13 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('1.6'))throw new Error('Old build loaded');
-  if(ui.character!=='reference-rig-v1')throw new Error('Blank body GLB did not load');
+  if(!ui.version.includes('2.0'))throw new Error('Old build loaded');
+  if(ui.character!=='fluid-rig-v2')throw new Error('Blank body GLB did not load');
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
-  if(ui.clips!=='Idle,Walk,Run,Jump')throw new Error('Incorrect animation clips: '+ui.clips);
-  if(ui.rigJoints<10)throw new Error('Named joints are missing: '+ui.rigJoints);
+  if(ui.clips!=='Idle,Walk,Run,Jump,Land')throw new Error('Incorrect animation clips: '+ui.clips);
+  if(ui.rigJoints!==44)throw new Error('Named joints are missing: '+ui.rigJoints);
   if(ui.triangles<42000 || ui.triangles>42500)throw new Error('Unexpected character triangle count: '+ui.triangles);
-  if(ui.skinnedMeshes < 1 || ui.rigJoints < 18 || ui.modelType !== 'skinned-high-detail' || ui.rigFix !== 'world-axis-v2' || ui.meshSeparation !== 'hand-thigh-seam-v2' || ui.clothSeamPatches!==2)throw new Error('High-detail skinned rig not present: '+JSON.stringify(ui));
+  if(ui.skinnedMeshes < 1 || ui.rigJoints < 18 || ui.modelType !== 'skinned-fluid-44' || ui.rigFix !== 'world-axis-v3' || ui.meshSeparation !== 'hand-thigh-seam-v2' || ui.clothSeamPatches!==2 || ui.helperBones!==10 || ui.animatedBones<40)throw new Error('High-detail skinned rig not present: '+JSON.stringify(ui));
   if(Math.abs(ui.height-4.0)>.07)throw new Error('Model not normalized to expected height');
   if(ui.warning)throw new Error('3D load failed; fallback active');
   await page.keyboard.down('w');
@@ -55,6 +57,9 @@ const { chromium } = require('playwright');
   const jump=await page.locator('#game').getAttribute('data-animation');
   if(jump!=='jump')throw new Error('Jump clip not activated: '+jump);
   await page.screenshot({path:'urban-body-animated-test.png'});
+  await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='land',null,{timeout:4000});
+  await page.screenshot({path:'urban-animation-landing.png'});
+  await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='idle',null,{timeout:4000});
   if(errors.length)throw new Error('Browser errors: '+errors.join('; '));
   if(!ui.canvas)throw new Error('Missing game canvas');
   if(ui.touchToggle!=='TOUCH: ON' && ui.touchToggle!=='TOUCH: OFF')throw new Error('Touch toggle missing');
