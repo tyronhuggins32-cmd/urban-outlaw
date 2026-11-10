@@ -8,10 +8,29 @@ await page.waitForFunction(()=>document.getElementById('loading')?.classList.con
 const data=await page.evaluate(async()=>{
   const THREE=await import('three');
   const {GLTFLoader}=await import('three/addons/loaders/GLTFLoader.js');
-  const {createReferenceClips}=await import('./scripts/reference-character-animations.js');
-  const gltf=await new GLTFLoader().loadAsync('./assets/reference-rig-separated.glb');
+  const {createReferenceClips}=await import('./scripts/reference-character-animations-v2.js');
+  const gltf=await new GLTFLoader().loadAsync('./assets/reference-rig-fluid.glb');
   const root=gltf.scene;
   const rig=createReferenceClips(THREE,root);
+  if(rig.boneCount!==44 || rig.animatedBones<40 || rig.helperBones!==10){
+    throw new Error('Fluid rig missing weighted animation joints: '+JSON.stringify(rig));
+  }
+  const skinned=[];
+  root.traverse(o=>{if(o.isSkinnedMesh)skinned.push(o)});
+  if(skinned.length!==1)throw new Error('Expected exactly one skinned character mesh');
+  const indices=skinned[0].geometry.getAttribute('skinIndex');
+  const weights=skinned[0].geometry.getAttribute('skinWeight');
+  const use=Array.from({length:44},()=>0);
+  for(let i=0;i<indices.count;i++){
+    for(let slot=0;slot<4;slot++){
+      const j=indices.getComponent(i,slot);
+      if(j<44 && weights.getComponent(i,slot)>.005)use[j]++;
+    }
+  }
+  if(use.slice(34,44).some(n=>n<12)){
+    throw new Error('One or more new helper bones have no actual vertex weights: '+use.slice(34,44));
+  }
+
   root.updateMatrixWorld(true);
   const bones={};
   root.traverse(o=>{if(o.isBone)bones[o.name.toLowerCase().replace(/[^a-z]/g,'')]=o});
@@ -73,7 +92,7 @@ for(const state of ['Idle','Walk','Run','Jump']){
     }
   }
 }
-console.log('RIG MOTION VERIFIED: world-forward/back strides, no lateral leg swing, hands clear of shorts in 4 clips');
+console.log('RIG MOTION VERIFIED: 44 real skinned joints, 10 weighted helpers, forward/back gait and hand clearance across five clips');
 
 await b.close();
 })().catch(e=>{console.error(e);process.exit(1)});
