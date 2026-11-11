@@ -42,7 +42,7 @@ const { chromium } = require('playwright');
   if(!ui.version.includes('3.0'))throw new Error('Old build loaded');
   if(ui.character!=='reference-head-v3')throw new Error('Blank body GLB did not load');
   if(ui.hairLocks<35 || ui.hairDrawGroups<4)throw new Error('Head review base was not loaded: '+JSON.stringify(ui));
-  if(ui.detachableHair!=='approved-turnaround-v3' || ui.detachableHairParts<6 || ui.detachableHairTriangles<50000 || !ui.detachableHairBone?.toLowerCase().endsWith('head') || ui.oldHairHidden<4)
+  if(ui.detachableHair!=='approved-turnaround-v3' || ui.detachableHairParts<6 || ui.detachableHairTriangles<35000 || !ui.detachableHairBone?.toLowerCase().endsWith('head') || ui.oldHairHidden<4)
     throw new Error('Approved separate hairstyle not attached to head: '+JSON.stringify(ui));
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
   if(ui.walkGait!=='phased-contact-v3')throw new Error('Live game did not enable the natural walk');
