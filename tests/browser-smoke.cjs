@@ -27,16 +27,18 @@ const { chromium } = require('playwright');
     animatedBones:Number(document.getElementById('game')?.dataset.animatedBones),
     clips:document.getElementById('game')?.dataset.animationClips,
     animation:document.getElementById('game')?.dataset.animation,
+    walkGait:document.getElementById('game')?.dataset.walkGait,
     warning:document.body.innerText.includes('3D LOAD FAILED'),
     canvas:!!document.querySelector('canvas'),
     touchToggle:document.querySelector('#touchToggle')?.innerText
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('2.7'))throw new Error('Old build loaded');
+  if(!ui.version.includes('2.8'))throw new Error('Old build loaded');
   if(ui.character!=='reference-head-v3')throw new Error('Blank body GLB did not load');
   if(ui.hairLocks<35 || ui.hairDrawGroups<4)throw new Error('Sculpted 3D hair and headplate absent: '+JSON.stringify(ui));
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
+  if(ui.walkGait!=='phased-contact-v3')throw new Error('Live game did not enable the natural walk');
   if(ui.clips!=='Idle,Walk,Run,Jump,Land')throw new Error('Incorrect animation clips: '+ui.clips);
   if(ui.rigJoints!==44)throw new Error('Named joints are missing: '+ui.rigJoints);
   if(ui.triangles<47000 || ui.triangles>115000)throw new Error('Unexpected character triangle count: '+ui.triangles);
@@ -48,6 +50,8 @@ const { chromium } = require('playwright');
   const walk=await page.locator('#game').getAttribute('data-animation');
   if(walk!=='walk')throw new Error('Walk clip not activated: '+walk);
   await page.screenshot({path:'urban-animation-walk.png'});
+  await page.waitForTimeout(180);
+  await page.screenshot({path:'urban-animation-walk-second-step.png'});
   await page.keyboard.down('Shift');
   await page.waitForTimeout(260);
   const run=await page.locator('#game').getAttribute('data-animation');
