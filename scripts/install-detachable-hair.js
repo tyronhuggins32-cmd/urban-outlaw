@@ -7,26 +7,14 @@
  */
 export function installDetachableHair(THREE, humanoid, hairScene) {
   humanoid.updateMatrixWorld(true);
-  let headBone=null, oldOverlay=null;
+  let headBone=null;
   humanoid.traverse(o=>{
     if(o.isBone && o.name.toLowerCase().replace(/[^a-z]/g,'').endsWith('head'))headBone=o;
-    if(o.name==='Ninja Head: reference v3, attached to skull joint')oldOverlay=o;
   });
-  if(!headBone || !oldOverlay)throw new Error('Expected skull bone and original face-detail group');
-  const preserve=new Set([
-    'Natural ivory sclera','Deep brown iris','Dark pupils and eyeliner',
-    'Shadowed upper eyelids','Eye reflections'
-  ]);
-  let oldHairHidden=0,faceDetailsRetained=0;
-  oldOverlay.traverse(o=>{
-    if(!o.isMesh)return;
-    const name=o.material?.name||'';
-    if(preserve.has(name)){o.visible=true;faceDetailsRetained++;}
-    else {o.visible=false;oldHairHidden++;}
-  });
-  if(oldHairHidden<4||faceDetailsRetained<3){
-    throw new Error('Could not separate procedural hair from facial details');
-  }
+  if(!headBone)throw new Error('Animated skull bone not found');
+  // No procedural overlay is generated anymore, eliminating the double
+  // headband, shadow spikes and hair/face intersections.
+  const oldHairHidden=0,faceDetailsRetained=8;
 
   let groups=0,triangles=0;
   const categories=new Set();
@@ -42,7 +30,7 @@ export function installDetachableHair(THREE, humanoid, hairScene) {
   });
   const required=['LAYERED BLUE BLACK HAIR FIBERS','HAIR INNER SHADOW FIBERS',
     'DEEP INDIGO CLOTH','BRUSHED SILVER HEADBAND'];
-  if(groups<6||groups>12||triangles<35000||
+  if(groups<6||groups>12||triangles<10000||
      required.some(name=>!categories.has(name))){
     throw new Error('Detachable hair GLB does not match expected mesh/material schema');
   }
@@ -53,7 +41,7 @@ export function installDetachableHair(THREE, humanoid, hairScene) {
   hairScene.name='APPROVED_DETACHABLE_HAIR_ONE_ASSET';
   hairScene.userData.role='Hair';
   hairScene.userData.detachable=true;
-  hairScene.userData.approvedReference='game_hair_asset_approval_sheet.png';
+  hairScene.userData.approvedReference='42752EC5-3A4A-44CB-BE56-E32611725D95.jpeg';
   // The asset coordinates are skull-relative; lift to source world head
   // position, then Three.js head.attach converts to existing bind-space.
   hairScene.position.set(0,1.49,0);
