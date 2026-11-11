@@ -281,7 +281,7 @@ export function polishNinjaHead(THREE, root) {
     // the new broad layers. Trim only crown and rear-volume triangles; face
     // features, eyebrows, eyelids and ears remain in the front half-space.
     const oldCrown=y>1.515;
-    const oldRearHair=y>1.445 && z<-.032;
+    const oldRearHair=y>1.355 && z<-.045; // remove old nape/back spikes under detachable hairstyle
     if(oldCrown||oldRearHair)stats.maskedHairTriangles++;
     else remain.push(a,b,c);
   }
