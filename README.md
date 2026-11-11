@@ -1,37 +1,34 @@
 # Urban Outlaw
 
-**Build 3.0: Approved Detachable Hair.** Playable third-person mobile-friendly browser game using a single reference-sculpted, textured character with a deformable skeleton. The character's face, hair, shorts and body sculpt remain the same. The skeleton and motion have been upgraded so the original model no longer behaves as a rigid action figure.
+**Build 3.5: Head and Hair Stabilization.** The playable 44-bone character is retained, with a rebuilt detachable hairstyle and non-destructive facial/ear geometry repairs.
 
-[Play Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/) | [Inspect the 3D model against the reference](https://tyronhuggins32-cmd.github.io/urban-outlaw/?review=1)
+[Play Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/) | [Front/side/back/3/4 model comparison](https://tyronhuggins32-cmd.github.io/urban-outlaw/?review=1&head=1)
 
-## Detachable hairstyle (real 3D asset)
+## What changed in 3.5
 
-**Standalone, replaceable model:** `assets/approved-detachable-hair.glb`. This is a real textured GLB built independently of the character, with no face, head, body, or skeletal geometry. The asset is modeled from the user's approved front/side/back hair turnaround, using flattened curved strands rather than random conical spikes. It contains layered blue-black locks, forward-hanging bangs, a swept-back fan, lower nape, an indigo band and tied bow, a silver forehead protector and an engraved design.
+- **One actual detachable hairstyle:** \`assets/sculpted-hair-v5.glb\`, with seven batched PBR material groups. Replaces the visibly broken V4 hair.
+- **No double-generated hair:** \`scripts/clean-head-v5.js\` now compacts the older source hair vertices inside the new sculpt instead of generating more spikes on top. It keeps all original head triangles, which avoids holes near the ears and nape.
+- **No floating facial eye dots:** the former extra eye-sphere layer is removed. The original model's skin/face texture remains intact.
+- **Forehead protector repaired:** the separate metal plate follows the hair asset and is positioned above the eyes. A curved navy strip covers the older low-resolution decal underneath.
+- **Better skin lighting:** neutral hemisphere fill replaces the strong green bounce that tinted the character.
+- **Rig stays unchanged:** 44 skin-weighted joints, including 10 additional deformation bones. The Idle, Walk, Run, Jump and Land clips remain. iPhone touch and controller support are preserved.
 
-The source generator is `scripts/build-approved-hair.py`. `.github/workflows/build-approved-hair.yml` builds the GLB at no cost and checks geometry and mesh groups. `scripts/install-detachable-hair.js` attaches the GLB at the original model's skull pivot, source position (0, 1.49, 0), then parents it to `mixamorigHead`. Old procedural hair meshes are hidden, while the existing face details, animated 44-bone rig and movement system remain active. The detachable asset uses seven batched PBR material groups and is independently replaceable.
+## Known fidelity limits
 
-**Reference-fidelity limitation:** This is a reference-guided editable mesh and functioning game asset, **not a guaranteed geometry-exact reconstruction** of the rendered approval sheet. Front fringe spacing, fine strand flow and rear hair volume remain the main differences to compare. Review the actual model in the four-angle in-game viewer before approving a further sculpt revision.
+The screenshot reference remains the visual acceptance target. Build 3.5 **does not yet exactly reproduce** the high-quality face sculpt, individually layered hair, or subtle anatomical surfaces in that reference. The biggest remaining issues are fine facial form, source mesh skin/shorts topology, and hair fiber shapes at close range. Automated tests verify scene loading, geometry presence, animated bone paths and four camera angles, but cannot establish artistic 1:1 likeness.
 
-## Actual game assets
+## Rebuilding the detachable 3D hair
 
-- **Playable character:** `assets/reference-rig-fluid.glb`. This is a real skinned GLB with the original PBR material, face, hair and clothing textures.
-- **44 real skin-weighted joints:** 34 from the underlying Mixamo-style humanoid skeleton plus 10 new corrective deformation joints: left/right upper-arm soft joints, forearm twists, thigh soft joints, calf twists, chest breathing and neck follow-through.
-- **Source model preserved:** `assets/reference-rig-separated.glb` remains the approved body-sculpt input to the rig builder, with the prior hand/shorts intersections corrected. `assets/reference-rig.glb` is the unmodified original source.
-- **Model generator:** `scripts/upgrade_fluid_rig.py`. This adjusts the GLB's glTF skin joints, inverse bind matrices and live vertex weights. The helper bones have genuine deforming vertices, not decorative empty transform nodes.
-- **Clean shorts seam:** two independently attached thigh-following fabric panels remain separate from the hands.
-- The reference turnarounds live at `assets/reference/`, and the four-angle model reviewer shows the actual GLB next to the target artwork.
+\`\`\`bash
+python3 -m pip install numpy scipy trimesh Pillow
+python3 scripts/build-sculpted-hair-v5.py assets/sculpted-hair-v5.glb
+\`\`\`
 
-## New animation system
+The free workflow \`.github/workflows/build-sculpted-hair-v5.yml\` validates its GLB and commits the result. \`scripts/install-detachable-hair.js\` mounts the asset to the humanoid's real head bone. The previous V3/V4 assets and original reference rig remain in the repo for comparison and rollback.
 
-`scripts/reference-character-animations-v2.js` contains five movement clips:
+## Verification
 
-- **Idle:** subtle chest breathing, shoulder relaxation, hand movement, neck follow-through and head movement.
-- **Walk:** coordinated opposing arms and legs, hip sway, soft upper-arm and thigh deformation, toe movement and relaxed finger motion.
-- **Run:** stronger stride and arm movement, forward torso lean, recoil, pelvis bounce, elbow flex and calf corrections.
-- **Jump:** anticipation crouch, airborne leg tuck, arm counterbalance and foot extension.
-- **Land:** knee compression, torso absorption and a short recovery before returning to normal movement.
-
-All animation rotations are converted from the sculpt's original world-oriented rest axes into each local bone space. This avoids the previous sideways leg-swing problem. AnimationMixer blends transitions with shorter fades for jumps and landings. The fifth clip is triggered by the actual gameplay landing.
+\`.github/workflows/browser-smoke.yml\` runs Playwright at a mobile viewport, exercises the 44-bone motion system, and captures both whole-body and head closeups from front, side, back and three-quarter views. The review option is \`?review=1&head=1\`.
 
 ## Input
 
