@@ -40,7 +40,7 @@ const path=require('node:path');
  const html=fs.readFileSync(path.resolve('index.html'),'utf8');
  assert.match(rig,/clip\('Run',NINJA_RUN_DURATION,ninjaRunPose\)/,'Run clip must use ninja cycle');
  assert.match(rig,/Run:ninjaRunRootMotion/,'Run clip must use in-place vertical impulse');
- assert.match(html,/runStyle='ninja-arms-back-v1'/,'Game must expose ninja sprint state');
+ assert.match(html,/runStyle='ninja-lean-v2'/,'Game must expose ninja sprint state');
  assert.match(html,/sprinting\?'Run':'Walk'/,'Sprint controls must activate ninja clip');
  console.log('NINJA RUN VERIFIED: forward lean, arms-back silhouette, alternating strides, seamless loop, and active game wiring');
 })().catch(error=>{console.error(error);process.exit(1)});
