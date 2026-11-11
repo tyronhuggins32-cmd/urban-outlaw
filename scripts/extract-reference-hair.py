@@ -5,6 +5,7 @@ import json,struct,io,hashlib
 from pathlib import Path
 import argparse
 parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--reference-shape",action="store_true",help="Apply the visibly narrower V10 silhouette and strand normals")
 parser.add_argument("--refine",action="store_true",help="Apply the bounded V9 silhouette refinement")
 parser.add_argument("--embed-texture",action="store_true",help="Embed source atlas for offline rendering")
 parser.add_argument("--out",type=Path,help="Override output GLB path")
@@ -31,7 +32,7 @@ faces=idx[remove];ids=np.unique(faces);remap=np.full(len(xyz),-1,dtype=int);rema
 t=np.clip((verts[:,1]-1.48)/.14,0,1);verts[:,1]-=t*.043;verts[:,2]-=t*.035
 # Refine the accepted source sculpt rather than replacing its layered topology.
 # All measurements are in avatar meters; front/skin boundary vertices stay fixed.
-if args.refine:
+if args.refine or args.reference_shape:
  original=verts.copy()
  crown=np.clip((verts[:,1]-1.445)/.11,0,1)
  rear=np.clip((.075-verts[:,2])/.13,0,1)
@@ -63,6 +64,25 @@ if args.refine:
  verts[:,0]*=1-.12*tail
  verts[:,1]+=.004*tail
  print('V9 maximum source vertex adjustment:',float(np.linalg.norm(verts-original,axis=1).max()))
+if args.reference_shape:
+ # A stronger silhouette pass: taper the radial crown into swept layered locks.
+ # Keep scalp roots and the face boundary fixed; warp farther-out locks smoothly.
+ q=verts.copy()
+ crown=np.clip((q[:,1]-1.425)/.10,0,1)
+ side=np.clip((abs(q[:,0])-.075)/.09,0,1)
+ rear=np.clip((.08-q[:,2])/.15,0,1)
+ verts[:,0]*=1-.19*crown-.10*side*rear
+ verts[:,1]-=.019*crown*rear
+ verts[:,2]-=.024*crown*rear
+ # Bow the long curtains around the temples, then bring the ends inward.
+ curtain=np.clip((q[:,2]-.045)/.05,0,1)*np.clip((abs(q[:,0])-.060)/.035,0,1)
+ lower=np.clip((1.43-q[:,1])/.15,0,1)
+ verts[:,0]*=1-.10*curtain*lower
+ verts[:,2]+=.010*curtain*np.sin(lower*np.pi)
+ # Taper the lower rear locks toward the center of the nape.
+ nape=np.clip((1.37-q[:,1])/.12,0,1)*np.clip((-.055-q[:,2])/.065,0,1)
+ verts[:,0]*=1-.12*nape
+ verts[:,1]+=.010*nape
 # Repair painted skin-colored gaps on the hair with local vertex tinting.
 # The face/body texture itself is never edited.
 texcoords=uv[ids].copy();colors=np.ones((len(verts),3),dtype=np.float32)
@@ -96,6 +116,17 @@ def add(vals,typ,component=5126):
  off=len(outblob);outblob.extend(vals.tobytes());vi=len(views);views.append({'buffer':0,'byteOffset':off,'byteLength':vals.nbytes});ai=len(accessors);a={'bufferView':vi,'componentType':component,'count':len(vals),'type':typ}
  if typ=='VEC3':a.update(min=vals.min(0).astype(float).tolist(),max=vals.max(0).astype(float).tolist())
  accessors.append(a);return ai
+# Directional strand coordinates are separate from the untouched source atlas UVs.
+strandTex=None
+if args.reference_shape:
+ flow=verts.copy();front=np.clip((flow[:,2]+.025)/.12,0,1)
+ strandUV=np.stack([flow[:,0]/.004+.18*np.sin((flow[:,1]-1.35)*9),front*flow[:,1]/.24+(1-front)*flow[:,2]/.24],axis=1).astype('f4')
+ # Cloth and the inner cap sample the flat corner of the normal texture.
+ clothSource=(c[ids][:,2]>c[ids][:,0]*1.3)&(c[ids][:,2]>c[ids][:,1]*1.1)&(c[ids][:,2]>38)
+ clothSource|=(verts[:len(ids),2]<-.125)&(verts[:len(ids),1]<1.405)
+ strandUV[:len(ids)][clothSource]=[0,0]
+ strandUV[len(ids):]=[0,0]
+ strandTex=add(strandUV,'VEC2')
 pos=add(verts.astype('f4'),'VEC3');nor=add(normals.astype('f4'),'VEC3');tex=add(texcoords.astype('f4'),'VEC2');color=add(colors.astype('f4'),'VEC3');indices=add(faces.ravel(),'SCALAR',5123)
 while len(outblob)%4:outblob.append(0)
 embed=args.embed_texture
@@ -141,16 +172,32 @@ for xx in [-.059,.059]:
   for j in range(12):a=j*np.pi/6;gv.append([xx+.0017*np.cos(a),yy+.0017*np.sin(a),plateZ(xx)+.0018]);gn.append([0,0,1])
   for j in range(12):gf.append([off,off+1+j,off+1+(j+1)%12])
 glyphPos=add(np.asarray(gv,dtype='f4'),'VEC3');glyphNormal=add(np.asarray(gn,dtype='f4'),'VEC3');glyphIndices=add(np.asarray(gf,dtype='u2').ravel(),'SCALAR',5123)
-out={'asset':{'version':'2.0','generator':'Urban Outlaws original sculpt hair extraction'},'scene':0,'scenes':[{'nodes':[0]}],'nodes':[{'name':'Reference Sculpt Hair','mesh':0}],'meshes':[{'name':'Reference Sculpt Hair','primitives':[{'attributes':{'POSITION':pos,'NORMAL':nor,'TEXCOORD_0':tex,'COLOR_0':color},'indices':indices,'material':0}]}],'materials':[{'name':'REFERENCE SCULPT HAIR','pbrMetallicRoughness':{'baseColorTexture':{'index':0},'roughnessFactor':(.66 if args.refine else .70),'metallicFactor':0,'baseColorFactor':([.81,.87,1,1] if args.refine else [.85,.90,1,1])},'doubleSided':True}],'textures':[{'source':0}],'images':[{'bufferView':imageView,'mimeType':'image/webp'}],'accessors':accessors,'bufferViews':views,'buffers':[{'byteLength':len(outblob)}]}
+out={'asset':{'version':'2.0','generator':'Urban Outlaws original sculpt hair extraction'},'scene':0,'scenes':[{'nodes':[0]}],'nodes':[{'name':'Reference Sculpt Hair','mesh':0}],'meshes':[{'name':'Reference Sculpt Hair','primitives':[{'attributes':{'POSITION':pos,'NORMAL':nor,'TEXCOORD_0':tex,'COLOR_0':color},'indices':indices,'material':0}]}],'materials':[{'name':'REFERENCE SCULPT HAIR','pbrMetallicRoughness':{'baseColorTexture':{'index':0},'roughnessFactor':(.60 if args.reference_shape else .66 if args.refine else .70),'metallicFactor':0,'baseColorFactor':([.72,.79,1,1] if args.reference_shape else [.81,.87,1,1] if args.refine else [.85,.90,1,1])},'doubleSided':True}],'textures':[{'source':0}],'images':[{'bufferView':imageView,'mimeType':'image/webp'}],'accessors':accessors,'bufferViews':views,'buffers':[{'byteLength':len(outblob)}]}
 if not embed:
  del out['textures'];del out['images'];out['materials'][0]['pbrMetallicRoughness'].pop('baseColorTexture')
+if args.reference_shape:
+ # Subtle tangent-space grooves: actual material normals, no string geometry.
+ size=256;yy,xx=np.mgrid[:size,:size];u=xx/size;v=yy/size
+ phase=2*np.pi*(u+.024*np.sin(v*2*np.pi))
+ slope=.22*np.cos(phase)+.09*np.cos(phase*3+.4)+.035*np.cos(phase*7)
+ ny=.025*np.sin(phase)*np.cos(v*2*np.pi);nz=np.ones_like(slope)
+ normalPixels=np.stack([-slope,ny,nz],axis=2);normalPixels/=np.linalg.norm(normalPixels,axis=2)[:,:,None]
+ normalPixels=(normalPixels*.5+.5)*255;normalPixels[:5,:5]=[128,128,255];normalPixels[-5:,:5]=[128,128,255];normalPixels[:5,-5:]=[128,128,255];normalPixels[-5:,-5:]=[128,128,255]
+ stream=io.BytesIO();Image.fromarray(normalPixels.astype('uint8'),'RGB').save(stream,format='PNG');png=stream.getvalue()
+ while len(outblob)%4:outblob.append(0)
+ off=len(outblob);outblob.extend(png);vi=len(views);views.append({'buffer':0,'byteOffset':off,'byteLength':len(png)})
+ images=out.setdefault('images',[]);imageIndex=len(images);images.append({'bufferView':vi,'mimeType':'image/png'})
+ textures=out.setdefault('textures',[]);textureIndex=len(textures);textures.append({'source':imageIndex})
+ out['materials'][0]['normalTexture']={'index':textureIndex,'texCoord':1,'scale':.35}
+ out['meshes'][0]['primitives'][0]['attributes']['TEXCOORD_1']=strandTex
+ out['buffers'][0]['byteLength']=len(outblob)
 out['meshes'][0]['primitives'].extend([
  {'attributes':{'POSITION':metalPos,'NORMAL':metalNormal},'indices':metalIndices,'material':1},
  {'attributes':{'POSITION':glyphPos,'NORMAL':glyphNormal},'indices':glyphIndices,'material':2}])
 out['materials'].extend([
  {'name':'REFERENCE FOREHEAD METAL','pbrMetallicRoughness':{'baseColorFactor':[.53,.57,.63,1],'roughnessFactor':.45,'metallicFactor':.72},'doubleSided':True},
  {'name':'REFERENCE LEAF ENGRAVING','pbrMetallicRoughness':{'baseColorFactor':[.006,.008,.012,1],'roughnessFactor':.8,'metallicFactor':0},'doubleSided':True}])
-j=json.dumps(out,separators=(',',':')).encode();j+=b' '*((-len(j))%4);outblob+=b'\0'*((-len(outblob))%4);glb=struct.pack('<4sII',b'glTF',2,28+len(j)+len(outblob))+struct.pack('<I4s',len(j),b'JSON')+j+struct.pack('<I4s',len(outblob),b'BIN\0')+outblob;(args.out or Path('assets/reference-sculpt-hair-v9.glb' if args.refine else 'assets/reference-sculpt-hair-v8.glb')).write_bytes(glb)
+j=json.dumps(out,separators=(',',':')).encode();j+=b' '*((-len(j))%4);outblob+=b'\0'*((-len(outblob))%4);glb=struct.pack('<4sII',b'glTF',2,28+len(j)+len(outblob))+struct.pack('<I4s',len(j),b'JSON')+j+struct.pack('<I4s',len(outblob),b'BIN\0')+outblob;(args.out or Path('assets/reference-sculpt-hair-v10.glb' if args.reference_shape else 'assets/reference-sculpt-hair-v9.glb' if args.refine else 'assets/reference-sculpt-hair-v8.glb')).write_bytes(glb)
 def ranges(bits):
  output=[]
  for i in np.flatnonzero(bits):

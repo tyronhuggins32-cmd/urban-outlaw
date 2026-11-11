@@ -10,7 +10,7 @@ async function load(file){
  for(const m of g.materials||[]){for(const k of Object.keys(m))if(k.endsWith('Texture'))delete m[k];for(const k of Object.keys(m.pbrMetallicRoughness||{}))if(k.endsWith('Texture'))delete m.pbrMetallicRoughness[k];}
  delete g.images;delete g.textures;delete g.samplers;g.buffers[0].uri='data:application/octet-stream;base64,'+raw.subarray(28+n).toString('base64');return (await new GLTFLoader().parseAsync(JSON.stringify(g),'')).scene;
 }
-const root=await load('assets/reference-rig-fluid.glb'),hair=await load('assets/reference-sculpt-hair-v9.glb');
+const root=await load('assets/reference-rig-fluid.glb'),hair=await load('assets/reference-sculpt-hair-v10.glb');
 let mesh,head;root.traverse(o=>{if(o.isSkinnedMesh)mesh=o;if(o.isBone&&/head$/i.test(o.name))head=o});
 const g=mesh.geometry,p=g.attributes.position,before=p.array.slice(),uv=g.attributes.uv.array.slice(),weights=g.attributes.skinWeight.array.slice(),normal=g.attributes.normal.array.slice();
 const originalIndices=g.index.array.slice();
