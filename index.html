@@ -52,6 +52,62 @@
     .review-views button { color:#f7f9ff; border:1px solid #dde3f1a0; background:#1a2b3cbf; padding:10px; border-radius:8px; font:800 11px system-ui; min-width:76px; }
     .review-views button[aria-pressed=true] { background:#5075a6; border-color:white; }
     .review-headline { position:absolute; top:max(135px,env(safe-area-inset-top)); left:12px; font:800 10px system-ui; color:white; padding:8px 10px; background:#233849b9; border-radius:7px; letter-spacing:.7px; }
+
+    /* Main menu: mobile-first roster selection that does not interfere with WebGL. */
+    #mainMenu { position:absolute; inset:0; z-index:30; display:flex; flex-direction:column; overflow-y:auto; overscroll-behavior:contain; padding:max(28px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(25px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left)); color:#fff; background:radial-gradient(ellipse at 56% 29%,#2e51622b 0%,#050d1acb 47%,#030710f5 94%),linear-gradient(124deg,#101725e8 0%,#0d183bb0 51%,#050b19e9 100%); -webkit-overflow-scrolling:touch; }
+    #game.playing #mainMenu, #game.review #mainMenu { display:none; }
+    #game:not(.playing):not(.review) .ui, #game:not(.playing):not(.review) #touchControls, #game:not(.playing):not(.review) #touchToggle, #game:not(.playing):not(.review) #controllerStatus, #game:not(.playing):not(.review) #openMenu, #game:not(.playing):not(.review) #loading { display:none !important; }
+    #openMenu { display:none; position:absolute; z-index:9; top:calc(max(22px,env(safe-area-inset-top)) + 94px); right:max(20px,env(safe-area-inset-right)); color:#fff; background:#15334bba; border:1px solid #ffffff8c; padding:10px 13px; border-radius:10px; font:800 11px system-ui,sans-serif; letter-spacing:1px; cursor:pointer; touch-action:manipulation; }
+    #game.playing #openMenu { display:block; }
+    #game.review #openMenu { display:none; }
+    #game.playing #controllerStatus { top:calc(max(22px,env(safe-area-inset-top)) + 145px); }
+    .menu-shell { width:min(100%,1050px); margin:0 auto; min-height:100%; display:flex; flex-direction:column; gap:0; }
+    .menu-top { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#ffffffa8; }
+    .menu-logo { font-size:clamp(16px,3.5vw,22px); line-height:1; font-weight:1000; letter-spacing:-.7px; }
+    .menu-logo strong { color:#ffdb72; }
+    .menu-build { font:800 10px system-ui,sans-serif; letter-spacing:1.4px; border:1px solid #b8cbe458; border-radius:999px; padding:9px 11px; background:#111f33a1; white-space:nowrap; }
+    .menu-intro { margin-top:clamp(48px,8vh,90px); }
+    .menu-step { font-size:10px; letter-spacing:3px; font-weight:900; color:#d5bb78; }
+    #brawlerTitle { font-size:clamp(46px,9.5vw,102px); font-weight:1000; letter-spacing:-.07em; line-height:.91; margin:12px 0 13px; text-transform:uppercase; text-shadow:0 12px 35px #0009; }
+    #brawlerTitle span { color:#ffd478; }
+    .menu-subtitle { font-size:clamp(13px,2vw,16px); color:#e0e5f0b8; line-height:1.45; max-width:400px; margin:0; }
+    .menu-selection { margin-top:auto; padding-top:clamp(30px,8vh,90px); }
+    .menu-selection-label { margin:0 0 11px; font-size:11px; letter-spacing:2px; font-weight:900; color:#e0e7faad; }
+    .brawler-roster { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .brawler-card { position:relative; text-align:left; min-height:128px; padding:16px; border-radius:15px; border:1px solid #8c9ab05c; background:linear-gradient(150deg,#203044df,#0c1729e8); color:#fff; overflow:hidden; }
+    button.brawler-card { cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+    .brawler-card.selected { border-color:#ffdc86; background:linear-gradient(145deg,#3e3f45ed,#1e2537f0); box-shadow:0 0 0 1px #f9d38067,inset 0 1px #ffe5a34d,0 14px 35px #0005; }
+    .brawler-card .card-no { display:block; font-weight:1000; font-size:30px; line-height:1; color:#cbd1de45; letter-spacing:-2px; }
+    .brawler-card .card-name { display:block; margin-top:22px; font-weight:1000; font-size:clamp(12px,2.4vw,18px); letter-spacing:.5px; }
+    .brawler-card .card-caption { display:block; color:#dfebff9c; margin-top:5px; font-size:10px; font-weight:750; letter-spacing:1px; }
+    .brawler-card .card-tag { position:absolute; top:10px; right:10px; font-size:9px; letter-spacing:.5px; border-radius:5px; padding:4px 5px; background:#f5d78b; color:#182230; font-weight:1000; }
+    .brawler-card.locked { opacity:.53; background:#111a2bdc; }
+    .brawler-card.locked .card-tag { color:#e5e8ed; background:#536173; }
+    .brawler-actions { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:15px; }
+    .menu-character-note { color:#b6c5d8c4; font-size:12px; line-height:1.5; max-width:270px; }
+    .menu-character-note strong { color:#fff; display:block; letter-spacing:.7px; font-size:11px; }
+    #startGame { flex:0 0 min(44%,275px); min-height:60px; background:linear-gradient(120deg,#ffeb9e,#f0b95c); border:0; border-radius:11px; color:#121d2b; font:1000 15px system-ui,sans-serif; letter-spacing:1.2px; box-shadow:0 9px 28px #0005; cursor:pointer; touch-action:manipulation; }
+    #startGame:disabled { cursor:wait; opacity:.55; filter:grayscale(.3); }
+    #startGame:focus-visible, #ninjaBrawler:focus-visible, #openMenu:focus-visible { outline:3px solid white; outline-offset:4px; }
+    #menuStatus { font-size:11px; color:#b8d9d4; letter-spacing:.6px; min-height:18px; margin-top:10px; }
+    .menu-footer { display:flex; justify-content:space-between; gap:15px; color:#a6b3c8b0; font-size:10px; letter-spacing:1px; padding-top:16px; }
+    @media (max-width:600px) {
+      #mainMenu { padding: max(24px,env(safe-area-inset-top)) max(17px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) max(17px,env(safe-area-inset-left)); }
+      .menu-intro { margin-top:clamp(35px,7vh,64px); }
+      #brawlerTitle { font-size:clamp(48px,11.5vw,69px); }
+      .menu-selection { padding-top:clamp(64px,14vh,150px); }
+      .brawler-roster { gap:7px; }
+      .brawler-card { min-height:112px; padding:11px; border-radius:11px; }
+      .brawler-card .card-name { margin-top:19px; font-size:12px; }
+      .brawler-card .card-caption { font-size:8px; }
+      .brawler-card .card-no { font-size:24px; }
+      .brawler-card .card-tag { font-size:8px; top:7px; right:7px; padding:3px; }
+      .menu-character-note { font-size:11px; }
+      #startGame { flex-basis:48%; min-height:57px; font-size:12px; }
+      .menu-footer { font-size:9px; }
+    }
+    @media (max-height:690px) { .menu-intro { margin-top:30px; } .menu-selection { padding-top:25px; } .brawler-card { min-height:95px; } }
+
     @media (pointer: coarse) {
       #touchControls { display: block; }
       #touchToggle { display: flex; }
@@ -73,8 +129,46 @@
 <body>
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
+
+    <section id="mainMenu" aria-labelledby="brawlerTitle" aria-label="Pick your brawler">
+      <div class="menu-shell">
+        <header class="menu-top">
+          <div class="menu-logo">URBAN <strong>OUTLAW</strong></div>
+          <div class="menu-build">FREE ROAM · ROSTER 01</div>
+        </header>
+        <div class="menu-intro">
+          <div class="menu-step">01 / CHARACTER SELECT</div>
+          <h2 id="brawlerTitle">PICK UR<br><span>BRAWLER</span></h2>
+          <p class="menu-subtitle">Choose your fighter and enter the world. More brawlers are coming.</p>
+        </div>
+        <div class="menu-selection">
+          <h3 class="menu-selection-label">AVAILABLE BRAWLERS</h3>
+          <div class="brawler-roster" aria-label="Brawler roster">
+            <button type="button" class="brawler-card selected" id="ninjaBrawler" aria-pressed="true" aria-label="Select Ninja, the playable brawler">
+              <span class="card-tag">READY</span><span class="card-no">01</span>
+              <span class="card-name">NINJA</span><span class="card-caption">AGILE · PLAYABLE</span>
+            </button>
+            <div class="brawler-card locked" aria-label="Brawler 2 coming soon">
+              <span class="card-tag">LOCKED</span><span class="card-no">02</span>
+              <span class="card-name">UNKNOWN</span><span class="card-caption">COMING SOON</span>
+            </div>
+            <div class="brawler-card locked" aria-label="Brawler 3 coming soon">
+              <span class="card-tag">LOCKED</span><span class="card-no">03</span>
+              <span class="card-name">UNKNOWN</span><span class="card-caption">COMING SOON</span>
+            </div>
+          </div>
+          <div class="brawler-actions">
+            <div class="menu-character-note"><strong>SELECTED: NINJA</strong> Current playable character · Other roster slots are not released.</div>
+            <button id="startGame" type="button" disabled>LOADING...</button>
+          </div>
+          <p id="menuStatus" role="status" aria-live="polite">Preparing character and arena…</p>
+        </div>
+        <footer class="menu-footer"><span>URBAN OUTLAW · CHARACTER SELECT</span><span>TOUCH / CONTROLLER READY</span></footer>
+      </div>
+    </section>
+    <button type="button" id="openMenu" aria-label="Return to brawler selection menu">MENU</button>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 4.3 · REFINED HAIR</div>
+    <div class="ui version"><span class="dot"></span> BUILD 4.4 · BRAWLER SELECT</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -113,6 +207,37 @@
   </script>
   <script type="module">
     const loading = document.getElementById('loading');
+    const gameRootMenu = document.getElementById('game');
+    const menuButton = document.getElementById('openMenu');
+    const startGameButton = document.getElementById('startGame');
+    const menuStatus = document.getElementById('menuStatus');
+    const inReview = new URLSearchParams(location.search).get('review') === '1';
+    let menuStarted = inReview, gameReady = false, onReturnToMenu = null;
+    gameRootMenu.dataset.screen = inReview ? 'review' : 'menu';
+    function enterWithBrawler() {
+      if (!gameReady || menuStarted) return;
+      menuStarted = true;
+      gameRootMenu.dataset.brawler = 'ninja';
+      gameRootMenu.dataset.screen = 'game';
+      gameRootMenu.classList.add('playing');
+      document.getElementById('mainMenu').setAttribute('aria-hidden','true');
+      document.getElementById('viewport').focus();
+    }
+    function returnToBrawlerMenu() {
+      if (inReview || !menuStarted) return;
+      menuStarted = false;
+      gameRootMenu.classList.remove('playing');
+      gameRootMenu.dataset.screen = 'menu';
+      document.getElementById('mainMenu').removeAttribute('aria-hidden');
+      onReturnToMenu?.();
+      document.getElementById('ninjaBrawler').focus();
+    }
+    startGameButton.addEventListener('click',enterWithBrawler);
+    document.getElementById('ninjaBrawler').addEventListener('click',()=>{
+      gameRootMenu.dataset.selectedBrawler='ninja';
+      document.getElementById('ninjaBrawler').setAttribute('aria-pressed','true');
+    });
+    menuButton.addEventListener('click',returnToBrawlerMenu);
     async function boot() {
       let THREE;
       try {
@@ -122,6 +247,7 @@
           THREE = await import('https://unpkg.com/three@0.166.1/build/three.module.js');
         } catch (fallbackError) {
           loading.textContent = 'Unable to load 3D graphics. Check your connection and reload.';
+          menuStatus.textContent = '3D graphics unavailable. Check your connection and retry.';
           return;
         }
       }
@@ -384,7 +510,12 @@
         const handled = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift']);
         window.addEventListener('keydown', event => {
           const key = event.key.toLowerCase();
-          if (handled.has(key)) event.preventDefault();
+          if (handled.has(key) || key==='escape') event.preventDefault();
+          if (!menuStarted) {
+            if (key==='enter' && !event.repeat) enterWithBrawler();
+            return;
+          }
+          if (key==='escape') { returnToBrawlerMenu(); return; }
           pressed.add(key);
           if (key === ' ') jumpRequested = true;
         });
@@ -451,6 +582,14 @@
         }
         touchToggle.addEventListener('click', () => setTouchControls(!touchEnabled));
         setTouchControls(touchEnabled);
+        onReturnToMenu=()=>{
+          pressed.clear();
+          jumpRequested=false;
+          touchRun=false;
+          stopRun();
+          stickPointer=null; stickX=stickY=0;updateKnob();
+          if (animationMixer) setCharacterAnimation('Idle');
+        };
 
         let orbit = reviewMode ? 0 : Math.PI;
         let elevation = reviewMode ? .10 : .22, distance = headReviewMode ? 2.55 : reviewMode ? 7.5 : 9.5;
@@ -519,6 +658,7 @@
           (pad.buttons[i].pressed || pad.buttons[i].value > .55));
         const controllerStatus = document.getElementById('controllerStatus');
         let currentPadId = null;
+        let previousPadMenuConfirm=false, previousPadMenuBack=false;
         function refreshPadStatus(pad) {
           const id = pad ? pad.index + ':' + pad.id : null;
           if (id === currentPadId) return;
@@ -538,28 +678,39 @@
           const pads = navigator.getGamepads ? navigator.getGamepads() : [];
           const pad = Array.from(pads || []).find(p => p && p.connected) || null;
           refreshPadStatus(pad);
-          // Left stick: move. Right stick: orbit camera. D-pad: alternate movement.
-          const padX = deadzone(axis(pad, 0)) + (down(pad, 15) ? 1 : 0) - (down(pad, 14) ? 1 : 0);
-          const padY = -deadzone(axis(pad, 1)) + (down(pad, 12) ? 1 : 0) - (down(pad, 13) ? 1 : 0);
-          orbit -= deadzone(axis(pad, 2)) * 2.5 * dt;
-          elevation = THREE.MathUtils.clamp(elevation + deadzone(axis(pad, 3)) * 1.5 * dt, .15, 1.05);
-          // Cross: jump on press, not while held.
+          // Cross / A confirms brawler selection. Options / Start returns to menu.
+          const padConfirm = down(pad, 0);
+          const padOptions = down(pad, 9);
+          if (!menuStarted && !reviewMode) {
+            if ((padConfirm && !previousPadMenuConfirm) || (padOptions && !previousPadMenuBack)) enterWithBrawler();
+          } else if (!reviewMode && padOptions && !previousPadMenuBack) {
+            returnToBrawlerMenu();
+          }
+          previousPadMenuConfirm=padConfirm;
+          previousPadMenuBack=padOptions;
+          // Input is paused while the selection menu is open.
+          const padX = menuStarted ? deadzone(axis(pad, 0)) + (down(pad, 15) ? 1 : 0) - (down(pad, 14) ? 1 : 0) : 0;
+          const padY = menuStarted ? -deadzone(axis(pad, 1)) + (down(pad, 12) ? 1 : 0) - (down(pad, 13) ? 1 : 0) : 0;
+          if(menuStarted) {
+            orbit -= deadzone(axis(pad, 2)) * 2.5 * dt;
+            elevation = THREE.MathUtils.clamp(elevation + deadzone(axis(pad, 3)) * 1.5 * dt, .15, 1.05);
+          }
           const padJump = down(pad, 0);
-          if (padJump && !previousPadJump) jumpRequested = true;
+          if (menuStarted && padJump && !previousPadJump) jumpRequested = true;
           previousPadJump = padJump;
 
           let x = (pressed.has('d') || pressed.has('arrowright') ? 1 : 0) - (pressed.has('a') || pressed.has('arrowleft') ? 1 : 0) + stickX + padX;
           let y = (pressed.has('w') || pressed.has('arrowup') ? 1 : 0) - (pressed.has('s') || pressed.has('arrowdown') ? 1 : 0) + stickY + padY;
           const inputLength = Math.hypot(x, y);
           if (inputLength > 1) { x /= inputLength; y /= inputLength; }
-          if (reviewMode) { x=0; y=0; jumpRequested=false; }
+          if (reviewMode || !menuStarted) { x=0; y=0; jumpRequested=false; }
 
           forward.set(-Math.sin(orbit), 0, -Math.cos(orbit));
           right.set(forward.z, 0, -forward.x);
           const moveX = forward.x * y + right.x * x;
           const moveZ = forward.z * y + right.z * x;
           const moving = Math.hypot(moveX, moveZ) > .07;
-          const sprinting = !reviewMode && (pressed.has('shift') || touchRun || down(pad, 7) || down(pad, 5) || down(pad, 10));
+          const sprinting = menuStarted && !reviewMode && (pressed.has('shift') || touchRun || down(pad, 7) || down(pad, 5) || down(pad, 10));
           const speed = sprinting ? 95 : walkSpeed; // walk travel matches the recorded stride
           player.position.x += moveX * speed * dt;
           player.position.z += moveZ * speed * dt;
@@ -633,10 +784,18 @@
         camera.position.set(Math.sin(orbit) * startHorizontal, (headReviewMode ? 3.47 : 1.85) + Math.sin(elevation) * distance, Math.cos(orbit) * startHorizontal);
         camera.lookAt(0, headReviewMode ? 3.47 : 1.85, 0);
         loading.classList.add('hidden');
+        gameReady = true;
+        startGameButton.disabled = false;
+        startGameButton.textContent = 'START GAME';
+        menuStatus.textContent = document.getElementById('game').dataset.character === 'fallback'
+          ? 'Ready with simplified fallback character.'
+          : 'Ninja ready. Select and enter free roam.';
+        gameRootMenu.dataset.selectedBrawler='ninja';
         frame();
       } catch (err) {
         console.error('Urban Outlaw failed to start:', err);
         loading.textContent = '3D could not start on this device. Try refreshing the page.';
+        menuStatus.textContent = 'Unable to load arena. Refresh to retry.';
       }
     }
     boot();
