@@ -28,6 +28,9 @@ const { chromium } = require('playwright');
     detachableHairTriangles:Number(document.getElementById('game')?.dataset.detachableHairTriangles),
     detachableHairBone:document.getElementById('game')?.dataset.detachableHairBone,
     oldHairHidden:Number(document.getElementById('game')?.dataset.oldHairHidden),
+    compactedCrown:Number(document.getElementById('game')?.dataset.compactedCrown),
+    compactedNape:Number(document.getElementById('game')?.dataset.compactedNape),
+    faceDetails:Number(document.getElementById('game')?.dataset.faceDetails),
     helperBones:Number(document.getElementById('game')?.dataset.helperBones),
     animatedBones:Number(document.getElementById('game')?.dataset.animatedBones),
     clips:document.getElementById('game')?.dataset.animationClips,
@@ -39,16 +42,17 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('3.2'))throw new Error('Old build loaded');
-  if(ui.character!=='reference-head-v3')throw new Error('Blank body GLB did not load');
-  if(ui.hairLocks<35 || ui.hairDrawGroups<4)throw new Error('Head review base was not loaded: '+JSON.stringify(ui));
-  if(ui.detachableHair!=='sculpted-shell-v4' || ui.detachableHairParts<6 || ui.detachableHairTriangles<35000 || !ui.detachableHairBone?.toLowerCase().endsWith('head') || ui.oldHairHidden<4)
+  if(!ui.version.includes('3.3'))throw new Error('Old build loaded');
+  if(ui.character!=='clean-head-v5')throw new Error('Blank body GLB did not load');
+  if(ui.hairLocks!==0 || ui.hairDrawGroups!==0 || ui.oldHairRemoved!==0 || ui.compactedCrown<100 || ui.compactedNape<100 || ui.faceDetails!==8)
+    throw new Error('Old overlapping hair or torn head geometry remains: '+JSON.stringify(ui));
+  if(ui.detachableHair!=='clean-sculpt-v5' || ui.detachableHairParts!==7 || ui.detachableHairTriangles<17000 || !ui.detachableHairBone?.toLowerCase().endsWith('head'))
     throw new Error('Approved separate hairstyle not attached to head: '+JSON.stringify(ui));
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
   if(ui.walkGait!=='phased-contact-v3')throw new Error('Live game did not enable the natural walk');
   if(ui.clips!=='Idle,Walk,Run,Jump,Land')throw new Error('Incorrect animation clips: '+ui.clips);
   if(ui.rigJoints!==44)throw new Error('Named joints are missing: '+ui.rigJoints);
-  if(ui.triangles<95000 || ui.triangles>155000)throw new Error('Unexpected character triangle count: '+ui.triangles);
+  if(ui.triangles<60000 || ui.triangles>130000)throw new Error('Unexpected character triangle count: '+ui.triangles);
   if(ui.skinnedMeshes < 1 || ui.rigJoints < 18 || ui.modelType !== 'skinned-fluid-44' || ui.rigFix !== 'world-axis-v3' || ui.meshSeparation !== 'hand-thigh-seam-v2' || ui.clothSeamPatches!==2 || ui.helperBones!==10 || ui.animatedBones<40)throw new Error('High-detail skinned rig not present: '+JSON.stringify(ui));
   if(Math.abs(ui.height-4.0)>.07)throw new Error('Model not normalized to expected height');
   if(ui.warning)throw new Error('3D load failed; fallback active');
