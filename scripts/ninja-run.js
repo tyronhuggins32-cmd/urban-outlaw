@@ -19,16 +19,18 @@ export function ninjaRunPose(t, key) {
   const rightBack = positive(-s);
   const pulse = Math.cos(2 * TAU * phase);
 
-  // Pelvis and chained spine joints add up to ~31 degrees of forward lean.
-  // The head counter-rotates to keep the eyes on the direction of travel.
-  if (key === 'hips') return A(.105, .010 * s, .007 * c);
-  if (key === 'spine') return A(.15, -.013 * s, -.013 * c);
-  if (key === 'spine1') return A(.17, -.020 * s, .010 * c);
-  if (key === 'spine2') return A(.12, .013 * s, -.008 * c);
+  // The imported sculpt has a strongly pre-rotated spine. Small local angles
+  // previously produced just 12 degrees of *visible* forward lean. These
+  // retargeted world-axis offsets fold the upper body noticeably forward;
+  // the real result is validated from head/hips joint positions on the GLB.
+  if (key === 'hips') return A(.18, .010 * s, .007 * c);
+  if (key === 'spine') return A(.38, -.013 * s, -.013 * c);
+  if (key === 'spine1') return A(.47, -.020 * s, .010 * c);
+  if (key === 'spine2') return A(.27, .013 * s, -.008 * c);
   if (key === 'chestBreath') return A(.008 * pulse, 0, .004 * s);
-  if (key === 'neck') return A(-.13, .007 * s);
-  if (key === 'neckFollow') return A(-.045, -.006 * s);
-  if (key === 'head') return A(-.225, -.008 * s, .006 * c);
+  if (key === 'neck') return A(-.23, .007 * s);
+  if (key === 'neckFollow') return A(-.08, -.006 * s);
+  if (key === 'head') return A(-.57, -.008 * s, .006 * c);
 
   // Arms swept behind the torso and almost parallel to the direction of
   // travel, instead of pumping opposite the legs as in a conventional sprint.
