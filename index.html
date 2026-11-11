@@ -74,7 +74,7 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 3.3 · HEAD + HAIR REPAIR</div>
+    <div class="ui version"><span class="dot"></span> BUILD 3.4 · HEAD FIT + LIGHTING</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -145,9 +145,9 @@
         scene.fog = new THREE.Fog(reviewMode ? 0xcfd2dc : 0x9ed5f3, 100, 280);
         const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 700);
 
-        const ambient = new THREE.HemisphereLight(0xf2fcff, 0x5d7c40, 2.2);
+        const ambient = new THREE.HemisphereLight(0xf5f8ff, 0x85839a, 1.9);
         scene.add(ambient);
-        const sun = new THREE.DirectionalLight(0xfff2d9, 2.5);
+        const sun = new THREE.DirectionalLight(0xfff2e4, 2.25);
         sun.position.set(-25, 45, 30);
         sun.castShadow = true;
         sun.shadow.mapSize.set(1024, 1024);
@@ -217,8 +217,8 @@
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
           const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=3');
           const { attachSeamPatches } = await import('./scripts/cloth-seam-patches.js?v=2');
-          const { cleanLegacyCharacterHead } = await import('./scripts/clean-head-v5.js?v=1');
-          const { installDetachableHair } = await import('./scripts/install-detachable-hair.js?v=3');
+          const { cleanLegacyCharacterHead } = await import('./scripts/clean-head-v5.js?v=2');
+          const { installDetachableHair } = await import('./scripts/install-detachable-hair.js?v=4');
           const gltf = await new GLTFLoader().loadAsync('./assets/reference-rig-fluid.glb?v=20');
           const imported = gltf.scene;
           imported.name = 'Urban Outlaw continuous reference-sculpted skinned character';
