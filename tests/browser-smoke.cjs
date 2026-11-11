@@ -23,6 +23,11 @@ const { chromium } = require('playwright');
     hairLocks:Number(document.getElementById('game')?.dataset.hairLocks),
     hairDrawGroups:Number(document.getElementById('game')?.dataset.hairDrawGroups),
     oldHairRemoved:Number(document.getElementById('game')?.dataset.oldHairRemoved),
+    detachableHair:document.getElementById('game')?.dataset.detachableHair,
+    detachableHairParts:Number(document.getElementById('game')?.dataset.detachableHairParts),
+    detachableHairTriangles:Number(document.getElementById('game')?.dataset.detachableHairTriangles),
+    detachableHairBone:document.getElementById('game')?.dataset.detachableHairBone,
+    oldHairHidden:Number(document.getElementById('game')?.dataset.oldHairHidden),
     helperBones:Number(document.getElementById('game')?.dataset.helperBones),
     animatedBones:Number(document.getElementById('game')?.dataset.animatedBones),
     clips:document.getElementById('game')?.dataset.animationClips,
@@ -34,9 +39,11 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('2.8'))throw new Error('Old build loaded');
+  if(!ui.version.includes('2.9'))throw new Error('Old build loaded');
   if(ui.character!=='reference-head-v3')throw new Error('Blank body GLB did not load');
-  if(ui.hairLocks<35 || ui.hairDrawGroups<4)throw new Error('Sculpted 3D hair and headplate absent: '+JSON.stringify(ui));
+  if(ui.hairLocks<35 || ui.hairDrawGroups<4)throw new Error('Head review base was not loaded: '+JSON.stringify(ui));
+  if(ui.detachableHair!=='approved-turnaround-v1' || ui.detachableHairParts<6 || ui.detachableHairTriangles<50000 || !ui.detachableHairBone?.toLowerCase().endsWith('head') || ui.oldHairHidden<4)
+    throw new Error('Approved separate hairstyle not attached to head: '+JSON.stringify(ui));
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
   if(ui.walkGait!=='phased-contact-v3')throw new Error('Live game did not enable the natural walk');
   if(ui.clips!=='Idle,Walk,Run,Jump,Land')throw new Error('Incorrect animation clips: '+ui.clips);
