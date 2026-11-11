@@ -1,8 +1,16 @@
 # Urban Outlaw
 
-**Build 2.0: Fluid 44-Bone Ninja.** Playable third-person mobile-friendly browser game using a single reference-sculpted, textured character with a deformable skeleton. The character's face, hair, shorts and body sculpt remain the same. The skeleton and motion have been upgraded so the original model no longer behaves as a rigid action figure.
+**Build 3.0: Approved Detachable Hair.** Playable third-person mobile-friendly browser game using a single reference-sculpted, textured character with a deformable skeleton. The character's face, hair, shorts and body sculpt remain the same. The skeleton and motion have been upgraded so the original model no longer behaves as a rigid action figure.
 
 [Play Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/) | [Inspect the 3D model against the reference](https://tyronhuggins32-cmd.github.io/urban-outlaw/?review=1)
+
+## Detachable hairstyle (real 3D asset)
+
+**Standalone, replaceable model:** `assets/approved-detachable-hair.glb`. This is a real textured GLB built independently of the character, with no face, head, body, or skeletal geometry. The asset is modeled from the user's approved front/side/back hair turnaround, using flattened curved strands rather than random conical spikes. It contains layered blue-black locks, forward-hanging bangs, a swept-back fan, lower nape, an indigo band and tied bow, a silver forehead protector and an engraved design.
+
+The source generator is `scripts/build-approved-hair.py`. `.github/workflows/build-approved-hair.yml` builds the GLB at no cost and checks geometry and mesh groups. `scripts/install-detachable-hair.js` attaches the GLB at the original model's skull pivot, source position (0, 1.49, 0), then parents it to `mixamorigHead`. Old procedural hair meshes are hidden, while the existing face details, animated 44-bone rig and movement system remain active. The detachable asset uses seven batched PBR material groups and is independently replaceable.
+
+**Reference-fidelity limitation:** This is a reference-guided editable mesh and functioning game asset, **not a guaranteed geometry-exact reconstruction** of the rendered approval sheet. Front fringe spacing, fine strand flow and rear hair volume remain the main differences to compare. Review the actual model in the four-angle in-game viewer before approving a further sculpt revision.
 
 ## Actual game assets
 
