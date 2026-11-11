@@ -3,6 +3,8 @@
  * 34 original joints + 10 new, genuinely vertex-weighted corrective joints.
  * World-oriented rotations avoid sideways leg movement in the source rig.
  */
+import {walkPose,walkPelvisOffset,walkGaitSpecs} from './walk-cycle-v3.js';
+
 export function createReferenceClips(THREE,root){
   root.updateMatrixWorld(true);
   const lookup=new Map();
@@ -165,13 +167,13 @@ export function createReferenceClips(THREE,root){
   }
   const rootMotion={
     Idle:t=>[0,.004*sin(t),0],
-    Walk:t=>[.005*sin(t),.009*(.5-.5*Math.cos(2*TAU*t)),0],
+    Walk:t=>walkPelvisOffset(t),
     Run:t=>[.008*sin(t),.023*(.5-.5*Math.cos(2*TAU*t)),0],
     Jump:t=>[0,-.018*(1-smooth(t/.13))+.008*Math.sin(Math.PI*t),0],
     Land:t=>[0,-.024*(1-smooth(t/.7)),0]
   };
   function clip(name,duration,pose){
-    const frameCount=48,times=Array.from({length:frameCount+1},
+    const frameCount=name==='Walk'?96:48,times=Array.from({length:frameCount+1},
       (_,i)=>duration*i/frameCount),tracks=[];
     for(const [key,obj] of Object.entries(bones)){
       if(!obj)continue;
@@ -197,7 +199,7 @@ export function createReferenceClips(THREE,root){
   }
   const clips=[
     clip('Idle',2.7,idle),
-    clip('Walk',.88,(t,k)=>locomotion(t,k,false)),
+    clip('Walk',walkGaitSpecs.cycleSeconds,walkPose),
     clip('Run',.62,(t,k)=>locomotion(t,k,true)),
     clip('Jump',.89,jump),
     clip('Land',.30,land)
