@@ -1,0 +1,54 @@
+name: Build Clean Sculpted Hairstyle V5
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/build-sculpted-hair-v5.py'
+      - '.github/workflows/build-sculpted-hair-v5.yml'
+permissions:
+  contents: write
+concurrency:
+  group: urban-v5-hair
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install --quiet 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'trimesh>=4,<5' 'Pillow>=10,<13'
+      - name: Rebuild detachable hair GLB
+        run: python3 scripts/build-sculpted-hair-v5.py assets/sculpted-hair-v5.glb
+      - name: Verify real geometry and 7 material groups
+        run: |
+          python3 - <<'PY'
+          import trimesh,os
+          p='assets/sculpted-hair-v5.glb'
+          scene=trimesh.load(p,force='scene')
+          n=sum(len(g.faces) for g in scene.geometry.values())
+          assert len(scene.geometry)==7,scene.geometry.keys()
+          assert 17000<n<70000,n
+          assert .35<scene.extents[1]<.55,scene.extents
+          assert .36<scene.extents[2]<.62,scene.extents
+          assert os.stat(p).st_size>180000
+          print('CLEAN V5 HAIR VERIFIED',n,'triangles',len(scene.geometry),'batches')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clean-detachable-hair-v5-glb
+          path: assets/sculpted-hair-v5.glb
+          retention-days: 7
+      - name: Commit replaceable hair asset
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/sculpted-hair-v5.glb
+          git diff --cached --quiet && exit 0
+          git commit -m "Add new unified v5 sculpted hair without spike-stack artifacts"
+          git pull --rebase origin main
+          git push origin HEAD:main
