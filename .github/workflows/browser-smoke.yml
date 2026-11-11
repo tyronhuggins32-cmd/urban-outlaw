@@ -25,6 +25,7 @@ on:
       - 'assets/sculpted-hair-v5.glb'
       - 'assets/hair-volume-v6.glb'
       - 'assets/reference-sculpt-hair-v8.glb'
+      - 'assets/reference-sculpt-hair-v9.glb'
       - 'assets/legacy-hair-cleanup.json'
       - 'scripts/extract-reference-hair.py'
       - 'tests/head-fit.cjs'

@@ -34,16 +34,16 @@ export function installDetachableHair(THREE, humanoid, hairScene) {
     // No new geometry is added by this installer.
   });
   if(groups!==3||names.size!==3||triangles<10000||triangles>40000){
-    throw new Error('V8 unified sculpt invalid: '+groups+' groups '+triangles+' triangles');
+    throw new Error('V9 unified sculpt invalid: '+groups+' groups '+triangles+' triangles');
   }
   hairScene.updateMatrixWorld(true);
   const bounds=new THREE.Box3().setFromObject(hairScene);
   const height=bounds.getSize(new THREE.Vector3()).y;
-  if(height<.30||height>.50)throw new Error('V8 hair scale mismatch '+height);
-  hairScene.name='URBAN_OUTLAWS_UNIFIED_SCULPT_HAIR_V8';
+  if(height<.30||height>.50)throw new Error('V9 hair scale mismatch '+height);
+  hairScene.name='URBAN_OUTLAWS_UNIFIED_SCULPT_HAIR_V9';
   hairScene.userData.detachable=true;
   hairScene.userData.mountBone=headBone.name;
-  hairScene.userData.attachmentVersion='source-sculpt-v8';
+  hairScene.userData.attachmentVersion='source-sculpt-v9';
   // Geometry is extracted in avatar bind space: no guessed pivot or offset.
   // Existing forehead plate and facial surface remain on the skinned body.
   hairScene.scale.set(1,1,1);
@@ -52,7 +52,7 @@ export function installDetachableHair(THREE, humanoid, hairScene) {
   humanoid.updateMatrixWorld(true);
   headBone.attach(hairScene);
   hairScene.updateMatrixWorld(true);
-  if(hairScene.parent!==headBone)throw new Error('V8 hair failed skull bone attachment');
+  if(hairScene.parent!==headBone)throw new Error('V9 hair failed skull bone attachment');
   return {
     name:hairScene.name,meshGroups:groups,triangles:Math.round(triangles),
     originalHairHidden:0,faceMeshesRetained:0,
