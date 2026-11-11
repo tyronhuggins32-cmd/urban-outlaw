@@ -74,7 +74,7 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 3.6 · RECORDED WALK</div>
+    <div class="ui version"><span class="dot"></span> BUILD 4.0 · REBUILT HAIR</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -219,7 +219,7 @@
           const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=5');
           const { attachSeamPatches } = await import('./scripts/cloth-seam-patches.js?v=2');
           const { cleanLegacyCharacterHead } = await import('./scripts/clean-head-v5.js?v=2');
-          const { installDetachableHair } = await import('./scripts/install-detachable-hair.js?v=5');
+          const { installDetachableHair } = await import('./scripts/install-detachable-hair.js?v=6');
           const gltf = await new GLTFLoader().loadAsync('./assets/reference-rig-fluid.glb?v=20');
           const imported = gltf.scene;
           imported.name = 'Urban Outlaw continuous reference-sculpted skinned character';
@@ -228,7 +228,7 @@
           const walkData=await motionResponse.json();
           const rig = createReferenceClips(THREE, imported, walkData);
           const headSculpt=cleanLegacyCharacterHead(THREE,imported);
-          const standaloneHair=await new GLTFLoader().loadAsync('./assets/sculpted-hair-v5.glb?v=5');
+          const standaloneHair=await new GLTFLoader().loadAsync('./assets/hair-volume-v6.glb?v=6');
           const approvedHair=installDetachableHair(THREE,imported,standaloneHair.scene);
           const clipNames = rig.clips.map(clip=>clip.name);
           if (clipNames.join(',') !== 'Idle,Walk,Run,Jump,Land') throw new Error('Missing humanoid animation clips');
@@ -297,7 +297,7 @@
           data.compactedCrown=String(headSculpt.compactedCrownVertices);
           data.compactedNape=String(headSculpt.compactedBackVertices);
           data.faceDetails=String(headSculpt.faceDetails);
-          data.detachableHair='clean-sculpt-v5';
+          data.detachableHair='continuous-volume-v6';
           data.detachableHairParts=String(approvedHair.meshGroups);
           data.detachableHairTriangles=String(approvedHair.triangles);
           data.detachableHairBone=approvedHair.mountBone;
