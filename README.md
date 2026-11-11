@@ -1,34 +1,26 @@
 # Urban Outlaw
 
-**Build 3.5: Head and Hair Stabilization.** The playable 44-bone character is retained, with a rebuilt detachable hairstyle and non-destructive facial/ear geometry repairs.
+**Build 4.0: Completely Rebuilt Hair V6.** The existing V3-V5 hairstyles are archived, not layered into the new model.
 
-[Play Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/) | [Front/side/back/3/4 model comparison](https://tyronhuggins32-cmd.github.io/urban-outlaw/?review=1&head=1)
+[Play Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/) | [Inspect the actual character from four directions](https://tyronhuggins32-cmd.github.io/urban-outlaw/?review=1&head=1)
 
-## What changed in 3.5
+## New hairstyle: a different modeling method
 
-- **One actual detachable hairstyle:** \`assets/sculpted-hair-v5.glb\`, with seven batched PBR material groups. Replaces the visibly broken V4 hair.
-- **No double-generated hair:** \`scripts/clean-head-v5.js\` now compacts the older source hair vertices inside the new sculpt instead of generating more spikes on top. It keeps all original head triangles, which avoids holes near the ears and nape.
-- **No floating facial eye dots:** the former extra eye-sphere layer is removed. The original model's skin/face texture remains intact.
-- **Forehead protector repaired:** the separate metal plate follows the hair asset and is positioned above the eyes. A curved navy strip covers the older low-resolution decal underneath.
-- **Better skin lighting:** neutral hemisphere fill replaces the strong green bounce that tinted the character.
-- **Rig stays unchanged:** 44 skin-weighted joints, including 10 additional deformation bones. The Idle, Walk, Run, Jump and Land clips remain. iPhone touch and controller support are preserved.
+- \`assets/hair-volume-v6.glb\` is the active real detachable 3D asset. It is **not** the previous strand-tube, shell, ribbon-stack or cone generator. The hair is sculpted from overlapping anatomical 3D volumes, fused into a **single continuous watertight hair mesh**, with smoothing and a micro-fiber PBR texture.
+- The entire asset has **three mesh groups**: continuous blue-black hair, one indigo headband, and tied-back navy cloth. It has **no duplicate forehead plate** and no extra floating eye meshes. The source character keeps its original metal forehead protector.
+- 84k triangles including the hair sculpt and attached cloth, separate from the 44-bone body. \`scripts/install-detachable-hair.js\` mounts it to \`mixamorigHead\` and preserves the existing run, walk, jump and landing controls.
+- \`scripts/build-hair-volume-v6.py\` is its reproducible open-source Python generator. \`.github/workflows/build-hair-volume-v6.yml\` regenerates, validates and commits the GLB at no cost.
+- The old \`assets/sculpted-hair-v5.glb\` is retained for rollback. Previous model/camera and skin assets are unchanged.
+- The generator was rendered from front, three-quarter, side and back before integration to catch vertical crown spikes and incorrect rear sweep.
 
-## Known fidelity limits
+**Important:** This is a new geometry-first sculpt, not a claim of one-to-one likeness with the approved illustration. The exact fine strand arrangement, forehead drape and high-end facial sculpt in the supplied reference are still beyond this procedural reconstruction. Improvements to visual fidelity should use direct polygon sculpting/multiview reconstruction rather than returning to random tapered tubes.
 
-The screenshot reference remains the visual acceptance target. Build 3.5 **does not yet exactly reproduce** the high-quality face sculpt, individually layered hair, or subtle anatomical surfaces in that reference. The biggest remaining issues are fine facial form, source mesh skin/shorts topology, and hair fiber shapes at close range. Automated tests verify scene loading, geometry presence, animated bone paths and four camera angles, but cannot establish artistic 1:1 likeness.
-
-## Rebuilding the detachable 3D hair
+## How to rebuild
 
 \`\`\`bash
-python3 -m pip install numpy scipy trimesh Pillow
-python3 scripts/build-sculpted-hair-v5.py assets/sculpted-hair-v5.glb
+python3 -m pip install numpy scipy scikit-image trimesh Pillow
+python3 scripts/build-hair-volume-v6.py assets/hair-volume-v6.glb
 \`\`\`
-
-The free workflow \`.github/workflows/build-sculpted-hair-v5.yml\` validates its GLB and commits the result. \`scripts/install-detachable-hair.js\` mounts the asset to the humanoid's real head bone. The previous V3/V4 assets and original reference rig remain in the repo for comparison and rollback.
-
-## Verification
-
-\`.github/workflows/browser-smoke.yml\` runs Playwright at a mobile viewport, exercises the 44-bone motion system, and captures both whole-body and head closeups from front, side, back and three-quarter views. The review option is \`?review=1&head=1\`.
 
 ## Input
 
