@@ -53,3 +53,9 @@ This is a significant rig and animation upgrade, **not a claim of exact referenc
 ### Walk overhaul and faster sprint
 
 The walk now uses two-segment leg solving against foot targets, with a 60% support phase, swing-foot lift, heel contact, toe-off and counter-swinging arms. The solver measures the imported rig's leg lengths and resting knee angles. Sprint movement is 95 world units/second (10 times its previous 9.5); walking remains 5.2. The camera follows more tightly during sprinting. Run `node tests/walk-gait.cjs` and, with Three.js 0.166.1 installed, `node tests/walk-rig.cjs` to check the actual skeleton and movement settings.
+
+### Build 3.6: recorded walk
+
+The analytical walk has been replaced with a finished library walking clip retargeted offline onto the character's actual bone axes. The walk now uses the source stride, knee timing, arm swing, heel contact and toe-off. Fit corrections keep hands clear of the shorts and ground the deformed foot surfaces. Walking travel now matches the recorded stride at the character's game scale; sprinting remains 95. The motion source and zero-credit provenance are documented in `assets/animations/README.md`.
+
+Validation includes the actual 44-bone skinned rig, motion-loop continuity, foot spacing, hand clearance and deformed sole contact. Front/side body-rig movement renders are in `docs/walk-review/recorded-walk.gif`.

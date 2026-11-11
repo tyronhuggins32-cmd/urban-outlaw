@@ -74,7 +74,7 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 3.5 · CLEAN FOREHEAD</div>
+    <div class="ui version"><span class="dot"></span> BUILD 3.6 · RECORDED WALK</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -194,6 +194,7 @@
         let characterModel = null;
         let characterVisual = null;
         let animationMixer = null;
+        let walkSpeed = 3.2;
         let animationActions = {};
         let activeAnimation = '';
         let wasAirborne=false, landingSeconds=0;
@@ -215,14 +216,17 @@
         loading.textContent = loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-          const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=4');
+          const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=5');
           const { attachSeamPatches } = await import('./scripts/cloth-seam-patches.js?v=2');
           const { cleanLegacyCharacterHead } = await import('./scripts/clean-head-v5.js?v=2');
           const { installDetachableHair } = await import('./scripts/install-detachable-hair.js?v=5');
           const gltf = await new GLTFLoader().loadAsync('./assets/reference-rig-fluid.glb?v=20');
           const imported = gltf.scene;
           imported.name = 'Urban Outlaw continuous reference-sculpted skinned character';
-          const rig = createReferenceClips(THREE, imported);
+          const motionResponse=await fetch('./assets/animations/walking-retargeted.json?v=1');
+          if(!motionResponse.ok)throw new Error('Walking motion failed to load');
+          const walkData=await motionResponse.json();
+          const rig = createReferenceClips(THREE, imported, walkData);
           const headSculpt=cleanLegacyCharacterHead(THREE,imported);
           const standaloneHair=await new GLTFLoader().loadAsync('./assets/sculpted-hair-v5.glb?v=5');
           const approvedHair=installDetachableHair(THREE,imported,standaloneHair.scene);
@@ -264,6 +268,7 @@
           imported.scale.setScalar(intendedHeight/dimensions.y);
           imported.scale.x*=.94; // correct source sculpt's broad shoulders/arms
           imported.scale.z*=.94; // lessen exaggerated torso thickness
+          walkSpeed=walkData.groundSpeed*imported.scale.z;
           imported.updateMatrixWorld(true);
           const scaledBounds=new THREE.Box3().setFromObject(imported);
           const center=scaledBounds.getCenter(new THREE.Vector3());
@@ -551,7 +556,7 @@
           const moveZ = forward.z * y + right.z * x;
           const moving = Math.hypot(moveX, moveZ) > .07;
           const sprinting = !reviewMode && (pressed.has('shift') || touchRun || down(pad, 7) || down(pad, 5) || down(pad, 10));
-          const speed = sprinting ? 95 : 5.2; // sprint is 10x the previous 9.5 speed
+          const speed = sprinting ? 95 : walkSpeed; // walk travel matches the recorded stride
           player.position.x += moveX * speed * dt;
           player.position.z += moveZ * speed * dt;
 
@@ -592,7 +597,7 @@
             }
             setCharacterAnimation(nextAnimation);
             if(nextAnimation==='Walk'){
-              animationActions.Walk.setEffectiveTimeScale(Math.max(.2, Math.min(1,inputLength)));
+              animationActions.Walk.setEffectiveTimeScale(Math.max(.05, Math.min(1,inputLength)));
             }
             animationMixer.update(dt);
             wasAirborne=airborne;

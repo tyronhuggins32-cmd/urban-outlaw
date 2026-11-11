@@ -1,27 +1,17 @@
-const fs=require('node:fs'),assert=require('node:assert/strict');
-(async()=>{
- const source=fs.readFileSync('scripts/walk-cycle-v4.js','utf8');
- const {legPose,walkPose,walkPelvisOffset}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
- const ys=[],zs=[];
- for(let i=0;i<=240;i++){
-  const t=i/240,p=legPose(t),[x,hip]=walkPelvisOffset(t);
-  const y=-.31*Math.cos(p.thigh)-.31*Math.cos(p.thigh+p.knee)+hip;
-  const z=-.31*Math.sin(p.thigh)-.31*Math.sin(p.thigh+p.knee);
-  assert(Math.abs(y-(p.y+hip))<1e-8,'IK target vertical mismatch');
-  assert(Math.abs(z-p.z)<1e-8,'IK target stride mismatch');
-  if(p.stance){ys.push(y);zs.push(z)}
-  assert(p.knee>0&&p.knee<1.6,'Knee locked or overbent');
-  assert(Math.abs(x)<.002,'Lateral hip waddle');
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const d=JSON.parse(fs.readFileSync('assets/animations/walking-retargeted.json','utf8'));
+assert.equal(d.source.name,'Walking');assert.equal(Object.keys(d.bones).length,22);
+assert(d.duration>.9&&d.duration<1.2);assert(d.groundSpeed>1&&d.groundSpeed<2);
+assert.equal(d.times[0],0);assert(Math.abs(d.times.at(-1)-d.duration)<1e-6);
+for(const [name,values]of Object.entries(d.bones)){
+ assert.equal(values.length,d.times.length*4,name+' missing frames');
+ for(let i=0;i<values.length;i+=4){
+  const q=values.slice(i,i+4);assert(q.every(Number.isFinite));assert(Math.abs(Math.hypot(...q)-1)<1e-5,name+' invalid rotation');
+  if(i){const previous=values.slice(i-4,i);const dot=q.reduce((a,v,j)=>a+v*previous[j],0);assert(dot>.97,name+' rotation jumps');}
  }
- assert(Math.max(...ys)-Math.min(...ys)<1e-8,'Support foot is bouncing');
- assert(Math.max(...zs)-Math.min(...zs)>.35,'Stride too short');
- assert(legPose(.05).lift>.07,'Swing foot does not clear ground');
- for(const k of ['leftLeg','rightLeg','leftKnee','rightKnee','leftFoot','rightFoot','hips','leftArm','rightArm']){
-  assert(walkPose(0,k).every((v,i)=>Math.abs(v-walkPose(1,k)[i])<1e-8),'Loop snap '+k);
-  for(let i=1;i<=240;i++)assert(walkPose(i/240,k).every((v,j)=>Math.abs(v-walkPose((i-1)/240,k)[j])<.08),'Pose jump '+k);
- }
- const html=fs.readFileSync('index.html','utf8');
- const speeds=html.match(/const speed = sprinting \? ([\d.]+) : ([\d.]+)/);
- assert(speeds,'Movement speed declaration missing');assert.equal(Number(speeds[1]),9.5*10);assert.equal(Number(speeds[2]),5.2);
- console.log('WALK AND SPEED VERIFIED: planted support, swing clearance, smooth loops, no hip waddle, sprint 95 (10x), walk 5.2');
-})().catch(e=>{console.error(e);process.exit(1)});
+ assert(Math.abs(values.slice(0,4).reduce((a,v,j)=>a+v*values[values.length-4+j],0))>.99999,name+' loop seam');
+}
+for(let c=0;c<3;c++)assert(Math.abs(d.hips[c]-d.hips[d.hips.length-3+c])<1e-6,'Root loop seam');
+const html=fs.readFileSync('index.html','utf8');assert(html.includes('const speed = sprinting ? 95 : walkSpeed'));assert(html.includes('walkSpeed=walkData.groundSpeed*imported.scale.z'));
+assert(!fs.readFileSync('scripts/reference-character-animations-v2.js','utf8').includes('walk-cycle-v4'),'Old analytical gait still active');
+console.log('RECORDED WALK DATA VERIFIED: 22 mapped bones, continuous loop, stride-derived travel and sprint 95');
