@@ -212,7 +212,7 @@
     const startGameButton = document.getElementById('startGame');
     const menuStatus = document.getElementById('menuStatus');
     const inReview = new URLSearchParams(location.search).get('review') === '1';
-    let menuStarted = inReview, gameReady = false, onReturnToMenu = null;
+    let menuStarted = inReview, gameReady = false, onReturnToMenu = null, onEnterFreeRoam = null;
     gameRootMenu.dataset.screen = inReview ? 'review' : 'menu';
     function enterWithBrawler() {
       if (!gameReady || menuStarted) return;
@@ -220,6 +220,7 @@
       gameRootMenu.dataset.brawler = 'ninja';
       gameRootMenu.dataset.screen = 'game';
       gameRootMenu.classList.add('playing');
+      onEnterFreeRoam?.();
       document.getElementById('mainMenu').setAttribute('aria-hidden','true');
       document.getElementById('viewport').focus();
     }
@@ -591,7 +592,7 @@
           if (animationMixer) setCharacterAnimation('Idle');
         };
 
-        let orbit = reviewMode ? 0 : Math.PI;
+        let orbit = 0; // Show the character's face, not their back, on selection.
         let elevation = reviewMode ? .10 : .22, distance = headReviewMode ? 2.55 : reviewMode ? 7.5 : 9.5;
         const reviewAngles = {front:0, side:Math.PI/2, back:Math.PI, hero:-Math.PI/4};
         for (const button of document.querySelectorAll('[data-review-angle]')) {
@@ -645,6 +646,24 @@
           camera.updateProjectionMatrix();
           renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        const snapToCharacterView = (angle) => {
+          orbit=angle;
+          const target=new THREE.Vector3(player.position.x,player.position.y+1.85,player.position.z);
+          const horizontal=Math.cos(elevation)*distance;
+          camera.position.set(
+            target.x+Math.sin(orbit)*horizontal,
+            target.y+Math.sin(elevation)*distance,
+            target.z+Math.cos(orbit)*horizontal
+          );
+          camera.lookAt(target);
+        };
+        onEnterFreeRoam=()=>snapToCharacterView(facing+Math.PI);
+        const originalReturn=onReturnToMenu;
+        onReturnToMenu=()=>{
+          originalReturn?.();
+          snapToCharacterView(facing);
+        };
 
         const last = new THREE.Clock();
         const forward = new THREE.Vector3(), right = new THREE.Vector3();
