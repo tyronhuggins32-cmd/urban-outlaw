@@ -44,13 +44,13 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('4.2'))throw new Error('Old build loaded');
+  if(!ui.version.includes('4.3'))throw new Error('Old build loaded');
   if(ui.character!=='clean-head-v5')throw new Error('Blank body GLB did not load');
   if(ui.hairLocks!==0 || ui.hairDrawGroups!==0 || ui.oldHairRemoved!==0 || ui.compactedCrown<100 || ui.compactedNape<100 || ui.faceDetails!==0)
     throw new Error('Old overlapping hair or torn head geometry remains: '+JSON.stringify(ui));
   if(ui.detachableHair!=='continuous-volume-v6' || ui.detachableHairParts!==3 || ui.detachableHairTriangles<65000 || ui.detachableHairTriangles>110000 || !ui.detachableHairBone?.toLowerCase().endsWith('head'))
     throw new Error('Approved separate hairstyle not attached to head: '+JSON.stringify(ui));
-  if(ui.legacyHairShader!=='masked-fragments-v1' || ui.legacyHairShaderMaterials<1)throw new Error('Old hair fragment mask inactive: '+JSON.stringify(ui));
+  if(ui.legacyHairShader!=='masked-upper-crown-v2' || ui.legacyHairShaderMaterials<1)throw new Error('Old hair fragment mask inactive: '+JSON.stringify(ui));
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
   if(ui.walkGait!=='phased-contact-v3')throw new Error('Live game did not enable the natural walk');
   if(ui.clips!=='Idle,Walk,Run,Jump,Land')throw new Error('Incorrect animation clips: '+ui.clips);
