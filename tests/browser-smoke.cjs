@@ -54,6 +54,7 @@ const { chromium } = require('playwright');
     clips:document.getElementById('game')?.dataset.animationClips,
     animation:document.getElementById('game')?.dataset.animation,
     walkGait:document.getElementById('game')?.dataset.walkGait,
+    runStyle:document.getElementById('game')?.dataset.runStyle,
     warning:document.body.innerText.includes('3D LOAD FAILED'),
     canvas:!!document.querySelector('canvas'),
     touchToggle:document.querySelector('#touchToggle')?.innerText
@@ -69,6 +70,7 @@ const { chromium } = require('playwright');
   if(ui.legacyHairShader!=='texture-classified-topology-v1' || ui.legacyHairShaderMaterials!==0)throw new Error('Old hair fragment mask inactive: '+JSON.stringify(ui));
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
   if(ui.walkGait!=='phased-contact-v3')throw new Error('Live game did not enable the natural walk');
+  if(ui.runStyle!=='ninja-arms-back-v1')throw new Error('Ninja run not wired into sprint state: '+ui.runStyle);
   if(ui.clips!=='Idle,Walk,Run,Jump,Land')throw new Error('Incorrect animation clips: '+ui.clips);
   if(ui.rigJoints!==44)throw new Error('Named joints are missing: '+ui.rigJoints);
   if(ui.triangles<95000 || ui.triangles>170000)throw new Error('Unexpected character triangle count: '+ui.triangles);
@@ -86,6 +88,8 @@ const { chromium } = require('playwright');
   await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='run',null,{timeout:6000});
   const run=await page.locator('#game').getAttribute('data-animation');
   if(run!=='run')throw new Error('Run clip not activated: '+run);
+  const ninjaRunLabel=await page.locator('#animationStatus').innerText();
+  if(!ninjaRunLabel.includes('NINJA RUN'))throw new Error('Ninja run HUD missing: '+ninjaRunLabel);
   await page.screenshot({path:'urban-animation-run.png'});
   await page.keyboard.up('Shift');
   await page.keyboard.up('w');
