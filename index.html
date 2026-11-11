@@ -168,7 +168,7 @@
     </section>
     <button type="button" id="openMenu" aria-label="Return to brawler selection menu">MENU</button>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 4.9 · FITTED HEADBAND</div>
+    <div class="ui version"><span class="dot"></span> BUILD 5.0 · VISIBLE NINJA RUN</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: ninja run · DualSense: sticks, Cross, R2</p></div>
@@ -334,7 +334,7 @@
           nextAction.fadeIn(state === 'Jump' || state === 'Land' ? .09 : .24).play();
           activeAnimation = state;
           document.getElementById('game').dataset.animation = state.toLowerCase();
-          document.getElementById('animationStatus').textContent = state === 'Run' ? 'SCULPTED · NINJA RUN' : 'SCULPTED · ' + state.toUpperCase();
+          document.getElementById('animationStatus').textContent = state === 'Run' ? 'SCULPTED · NINJA RUN V2' : 'SCULPTED · ' + state.toUpperCase();
         }
         let avatar = null;
         let spriteAtlas = null;
@@ -343,7 +343,7 @@
         loading.textContent = loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-          const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=6');
+          const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=7');
           const { attachSeamPatches } = await import('./scripts/cloth-seam-patches.js?v=2');
           const { cleanLegacyCharacterHead } = await import('./scripts/clean-head-v5.js?v=4');
           const { installDetachableHair } = await import('./scripts/install-detachable-hair.js?v=11');
@@ -446,7 +446,7 @@
           data.animatedBones=String(rig.animatedBones);
           data.animationClips=clipNames.join(',');
           data.walkGait='phased-contact-v3';
-          data.runStyle='ninja-arms-back-v1';
+          data.runStyle='ninja-lean-v2';
         } catch (error) {
           console.error('Could not load reference sculpted GLB:', error);
           document.getElementById('game').dataset.character = 'fallback';
