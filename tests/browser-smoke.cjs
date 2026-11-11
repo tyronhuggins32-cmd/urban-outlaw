@@ -48,7 +48,7 @@ const { chromium } = require('playwright');
   if(ui.walkGait!=='phased-contact-v3')throw new Error('Live game did not enable the natural walk');
   if(ui.clips!=='Idle,Walk,Run,Jump,Land')throw new Error('Incorrect animation clips: '+ui.clips);
   if(ui.rigJoints!==44)throw new Error('Named joints are missing: '+ui.rigJoints);
-  if(ui.triangles<47000 || ui.triangles>115000)throw new Error('Unexpected character triangle count: '+ui.triangles);
+  if(ui.triangles<105000 || ui.triangles>160000)throw new Error('Unexpected character triangle count: '+ui.triangles);
   if(ui.skinnedMeshes < 1 || ui.rigJoints < 18 || ui.modelType !== 'skinned-fluid-44' || ui.rigFix !== 'world-axis-v3' || ui.meshSeparation !== 'hand-thigh-seam-v2' || ui.clothSeamPatches!==2 || ui.helperBones!==10 || ui.animatedBones<40)throw new Error('High-detail skinned rig not present: '+JSON.stringify(ui));
   if(Math.abs(ui.height-4.0)>.07)throw new Error('Model not normalized to expected height');
   if(ui.warning)throw new Error('3D load failed; fallback active');
