@@ -1,0 +1,54 @@
+name: Build Sculpted Hair Shell V4
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/build-sculpted-hair-shell-v4.py'
+      - '.github/workflows/build-sculpted-hair-shell-v4.yml'
+permissions:
+  contents: write
+concurrency:
+  group: urban-sculpted-shell-hair-v4
+  cancel-in-progress: false
+jobs:
+  create-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install free 3D model libraries
+        run: python3 -m pip install --quiet 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'trimesh>=4,<5' 'Pillow>=10,<13'
+      - name: Build from curved surface-shell volumes
+        run: python3 scripts/build-sculpted-hair-shell-v4.py assets/sculpted-hair-shell-v4.glb
+      - name: Verify independent GLB topology and geometry
+        run: |
+          python3 - <<'PY'
+          import trimesh,os
+          p='assets/sculpted-hair-shell-v4.glb'
+          s=trimesh.load(p,force='scene')
+          t=sum(len(mesh.faces) for mesh in s.geometry.values())
+          assert len(s.geometry)==7, list(s.geometry)
+          assert 20000<t<120000,t
+          assert .35<s.extents[1]<.55,s.extents
+          assert .35<s.extents[2]<.65,s.extents
+          assert os.stat(p).st_size>100000
+          print('V4 SHELL HAIR GLB VERIFIED',t,'triangles',len(s.geometry),'materials',s.extents)
+          PY
+      - name: Upload complete detachable 3D asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: sculpted-hair-shell-v4-GLB
+          path: assets/sculpted-hair-shell-v4.glb
+          retention-days: 7
+      - name: Push approved separate GLB to Urban Outlaws
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/sculpted-hair-shell-v4.glb
+          git diff --cached --quiet && exit 0
+          git commit -m "Add alternate surface-shell 3D hairstyle asset v4"
+          git pull --rebase origin main
+          git push origin HEAD:main
