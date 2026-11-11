@@ -16,6 +16,8 @@ on:
       - 'scripts/character-head-overhaul.js'
       - 'scripts/install-detachable-hair.js'
       - 'assets/approved-detachable-hair.glb'
+      - 'assets/sculpted-hair-shell-v4.glb'
+      - 'scripts/build-sculpted-hair-shell-v4.py'
       - 'scripts/diagnose-hand-leg-bridges.py'
       - 'assets/reference/**'
       - 'tests/model-review.cjs'
