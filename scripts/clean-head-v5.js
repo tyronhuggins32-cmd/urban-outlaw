@@ -27,13 +27,13 @@ export function cleanLegacyCharacterHead(THREE, root) {
       x*=.80;z*=.65;
       crown++;
     }
-    if(z<-.114 && y>1.28){
-      z=-.114+(z+.114)*.13;
-      x*=.90;
+    if(z<-.095 && y>1.315){
+      z=-.095+(z+.095)*.08;
+      x*=.86;
       back++;
     }
     if(z>.152 && y>1.405){
-      z=.152+(z-.152)*.18;
+      z=.152+(z-.152)*.12;
       front++;
     }
     a.setXYZ(i,x,y,z);
@@ -43,36 +43,15 @@ export function cleanLegacyCharacterHead(THREE, root) {
   g.computeVertexNormals();
   g.computeBoundingSphere();
   g.computeBoundingBox();
-  // Restored geometry leaves the existing texture-based face intact. Add
-  // only subtle pupil and lid details, not another full hair/headband model.
-  const eye=new THREE.Group();
-  eye.name='Refined face details only, no duplicate hair or headband';
-  const iris=new THREE.MeshStandardMaterial({color:0x2c2526,roughness:.63});
-  const sclera=new THREE.MeshStandardMaterial({color:0xa38b7e,roughness:.83});
-  const pupil=new THREE.MeshStandardMaterial({color:0x101219,roughness:.54});
-  const brow=new THREE.MeshStandardMaterial({color:0x252334,roughness:.89});
-  let count=0;
-  const dot=(p,r,m)=>{
-    const o=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),m);
-    o.position.set(...p);o.scale.set(...r);eye.add(o);count++;
-  };
-  for(const side of [-1,1]){
-    const x=.038*side;
-    dot([x,1.327,.202],[.014,.0049,.0021],sclera);
-    dot([x+side*.001,1.327,.205],[.0064,.0045,.0021],iris);
-    dot([x+side*.001,1.327,.207],[.0029,.0035,.0012],pupil);
-    dot([x,1.355,.202],[.017,.0024,.002],brow);
-  }
-  root.add(eye);
-  root.updateMatrixWorld(true);
-  head.attach(eye);
-  // Guaranteed no extra procedural spikes are produced at this stage.
+  // The source mesh already has a painted face. Extra eye spheres were
+  // showing up as dark dots on the cheeks in the real browser screenshot.
+  // Keep one anatomical face, no glued-on artificial eyeballs.
   return {
     bodyTriangles:g.index?g.index.count/3:a.count/3,
     compactedCrownVertices:crown,
     compactedBackVertices:back,
     compactedForeheadVertices:front,
-    faceDetails:count,
+    faceDetails:0,
     extraHairMeshes:0,
     bone:head.name
   };
