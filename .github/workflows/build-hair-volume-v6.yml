@@ -1,0 +1,55 @@
+name: Build Unified Hair V6
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/build-hair-volume-v6.py'
+      - '.github/workflows/build-hair-volume-v6.yml'
+permissions:
+  contents: write
+concurrency:
+  group: urban-outlaw-v6-hair
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install free volume sculpt dependencies
+        run: python3 -m pip install --quiet 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'scikit-image>=0.23,<1' 'trimesh>=4,<5' 'Pillow>=10,<13'
+      - name: Generate the completely new continuous hair sculpture
+        run: python3 scripts/build-hair-volume-v6.py assets/hair-volume-v6.glb
+      - name: Geometry and no-duplicate-head validation
+        run: |
+          python3 - <<'PY'
+          import trimesh
+          p='assets/hair-volume-v6.glb'
+          sc=trimesh.load(p,force='scene')
+          names=list(sc.geometry)
+          n=sum(len(g.faces) for g in sc.geometry.values())
+          assert set(names)=={'Unified Sculpted Hair','Single Indigo Wrap','Tied Navy Bow'},names
+          assert 65000<n<110000,n
+          assert sc.extents[1]<.45,sc.extents
+          assert sc.extents[2]<.55,sc.extents
+          print('VERIFIED ONE VOLUME HAIR WITH SEPARATE WRAP/BOW',n)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hair-volume-v6-standalone-glb
+          path: assets/hair-volume-v6.glb
+          retention-days: 7
+      - name: Commit the real GLB for game use
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/hair-volume-v6.glb
+          git diff --cached --quiet && exit 0
+          git commit -m 'Add detached continuous-volume hair asset v6'
+          git pull --rebase origin main
+          git push origin HEAD:main
