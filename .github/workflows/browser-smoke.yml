@@ -24,6 +24,10 @@ on:
       - 'assets/sculpted-hair-shell-v4.glb'
       - 'assets/sculpted-hair-v5.glb'
       - 'assets/hair-volume-v6.glb'
+      - 'assets/reference-sculpt-hair-v8.glb'
+      - 'assets/legacy-hair-cleanup.json'
+      - 'scripts/extract-reference-hair.py'
+      - 'tests/head-fit.cjs'
       - 'scripts/build-hair-volume-v6.py'
       - 'scripts/build-sculpted-hair-v5.py'
       - 'scripts/clean-head-v5.js'
@@ -54,6 +58,7 @@ jobs:
         run: |
           node tests/walk-gait.cjs
           node tests/walk-rig.cjs
+          node tests/head-fit.cjs
       - name: Assert hands are no longer fused to the thighs
         run: python3 scripts/diagnose-hand-leg-bridges.py assets/reference-rig-fluid.glb --assert-separated
       - name: Test 3D browser gameplay boot

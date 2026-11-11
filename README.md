@@ -51,3 +51,7 @@ The walk now uses two-segment leg solving against foot targets, with a 60% suppo
 The analytical walk has been replaced with a finished library walking clip retargeted offline onto the character's actual bone axes. The walk now uses the source stride, knee timing, arm swing, heel contact and toe-off. Fit corrections keep hands clear of the shorts and ground the deformed foot surfaces. Walking travel now matches the recorded stride at the character's game scale; sprinting remains 95. The motion source and zero-credit provenance are documented in `assets/animations/README.md`.
 
 Validation includes the actual 44-bone skinned rig, motion-loop continuity, foot spacing, hand clearance and deformed sole contact. Front/side body-rig movement renders are in `docs/walk-review/recorded-walk.gif`.
+
+### Build 4.5: fitted reference hair
+
+The oversized generated hair volume has been replaced with layered geometry extracted and refined from the original character sculpt. It uses the character's actual bind-space coordinates, so the crown, face-framing bangs and tied nape fit the head. Legacy hair surfaces are removed using a source-specific mask while retaining the visible skin, facial triangles, normals, UVs and weights. One hair surface and two forehead-protector material groups form the detachable accessory. `docs/reference-hair-fit/` contains actual assembled-model renders and validation notes. The recorded walking motion and sprint speed of 95 remain active.

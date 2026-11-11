@@ -1,64 +1,28 @@
-/**
- * Fix the layered-head failure without destroying the reference sculpt.
- * The earlier pipeline cut thousands of original head triangles, creating
- * visible holes around ears and neck. This pass shrinks only obsolete
- * original hair projections back INSIDE the replacement hairstyle, keeping
- * every triangle, UV, weight, original material and the 44-bone rig intact.
- */
-export function cleanLegacyCharacterHead(THREE, root) {
-  root.updateMatrixWorld(true);
-  let head=null,skin=null;
-  root.traverse(o=>{
-    if(o.isBone && o.name.toLowerCase().replace(/[^a-z]/g,'').endsWith('head')) head=o;
-    if(o.isSkinnedMesh && !skin)skin=o;
-  });
-  if(!head||!skin)throw new Error('Missing skinned reference character or head joint');
-  const g=skin.geometry;
-  const a=g.getAttribute('position');
-  if(!a||a.itemSize!==3||a.count<20000)throw new Error('Unexpected character head geometry');
-  let crown=0,back=0,front=0;
-  // Retain all original head surfaces. Don't delete faces or detach skin
-  // indices: the previous destructive cut caused the white gaps seen
-  // around the ear and nape. This is a non-destructive shape correction.
-  for(let i=0;i<a.count;i++){
-    let x=a.getX(i),y=a.getY(i),z=a.getZ(i);
-    if(y>1.515){
-      y=1.515+(y-1.515)*.22;
-      x*=.80;z*=.65;
-      crown++;
-    }
-    // Old rear hair survived the earlier collapse as dark sideways spikes.
-    // Compact the whole back-of-scalp projection into the replacement's cap,
-    // while protecting front facial polygons and both ears.
-    const ear= Math.abs(x)>.084 && y>1.315 && y<1.482 &&
-               z>-.016 && z<.077;
-    if(z<.056 && y>1.315 && !ear){
-      z=-.040+(z+.040)*.18;
-      x*=.65;
-      y=1.473+(y-1.473)*.46;
-      back++;
-    }
-    if(z>.152 && y>1.405){
-      z=.152+(z-.152)*.12;
-      front++;
-    }
-    a.setXYZ(i,x,y,z);
-  }
-  if(crown<100||back<100)throw new Error('No overlapping legacy hairstyle to compact');
-  a.needsUpdate=true;
-  g.computeVertexNormals();
-  g.computeBoundingSphere();
-  g.computeBoundingBox();
-  // The source mesh already has a painted face. Extra eye spheres were
-  // showing up as dark dots on the cheeks in the real browser screenshot.
-  // Keep one anatomical face, no glued-on artificial eyeballs.
-  return {
-    bodyTriangles:g.index?g.index.count/3:a.count/3,
-    compactedCrownVertices:crown,
-    compactedBackVertices:back,
-    compactedForeheadVertices:front,
-    faceDetails:0,
-    extraHairMeshes:0,
-    bone:head.name
-  };
+/** Remove only texture-classified obsolete hair. Preserve the face, ears, UVs,
+ * normals, skin weights and the existing metal forehead plate. */
+export function cleanLegacyCharacterHead(THREE,root,cleanup){
+ let skin,head;root.traverse(o=>{if(o.isSkinnedMesh&&!skin)skin=o;if(o.isBone&&/head$/i.test(o.name))head=o});
+ if(!skin||!head||cleanup?.version!==1)throw new Error('Head cleanup data missing');
+ if(skin.userData.hairCleanup)return skin.userData.hairCleanup;
+ const g=skin.geometry,p=g.attributes.position,idx=g.index;
+ if(p.count!==cleanup.vertexCount||idx.count/3!==cleanup.triangleCount)throw new Error('Head cleanup does not match source mesh');
+ const remove=new Uint8Array(cleanup.triangleCount);
+ for(const [start,count]of cleanup.triangles)remove.fill(1,start,start+count);
+ const keep=[];for(let i=0;i<cleanup.triangleCount;i++)if(!remove[i])keep.push(idx.getX(i*3),idx.getX(i*3+1),idx.getX(i*3+2));
+ g.setIndex(keep);
+ const used=new Uint8Array(p.count);for(const i of keep)used[i]=1;
+ // Hide any boundary hair vertices inside the new cap. Only classified dark
+ // hair is moved, so painted eyes, brows and skin retain their exact positions.
+ let crown=0,back=0;
+ for(const [start,count]of cleanup.vertices)for(let i=start;i<start+count;i++){
+  let x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+  if(y>1.45)crown++;if(z<.05)back++;
+  const dx=x/.080,dy=(y-1.425)/.080,dz=(z-.045)/.075;
+  const length=Math.hypot(dx,dy,dz);
+  if(!used[i]&&length>.84){const s=.84/length;x*=s;y=1.425+(y-1.425)*s;z=.045+(z-.045)*s;}
+  p.setXYZ(i,x,y,z);
+ }
+ p.needsUpdate=true;g.computeBoundingBox();g.computeBoundingSphere();
+ const result={bodyTriangles:keep.length/3,removedTriangles:cleanup.removedTriangles,compactedCrownVertices:crown,compactedBackVertices:back,compactedForeheadVertices:0,faceDetails:0,extraHairMeshes:0,bone:head.name};
+ skin.userData.hairCleanup=result;return result;
 }

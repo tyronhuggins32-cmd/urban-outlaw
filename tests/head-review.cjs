@@ -12,7 +12,7 @@ const {chromium}=require('playwright');
        hairDrawGroups:Number(d.hairDrawGroups),oldHairRemoved:Number(d.oldHairRemoved),
        compactedCrown:Number(d.compactedCrown),detachableHair:d.detachableHair};
  });
- if(stats.character!=='clean-head-v5'||stats.headReview!=='active'||stats.hairLocks!==0||stats.hairDrawGroups!==0||stats.compactedCrown<100||stats.detachableHair!=='continuous-volume-v6'){
+ if(stats.character!=='clean-head-v5'||stats.headReview!=='active'||stats.hairLocks!==0||stats.hairDrawGroups!==0||stats.compactedCrown<100||stats.detachableHair!=='source-sculpt-v8'){
    throw new Error('3D facial hair sculpt missing: '+JSON.stringify(stats));
  }
  console.log('HEAD REVIEW',JSON.stringify(stats));
