@@ -27,9 +27,15 @@ export function cleanLegacyCharacterHead(THREE, root) {
       x*=.80;z*=.65;
       crown++;
     }
-    if(z<-.095 && y>1.315){
-      z=-.095+(z+.095)*.08;
-      x*=.86;
+    // Old rear hair survived the earlier collapse as dark sideways spikes.
+    // Compact the whole back-of-scalp projection into the replacement's cap,
+    // while protecting front facial polygons and both ears.
+    const ear= Math.abs(x)>.084 && y>1.315 && y<1.482 &&
+               z>-.016 && z<.077;
+    if(z<.056 && y>1.315 && !ear){
+      z=-.040+(z+.040)*.18;
+      x*=.65;
+      y=1.473+(y-1.473)*.46;
       back++;
     }
     if(z>.152 && y>1.405){
