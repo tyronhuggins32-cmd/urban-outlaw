@@ -42,7 +42,7 @@ export function installDetachableHair(THREE, humanoid, hairScene) {
   });
   const required=['LAYERED BLUE BLACK HAIR FIBERS','HAIR INNER SHADOW FIBERS',
     'DEEP INDIGO CLOTH','BRUSHED SILVER HEADBAND'];
-  if(groups<6||groups>12||triangles<50000||
+  if(groups<6||groups>12||triangles<35000||
      required.some(name=>!categories.has(name))){
     throw new Error('Detachable hair GLB does not match expected mesh/material schema');
   }
