@@ -65,7 +65,7 @@ const { chromium } = require('playwright');
   if(ui.character!=='clean-head-v5')throw new Error('Blank body GLB did not load');
   if(ui.hairLocks!==0 || ui.hairDrawGroups!==0 || ui.oldHairRemoved<1000 || ui.compactedCrown<100 || ui.compactedNape<100 || ui.faceDetails!==0)
     throw new Error('Old overlapping hair or torn head geometry remains: '+JSON.stringify(ui));
-  if(ui.detachableHair!=='source-sculpt-v9' || ui.detachableHairParts!==3 || ui.detachableHairTriangles<10000 || ui.detachableHairTriangles>40000 || !ui.detachableHairBone?.toLowerCase().endsWith('head'))
+  if(ui.detachableHair!=='source-sculpt-v10' || ui.detachableHairParts!==3 || ui.detachableHairTriangles<10000 || ui.detachableHairTriangles>40000 || !ui.detachableHairBone?.toLowerCase().endsWith('head'))
     throw new Error('Approved separate hairstyle not attached to head: '+JSON.stringify(ui));
   if(ui.legacyHairShader!=='texture-classified-topology-v1' || ui.legacyHairShaderMaterials!==0)throw new Error('Old hair fragment mask inactive: '+JSON.stringify(ui));
   if(ui.animation!=='idle')throw new Error('Idle clip is not playing');
