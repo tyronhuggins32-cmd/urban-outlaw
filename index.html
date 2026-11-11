@@ -74,7 +74,7 @@
   <main id="game" aria-label="Urban Outlaw 3D game">
     <canvas id="viewport" aria-label="Third-person 3D game view"></canvas>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 2.9 · DETACHABLE HAIR</div>
+    <div class="ui version"><span class="dot"></span> BUILD 3.0 · SEPARATE 3D HAIR</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: sprint · DualSense: sticks, Cross, R2</p></div>
@@ -224,7 +224,7 @@
           imported.name = 'Urban Outlaw continuous reference-sculpted skinned character';
           const rig = createReferenceClips(THREE, imported);
           const headSculpt=polishNinjaHead(THREE,imported);
-          const standaloneHair=await new GLTFLoader().loadAsync('./assets/approved-detachable-hair.glb?v=1');
+          const standaloneHair=await new GLTFLoader().loadAsync('./assets/approved-detachable-hair.glb?v=3');
           const approvedHair=installDetachableHair(THREE,imported,standaloneHair.scene);
           const clipNames = rig.clips.map(clip=>clip.name);
           if (clipNames.join(',') !== 'Idle,Walk,Run,Jump,Land') throw new Error('Missing humanoid animation clips');
@@ -289,7 +289,7 @@
           data.hairLocks=String(headSculpt.locks);
           data.hairDrawGroups=String(headSculpt.drawMeshes);
           data.oldHairRemoved=String(headSculpt.maskedHairTriangles);
-          data.detachableHair='approved-turnaround-v1';
+          data.detachableHair='approved-turnaround-v3';
           data.detachableHairParts=String(approvedHair.meshGroups);
           data.detachableHairTriangles=String(approvedHair.triangles);
           data.detachableHairBone=approvedHair.mountBone;
