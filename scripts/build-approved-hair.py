@@ -37,7 +37,7 @@ def hair_texture(seed=11,shade=1):
     across=(.23+.77*middle)
     root_tip=(.78+.12*np.sin(np.pi*u))*(1-.13*u*u)
     lumen=(fibers*.07+.84)*across*root_tip
-    base=np.array([39.,47.,76.])*shade
+    base=np.array([53.,60.,97.])*shade
     rgb=np.clip(base[None,None,:]*(.55+.55*lumen[:,:,None])+
                 np.array([5.,6.,11.])*middle[:,:,None],0,255).astype('uint8')
     return Image.fromarray(np.dstack([rgb,np.full((h,w),255,'uint8')]),'RGBA')
@@ -77,7 +77,7 @@ def spline(points,N=32):
     t=np.linspace(0,a[-1],N)
     return np.column_stack([CubicSpline(a,control[:,i],bc_type='natural')(t) for i in range(3)])
 
-def blade(name,points,width,thick=.20,roll=.0,kind='strand',samples=35,sides=12,bend=0):
+def blade(name,points,width,thick=.20,roll=.0,kind='strand',samples=35,sides=12,bend=0,side_profile=False):
     # Flattened organic hair leaf with full curved 3D thickness and a narrow tip.
     path=spline(points,samples)
     directions=np.gradient(path,axis=0)
@@ -90,7 +90,8 @@ def blade(name,points,width,thick=.20,roll=.0,kind='strand',samples=35,sides=12,
         if t> .90:envelope*=max(.04,((1-t)/.10)**1.5)
         # The root is buried in its neighbor to avoid naked rod-like starts.
         w=width*envelope
-        orient=np.array([1.,.16*math.sin(2*math.pi*t+roll),.16*math.sin(roll)],float)
+        orient=(np.array([.23,1.,.15],float) if side_profile else
+                np.array([1.,.06*math.sin(2*math.pi*t+roll),.05],float))
         width_axis=orient-tangent*np.dot(orient,tangent)
         if np.linalg.norm(width_axis)<.05:
             width_axis=np.array([.2,0,1.])-tangent*np.dot([.2,0,1.],tangent)
@@ -159,58 +160,58 @@ ellipsoid('Tapered rear underhair',[0,1.435,-.055],[.087,.074,.068],'shadow',3)
 # Backward swept main layers: two stacked ranks, carefully distributed from
 # the middle line to the side silhouette. These form the asymmetric "fan".
 for rank in range(3):
-  count=[9,9,7][rank]
+  count=[7,7,6][rank]
   for i in range(count):
     u=(i-(count-1)/2)/((count-1)/2)
     st=np.sign(u)
     bx=u*(.055+.006*rank)
     start=[bx,1.551-.021*rank-.013*abs(u),-.029-.018*rank]
     tip_x=u*(.134+.013*rank)+.007*np.sin(i*2.31+rank)
-    tip_z=-.245-.039*(1-abs(u))-.011*rank+.022*np.cos(i*1.51)
-    tip_y=1.651-.019*rank-.036*abs(u)+.018*np.sin(i*.93)
+    tip_z=-.263-.038*(1-abs(u))-.010*rank+.015*np.cos(i*1.51)
+    tip_y=1.619-.014*rank-.026*abs(u)+.010*np.sin(i*.93)
     blade(f'Swept upper layer {rank} lock {i}',[
         start,
-        [bx*1.26,1.638-.016*rank,-.082-.011*rank],
-        [tip_x*.75,tip_y+.028,tip_z+.060],
+        [bx*1.26,1.603-.014*rank,-.091-.011*rank],
+        [tip_x*.75,tip_y+.014,tip_z+.070],
         [tip_x,tip_y,tip_z]],
-        [.025,.024,.019][rank]*(1-.17*abs(u)),
+        [.037,.033,.029][rank]*(1-.15*abs(u)),
         [.23,.21,.19][rank],
         roll=.19*u,kind=('upper' if (i+rank)%5==0 else 'strand' if rank<2 else 'shadow'),
-        samples=33)
+        samples=33,side_profile=True)
 
 # Crown fan: taller, directional leaves, subtly staggered with visible
 # space only near the tips. The back view shows an overlapping feather crown.
-for i in range(13):
-  u=(i-6)/6
+for i in range(9):
+  u=(i-4)/4
   blade(f'High crown petal {i}',[
-      [.063*u,1.541,-.057],
-      [.086*u,1.617,-.092],
-      [.108*u,1.708-.029*abs(u),-.132-.013*i/12],
-      [.122*u,1.744-.060*abs(u)+.013*np.cos(i*2),-.165-.018*abs(u)]],
-      .021-.004*abs(u),.26,roll=.14*u,
-      kind='strand' if i%4 else 'upper',samples=34)
+      [.063*u,1.554,-.057],
+      [.086*u,1.611,-.105],
+      [.108*u,1.677-.024*abs(u),-.140-.013*i/8],
+      [.122*u,1.695-.035*abs(u)+.007*np.cos(i*2),-.180-.018*abs(u)]],
+      .032-.004*abs(u),.30,roll=.14*u,
+      kind='strand' if i%4 else 'upper',samples=34,side_profile=True)
 
 # Long black-blue curtain fringe. Broad sheets flow from a center part,
 # opening around the metal protector, framing cheeks and narrowing to tips.
 for side in [-1,1]:
     blade(f'Front center long lock {side}',[
         [side*.016,1.562,.068],
-        [side*.022,1.566,.141],
-        [side*.033,1.480,.183],
-        [side*.038,1.389,.190],
-        [side*.046,1.339,.169]],.022,.21,kind='upper',roll=.15*side,samples=41)
+        [side*.022,1.566,.117],
+        [side*.033,1.480,.145],
+        [side*.038,1.389,.153],
+        [side*.046,1.339,.135]],.022,.21,kind='upper',roll=.15*side,samples=41)
     blade(f'Face framing long bang {side}',[
         [side*.051,1.566,.068],
-        [side*.078,1.568,.125],
-        [side*.089,1.469,.187],
-        [side*.092,1.367,.181],
-        [side*.102,1.310,.132]],.031,.15,kind='strand',roll=.17*side,samples=45)
+        [side*.078,1.558,.111],
+        [side*.089,1.469,.150],
+        [side*.092,1.367,.149],
+        [side*.102,1.321,.114]],.031,.15,kind='strand',roll=.17*side,samples=45)
     blade(f'Outer long cheek curtain {side}',[
         [side*.078,1.55,.044],
-        [side*.103,1.511,.112],
-        [side*.112,1.435,.132],
-        [side*.117,1.357,.116],
-        [side*.111,1.327,.099]],.025,.17,kind='shadow',roll=.09*side,samples=39)
+        [side*.103,1.511,.100],
+        [side*.112,1.435,.113],
+        [side*.117,1.362,.106],
+        [side*.111,1.345,.092]],.025,.17,kind='shadow',roll=.09*side,samples=39)
     blade(f'Temple ribbon {side}',[
         [side*.086,1.528,.025],
         [side*.117,1.486,.052],
@@ -219,9 +220,9 @@ for side in [-1,1]:
     # Inward split at forehead; forehead plate stays visible.
     blade(f'Fine inward fringe {side}',[
         [side*.024,1.564,.069],
-        [side*.033,1.516,.158],
-        [side*.042,1.440,.187],
-        [side*.046,1.400,.166]],.010,.16,kind='upper',samples=29)
+        [side*.033,1.516,.137],
+        [side*.042,1.440,.153],
+        [side*.046,1.400,.146]],.010,.16,kind='upper',samples=29)
 
 # Lower nape. Distinct pointed locks form the back silhouette under the tie.
 for rank in range(2):
