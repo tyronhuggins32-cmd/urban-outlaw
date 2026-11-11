@@ -39,7 +39,7 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('3.0'))throw new Error('Old build loaded');
+  if(!ui.version.includes('3.1'))throw new Error('Old build loaded');
   if(ui.character!=='reference-head-v3')throw new Error('Blank body GLB did not load');
   if(ui.hairLocks<35 || ui.hairDrawGroups<4)throw new Error('Head review base was not loaded: '+JSON.stringify(ui));
   if(ui.detachableHair!=='approved-turnaround-v3' || ui.detachableHairParts<6 || ui.detachableHairTriangles<35000 || !ui.detachableHairBone?.toLowerCase().endsWith('head') || ui.oldHairHidden<4)
