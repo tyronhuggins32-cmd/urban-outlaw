@@ -72,6 +72,8 @@ jobs:
           name: urban-3d-mobile-smoke
           path: |
             urban-3d-test.png
+            urban-main-menu.png
+            urban-brawler-resume.png
             urban-animation-*.png
             urban-body-animated-test.png
             urban-review-*.png
