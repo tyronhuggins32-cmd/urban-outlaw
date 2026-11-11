@@ -37,7 +37,7 @@ def hair_texture(seed=11,shade=1):
     across=(.23+.77*middle)
     root_tip=(.78+.12*np.sin(np.pi*u))*(1-.13*u*u)
     lumen=(fibers*.07+.84)*across*root_tip
-    base=np.array([53.,60.,97.])*shade
+    base=np.array([64.,71.,110.])*shade
     rgb=np.clip(base[None,None,:]*(.55+.55*lumen[:,:,None])+
                 np.array([5.,6.,11.])*middle[:,:,None],0,255).astype('uint8')
     return Image.fromarray(np.dstack([rgb,np.full((h,w),255,'uint8')]),'RGBA')
@@ -160,35 +160,35 @@ ellipsoid('Tapered rear underhair',[0,1.435,-.055],[.087,.074,.068],'shadow',3)
 # Backward swept main layers: two stacked ranks, carefully distributed from
 # the middle line to the side silhouette. These form the asymmetric "fan".
 for rank in range(3):
-  count=[7,7,6][rank]
+  count=[5,4,4][rank]
   for i in range(count):
     u=(i-(count-1)/2)/((count-1)/2)
     st=np.sign(u)
     bx=u*(.055+.006*rank)
-    start=[bx,1.551-.021*rank-.013*abs(u),-.029-.018*rank]
+    start=[bx,1.511-.018*rank-.013*abs(u),-.040-.016*rank]
     tip_x=u*(.134+.013*rank)+.007*np.sin(i*2.31+rank)
-    tip_z=-.263-.038*(1-abs(u))-.010*rank+.015*np.cos(i*1.51)
-    tip_y=1.619-.014*rank-.026*abs(u)+.010*np.sin(i*.93)
+    tip_z=-.226-.022*(i%4)-.024*(1-abs(u))-.011*rank
+    tip_y=1.557+.023*(i%4)-.013*rank-.018*abs(u)
     blade(f'Swept upper layer {rank} lock {i}',[
         start,
-        [bx*1.26,1.603-.014*rank,-.091-.011*rank],
-        [tip_x*.75,tip_y+.014,tip_z+.070],
+        [bx*1.26,1.568-.013*rank,-.092-.011*rank],
+        [tip_x*.75,tip_y+.016,tip_z+.065],
         [tip_x,tip_y,tip_z]],
-        [.037,.033,.029][rank]*(1-.15*abs(u)),
+        [.047,.042,.037][rank]*(1-.16*abs(u)),
         [.23,.21,.19][rank],
         roll=.19*u,kind=('upper' if (i+rank)%5==0 else 'strand' if rank<2 else 'shadow'),
         samples=33,side_profile=True)
 
 # Crown fan: taller, directional leaves, subtly staggered with visible
 # space only near the tips. The back view shows an overlapping feather crown.
-for i in range(9):
-  u=(i-4)/4
+for i in range(7):
+  u=(i-3)/3
   blade(f'High crown petal {i}',[
-      [.063*u,1.554,-.057],
-      [.086*u,1.611,-.105],
-      [.108*u,1.677-.024*abs(u),-.140-.013*i/8],
-      [.122*u,1.695-.035*abs(u)+.007*np.cos(i*2),-.180-.018*abs(u)]],
-      .032-.004*abs(u),.30,roll=.14*u,
+      [.063*u,1.516,-.065],
+      [.086*u,1.560,-.106],
+      [.108*u,1.620-.018*abs(u),-.147-.010*i/6],
+      [.122*u,1.656-.027*abs(u)+.010*np.cos(i*2),-.181-.022*abs(u)]],
+      .041-.006*abs(u),.28,roll=.14*u,
       kind='strand' if i%4 else 'upper',samples=34,side_profile=True)
 
 # Long black-blue curtain fringe. Broad sheets flow from a center part,
@@ -225,15 +225,15 @@ for side in [-1,1]:
         [side*.046,1.400,.146]],.010,.16,kind='upper',samples=29)
 
 # Lower nape. Distinct pointed locks form the back silhouette under the tie.
-for rank in range(2):
- for i in range(12):
-    u=(i-5.5)/5.5
+for rank in range(1):
+ for i in range(11):
+    u=(i-5)/5
     blade(f'Nape point rank {rank} {i}',[
        [u*.079,1.482-.013*rank,-.058],
        [u*.106,1.428-.025*rank,-.104],
        [u*.125,1.374-.025*rank,-.123],
        [u*.118,1.331-.038*rank,-.135]],
-       .0155-.002*rank,.19,kind='shadow' if (i+rank)%3 else 'strand',
+       .022-.002*rank,.19,kind='shadow' if (i+rank)%3 else 'strand',
        samples=27)
 
 # Textured indigo forehead wrap, continuous with the side/back tied strips.
