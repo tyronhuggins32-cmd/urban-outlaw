@@ -42,7 +42,7 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('3.4'))throw new Error('Old build loaded');
+  if(!ui.version.includes('3.5'))throw new Error('Old build loaded');
   if(ui.character!=='clean-head-v5')throw new Error('Blank body GLB did not load');
   if(ui.hairLocks!==0 || ui.hairDrawGroups!==0 || ui.oldHairRemoved!==0 || ui.compactedCrown<100 || ui.compactedNape<100 || ui.faceDetails!==0)
     throw new Error('Old overlapping hair or torn head geometry remains: '+JSON.stringify(ui));
