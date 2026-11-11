@@ -1,0 +1,51 @@
+name: Build Detachable Approved Hair
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/build-approved-hair.py'
+      - '.github/workflows/build-approved-hair.yml'
+permissions:
+  contents: write
+concurrency:
+  group: urban-detachable-hair-asset
+  cancel-in-progress: false
+jobs:
+  sculpt-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install open-source mesh tools
+        run: python3 -m pip install --quiet "numpy>=1.26,<3" "scipy>=1.12,<2" "trimesh>=4,<5" "Pillow>=10,<13"
+      - name: Create detachable textured GLB from approved turnaround
+        run: python3 scripts/build-approved-hair.py assets/approved-detachable-hair.glb
+      - name: Verify genuine 3D hair asset, no head or body geometry
+        run: |
+          python3 - <<'PY'
+          import trimesh,os
+          p='assets/approved-detachable-hair.glb'
+          sc=trimesh.load(p,force='scene')
+          names=list(sc.geometry.keys())
+          triangles=sum(len(g.faces) for g in sc.geometry.values())
+          assert len(names)>=6,(len(names),names)
+          assert 13000<triangles<160000,triangles
+          assert os.path.getsize(p)>50000
+          assert all('HairPart_' in name for name in names),names
+          assert .35 < sc.extents[1] < .55,sc.extents
+          print('STANDALONE HAIR VERIFIED',len(names),'mesh groups',triangles,'triangles')
+          PY
+      - name: Commit separate hair GLB into playable game
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/approved-detachable-hair.glb
+          git diff --cached --quiet && exit 0
+          git commit -m "Add detachable layered hair GLB matched to approved turnaround"
+          git pull --rebase origin main
+          git push origin HEAD:main
