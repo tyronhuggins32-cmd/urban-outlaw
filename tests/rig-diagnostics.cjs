@@ -11,7 +11,8 @@ const data=await page.evaluate(async()=>{
   const {createReferenceClips}=await import('./scripts/reference-character-animations-v2.js');
   const gltf=await new GLTFLoader().loadAsync('./assets/reference-rig-fluid.glb');
   const root=gltf.scene;
-  const rig=createReferenceClips(THREE,root);
+  const walkData=await (await fetch('./assets/animations/walking-retargeted.json')).json();
+  const rig=createReferenceClips(THREE,root,walkData);
   if(rig.boneCount!==44 || rig.animatedBones<40 || rig.helperBones!==10){
     throw new Error('Fluid rig missing weighted animation joints: '+JSON.stringify(rig));
   }
