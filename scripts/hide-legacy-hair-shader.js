@@ -25,19 +25,20 @@ export function hideOldHairWithoutCuttingHead(THREE,root){
         '#include <common>\nvarying vec3 vUrbanRestPosition;'
       ).replace(start,start+'\nvUrbanRestPosition=position;');
       const mask=[
-        'bool onHead=vUrbanRestPosition.y>1.29;',
-        'bool protectedFace=vUrbanRestPosition.z>0.080 &&',
-        ' abs(vUrbanRestPosition.x)<0.103 &&',
-        ' vUrbanRestPosition.y<1.535;',
+        // Do not mask the sides, ears or nape: those contain genuine skin.
+        'bool highRear=vUrbanRestPosition.y>1.505 &&',
+        ' vUrbanRestPosition.z< -0.052;',
+        'bool upperBack=vUrbanRestPosition.y>1.445 &&',
+        ' vUrbanRestPosition.z< -0.137;',
         'float bright=max(diffuseColor.r,max(diffuseColor.g,diffuseColor.b));',
-        'if(onHead && !protectedFace && bright<0.24) discard;'
+        'if((highRear || upperBack) && bright<0.18) discard;'
       ].join('\n');
       shader.fragmentShader=shader.fragmentShader.replace(
         '#include <common>',
         '#include <common>\nvarying vec3 vUrbanRestPosition;'
       ).replace(map,map+'\n'+mask);
     };
-    mat.customProgramCacheKey=()=> 'urban-no-legacy-hair-v1';
+    mat.customProgramCacheKey=()=> 'urban-no-legacy-hair-v2';
     mat.userData.uoHairMask=true;
     mat.needsUpdate=true;
     patched++;
