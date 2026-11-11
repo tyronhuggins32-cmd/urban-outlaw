@@ -109,6 +109,19 @@ def shell(center,radii,latitudes,longitudes,thetaMax,alphaStart,alphaEnd,uvTile)
    a=offset+i*(longitudes+1)+j;b=a+1;d=a+longitudes+1;e=d+1;extraF.extend([[a,d,b],[b,d,e]])
 shell([0,1.4,.005],[.089,.115,.12],18,40,np.pi*.66,np.pi/2,np.pi*1.5,capUV)
 shell([0,1.397,-.146],[.019,.018,.011],12,20,np.pi,0,np.pi*2,bowUV)
+# Continuous navy cloth backing: overlaps the metal and disappears under bangs.
+# A curved strip covers the forehead all the way to the hair roots.
+if args.reference_shape:
+ offset=len(verts)+len(extraV);cols=40;rows=12
+ for row in range(rows+1):
+  yy=1.338+.132*row/rows
+  for col in range(cols+1):
+   xx=-.108+.216*col/cols
+   zz=.139-4.8*xx*xx-.035*max(0,(yy-1.40)/.07)**2
+   extraV.append([xx,yy,zz]);nn=np.array([9.6*xx, max(0,(yy-1.40))*.07/.0049,1]);extraN.append(nn/np.linalg.norm(nn));extraUV.append(bowUV)
+ for row in range(rows):
+  for col in range(cols):
+   a=offset+row*(cols+1)+col;b=a+1;d=a+cols+1;e=d+1;extraF.extend([[a,b,d],[b,e,d]])
 verts=np.concatenate([verts,np.asarray(extraV,dtype='f4')]);normals=np.concatenate([normals,np.asarray(extraN,dtype='f4')]);texcoords=np.concatenate([texcoords,np.asarray(extraUV,dtype='f4')]);colors=np.concatenate([colors,np.ones((len(extraV),3),dtype='f4')]);faces=np.concatenate([faces,np.asarray(extraF,dtype='u2')])
 accessors=[];views=[];outblob=bytearray()
 def add(vals,typ,component=5126):
