@@ -26,6 +26,17 @@ export function installDetachableHair(THREE, humanoid, hairScene) {
       if(previous){previous.dispose();previous.image?.close?.();}
       o.material.needsUpdate=true;
     }
+    // Keep the new cloth backing behind every edge of the curved metal plate.
+    if(n==='REFERENCE SCULPT HAIR'){
+      const p=o.geometry.attributes.position;
+      for(let i=0;i<p.count;i++){
+        const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+        const clothZ=.139-4.8*x*x-.035*Math.max(0,(y-1.40)/.07)**2;
+        if(y>=1.3379&&y<=1.4701&&Math.abs(x)<=.1081&&Math.abs(z-clothZ)<.000001)
+          p.setZ(i,z-.003-.9*x*x);
+      }
+      p.needsUpdate=true;o.geometry.computeBoundingSphere();
+    }
     o.castShadow=true;
     o.receiveShadow=false;
     o.frustumCulled=false;
