@@ -11,6 +11,8 @@ on:
       - 'assets/reference-rig-separated.glb'
       - 'assets/reference-rig-fluid.glb'
       - 'scripts/reference-character-animations-v2.js'
+      - 'scripts/walk-cycle-v3.js'
+      - 'tests/walk-gait.cjs'
       - 'scripts/character-head-overhaul.js'
       - 'scripts/diagnose-hand-leg-bridges.py'
       - 'assets/reference/**'
@@ -43,6 +45,7 @@ jobs:
           node tests/model-review.cjs
           node tests/head-review.cjs
           node tests/rig-diagnostics.cjs
+          node tests/walk-gait.cjs
       - name: Save screenshot
         if: always()
         uses: actions/upload-artifact@v4
