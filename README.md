@@ -49,3 +49,7 @@ To test locally: `python3 -m http.server 8000` from repository root. Three.js lo
 ## Remaining visual work
 
 This is a significant rig and animation upgrade, **not a claim of exact reference likeness**. The face, haircut and anatomy still need sculpt refinement, and procedural walk cycles may show some foot sliding. No full inverse-kinematics foot-planting or motion-captured animation library is included yet.
+
+### Walk overhaul and faster sprint
+
+The walk now uses two-segment leg solving against foot targets, with a 60% support phase, swing-foot lift, heel contact, toe-off and counter-swinging arms. The solver measures the imported rig's leg lengths and resting knee angles. Sprint movement is 95 world units/second (10 times its previous 9.5); walking remains 5.2. The camera follows more tightly during sprinting. Run `node tests/walk-gait.cjs` and, with Three.js 0.166.1 installed, `node tests/walk-rig.cjs` to check the actual skeleton and movement settings.

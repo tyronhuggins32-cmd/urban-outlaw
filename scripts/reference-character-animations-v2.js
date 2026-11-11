@@ -3,7 +3,7 @@
  * 34 original joints + 10 new, genuinely vertex-weighted corrective joints.
  * World-oriented rotations avoid sideways leg movement in the source rig.
  */
-import {walkPose,walkPelvisOffset,walkGaitSpecs} from './walk-cycle-v3.js';
+import {createWalkGait,walkPelvisOffset,walkGaitSpecs} from './walk-cycle-v4.js';
 
 export function createReferenceClips(THREE,root){
   root.updateMatrixWorld(true);
@@ -49,6 +49,14 @@ export function createReferenceClips(THREE,root){
   const missing=required.filter(k=>!bones[k]);
   if(missing.length||lookup.size<44)
     throw new Error('Character needs the full 44-bone rig: '+missing.join(','));
+  const jointPosition=k=>bones[k].getWorldPosition(new THREE.Vector3());
+  const restLegAngles=side=>{
+    const thigh=jointPosition(side+'Knee').sub(jointPosition(side+'Leg'));
+    const shin=jointPosition(side+'Foot').sub(jointPosition(side+'Knee'));
+    const pitch=v=>Math.atan2(-v.z,-v.y);
+    return {thigh:pitch(thigh),knee:pitch(shin)-pitch(thigh)};
+  };
+  const walkPose=createWalkGait(jointPosition('leftLeg').distanceTo(jointPosition('leftKnee')),jointPosition('leftKnee').distanceTo(jointPosition('leftFoot')),{left:restLegAngles('left'),right:restLegAngles('right')});
   const bind={},parentRest={},positionRest={};
   for(const [key,bone] of Object.entries(bones)){
     if(!bone)continue;

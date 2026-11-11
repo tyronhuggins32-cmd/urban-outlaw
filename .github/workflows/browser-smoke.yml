@@ -11,6 +11,9 @@ on:
       - 'assets/reference-rig-separated.glb'
       - 'assets/reference-rig-fluid.glb'
       - 'scripts/reference-character-animations-v2.js'
+      - 'scripts/walk-cycle-v4.js'
+      - 'tests/walk-gait.cjs'
+      - 'tests/walk-rig.cjs'
       - 'scripts/walk-cycle-v3.js'
       - 'tests/walk-gait.cjs'
       - 'scripts/character-head-overhaul.js'
@@ -40,8 +43,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --no-save playwright@1.56.0
+      - run: npm install --no-save playwright@1.56.0 three@0.166.1
       - run: npx playwright install chromium --with-deps
+      - name: Verify walking gait and sprint speed
+        run: |
+          node tests/walk-gait.cjs
+          node tests/walk-rig.cjs
       - name: Assert hands are no longer fused to the thighs
         run: python3 scripts/diagnose-hand-leg-bridges.py assets/reference-rig-fluid.glb --assert-separated
       - name: Test 3D browser gameplay boot
