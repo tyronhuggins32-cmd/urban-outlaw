@@ -4,6 +4,7 @@
  * World-oriented rotations avoid sideways leg movement in the source rig.
  */
 import {createRecordedWalkClip} from './recorded-walk.js';
+import {NINJA_RUN_DURATION, ninjaRunPose, ninjaRunRootMotion} from './ninja-run.js';
 
 export function createReferenceClips(THREE,root,walkData){
   root.updateMatrixWorld(true);
@@ -168,7 +169,7 @@ export function createReferenceClips(THREE,root,walkData){
   const rootMotion={
     Idle:t=>[0,.004*sin(t),0],
     Walk:t=>[0,0,0],
-    Run:t=>[.008*sin(t),.023*(.5-.5*Math.cos(2*TAU*t)),0],
+    Run:ninjaRunRootMotion,
     Jump:t=>[0,-.018*(1-smooth(t/.13))+.008*Math.sin(Math.PI*t),0],
     Land:t=>[0,-.024*(1-smooth(t/.7)),0]
   };
@@ -200,7 +201,7 @@ export function createReferenceClips(THREE,root,walkData){
   const clips=[
     clip('Idle',2.7,idle),
     createRecordedWalkClip(THREE,root,walkData),
-    clip('Run',.62,(t,k)=>locomotion(t,k,true)),
+    clip('Run',NINJA_RUN_DURATION,ninjaRunPose),
     clip('Jump',.89,jump),
     clip('Land',.30,land)
   ];
