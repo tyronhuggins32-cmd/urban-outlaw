@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
   await page.waitForFunction(()=>document.querySelector('#loading')?.classList.contains('hidden'),null,{timeout:75000});
   await page.waitForTimeout(700);
   const initialMenu=await page.evaluate(()=>({
-    title:document.getElementById('brawlerTitle')?.textContent.replace(/\\s+/g,' ').trim(),
+    title:document.getElementById('brawlerTitle')?.textContent.replace(/\s+/g,' ').trim(),
     screen:document.getElementById('game')?.dataset.screen,
     selected:document.getElementById('game')?.dataset.selectedBrawler,
     startEnabled:!document.getElementById('startGame')?.disabled,
@@ -17,7 +17,7 @@ const { chromium } = require('playwright');
     lockedSlots:document.querySelectorAll('.brawler-card.locked').length
   }));
   console.log('MAIN MENU',JSON.stringify(initialMenu));
-  if(!/PICK UR\\s*BRAWLER/i.test(initialMenu.title || ''))throw new Error('Main menu heading missing');
+  if(!/PICK UR\s*BRAWLER/i.test(initialMenu.title || ''))throw new Error('Main menu heading missing');
   if(initialMenu.screen!=='menu' || initialMenu.selected!=='ninja' || !initialMenu.startEnabled || initialMenu.ninja!=='true' || initialMenu.lockedSlots!==2)
     throw new Error('Brawler selection not ready: '+JSON.stringify(initialMenu));
   await page.screenshot({path:'urban-main-menu.png'});
