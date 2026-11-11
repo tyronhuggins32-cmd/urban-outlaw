@@ -13,6 +13,7 @@ on:
       - 'scripts/reference-character-animations-v2.js'
       - 'scripts/ninja-run.js'
       - 'tests/ninja-run.cjs'
+      - 'tests/ninja-run-rig.cjs'
       - 'scripts/recorded-walk.js'
       - 'scripts/retarget-walking.cjs'
       - 'assets/animations/**'
@@ -61,6 +62,7 @@ jobs:
       - name: Verify walking gait and ninja-run sprint
         run: |
           node tests/ninja-run.cjs
+          node tests/ninja-run-rig.cjs
           node tests/walk-gait.cjs
           node tests/walk-rig.cjs
           node tests/head-fit.cjs
