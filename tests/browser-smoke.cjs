@@ -8,6 +8,22 @@ const { chromium } = require('playwright');
   await page.goto('http://127.0.0.1:8000/',{waitUntil:'domcontentloaded',timeout:30000});
   await page.waitForFunction(()=>document.querySelector('#loading')?.classList.contains('hidden'),null,{timeout:75000});
   await page.waitForTimeout(700);
+  const initialMenu=await page.evaluate(()=>({
+    title:document.getElementById('brawlerTitle')?.textContent.replace(/\\s+/g,' ').trim(),
+    screen:document.getElementById('game')?.dataset.screen,
+    selected:document.getElementById('game')?.dataset.selectedBrawler,
+    startEnabled:!document.getElementById('startGame')?.disabled,
+    ninja:document.getElementById('ninjaBrawler')?.getAttribute('aria-pressed'),
+    lockedSlots:document.querySelectorAll('.brawler-card.locked').length
+  }));
+  console.log('MAIN MENU',JSON.stringify(initialMenu));
+  if(!/PICK UR\\s*BRAWLER/i.test(initialMenu.title || ''))throw new Error('Main menu heading missing');
+  if(initialMenu.screen!=='menu' || initialMenu.selected!=='ninja' || !initialMenu.startEnabled || initialMenu.ninja!=='true' || initialMenu.lockedSlots!==2)
+    throw new Error('Brawler selection not ready: '+JSON.stringify(initialMenu));
+  await page.screenshot({path:'urban-main-menu.png'});
+  await page.locator('#startGame').click();
+  await page.waitForFunction(()=>document.getElementById('game')?.dataset.screen==='game');
+  if(await page.locator('#mainMenu').isVisible())throw new Error('Main menu did not close after starting');
   const ui=await page.evaluate(()=>({
     version:document.querySelector('.version')?.innerText,
     character:document.getElementById('game')?.dataset.character,
@@ -44,7 +60,7 @@ const { chromium } = require('playwright');
   }));
   await page.screenshot({path:'urban-3d-test.png'});
   console.log('UI',JSON.stringify(ui));console.log('WARNINGS',JSON.stringify(warnings));console.log('ERRORS',JSON.stringify(errors));
-  if(!ui.version.includes('4.3'))throw new Error('Old build loaded');
+  if(!ui.version.includes('4.4'))throw new Error('Old build loaded');
   if(ui.character!=='clean-head-v5')throw new Error('Blank body GLB did not load');
   if(ui.hairLocks!==0 || ui.hairDrawGroups!==0 || ui.oldHairRemoved!==0 || ui.compactedCrown<100 || ui.compactedNape<100 || ui.faceDetails!==0)
     throw new Error('Old overlapping hair or torn head geometry remains: '+JSON.stringify(ui));
@@ -86,5 +102,12 @@ const { chromium } = require('playwright');
   if(errors.length)throw new Error('Browser errors: '+errors.join('; '));
   if(!ui.canvas)throw new Error('Missing game canvas');
   if(ui.touchToggle!=='TOUCH: ON' && ui.touchToggle!=='TOUCH: OFF')throw new Error('Touch toggle missing');
+  await page.locator('#openMenu').click();
+  await page.waitForFunction(()=>document.getElementById('game')?.dataset.screen==='menu');
+  if(!(await page.locator('#mainMenu').isVisible()))throw new Error('Menu button did not reopen selection');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(()=>document.getElementById('game')?.dataset.screen==='game');
+  if(await page.locator('#mainMenu').isVisible())throw new Error('Keyboard Enter did not resume with the selected brawler');
+  await page.screenshot({path:'urban-brawler-resume.png'});
   await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});
