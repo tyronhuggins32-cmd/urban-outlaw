@@ -27,6 +27,23 @@ export function installDetachableHair(THREE, humanoid, hairScene) {
     o.receiveShadow=false;
     o.frustumCulled=false;
     o.userData.accessory='Hair';
+    // The reference-sculpted source includes its original forehead protector.
+    // The replacement asset's protector sat higher, creating TWO plates.
+    // Seat its silver plate and engraving directly over the original instead.
+    if(o.material?.name==='BRUSHED SILVER HEADBAND' ||
+       o.material?.name==='DARK ENGRAVING'){
+      o.position.y-=.068;
+      o.position.z+=.035;
+      o.scale.x*=1.15;
+      if(o.material?.name==='BRUSHED SILVER HEADBAND'){
+        const p=o.geometry.getAttribute('position');
+        let mid=0;for(let i=0;i<p.count;i++)mid+=p.getY(i);
+        mid/=p.count;
+        for(let i=0;i<p.count;i++)p.setY(i,mid+(p.getY(i)-mid)*1.27);
+        p.needsUpdate=true;
+        o.geometry.computeBoundingBox();o.geometry.computeBoundingSphere();
+      }
+    }
   });
   const required=['LAYERED BLUE BLACK HAIR FIBERS','HAIR INNER SHADOW FIBERS',
     'DEEP INDIGO CLOTH','BRUSHED SILVER HEADBAND'];
