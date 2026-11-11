@@ -9,9 +9,10 @@ const {chromium}=require('playwright');
  const stats=await page.evaluate(()=>{
    const d=document.getElementById('game').dataset;
    return {character:d.character,headReview:d.headReview,hairLocks:Number(d.hairLocks),
-       hairDrawGroups:Number(d.hairDrawGroups),oldHairRemoved:Number(d.oldHairRemoved)};
+       hairDrawGroups:Number(d.hairDrawGroups),oldHairRemoved:Number(d.oldHairRemoved),
+       compactedCrown:Number(d.compactedCrown),detachableHair:d.detachableHair};
  });
- if(stats.character!=='reference-head-v3'||stats.headReview!=='active'||stats.hairLocks<35||stats.hairDrawGroups<4){
+ if(stats.character!=='clean-head-v5'||stats.headReview!=='active'||stats.hairLocks!==0||stats.hairDrawGroups!==0||stats.compactedCrown<100||stats.detachableHair!=='clean-sculpt-v5'){
    throw new Error('3D facial hair sculpt missing: '+JSON.stringify(stats));
  }
  console.log('HEAD REVIEW',JSON.stringify(stats));
