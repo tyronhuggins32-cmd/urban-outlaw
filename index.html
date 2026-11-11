@@ -168,7 +168,7 @@
     </section>
     <button type="button" id="openMenu" aria-label="Return to brawler selection menu">MENU</button>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 4.8 · HAIR RESHAPE</div>
+    <div class="ui version"><span class="dot"></span> BUILD 4.9 · FITTED HEADBAND</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: ninja run · DualSense: sticks, Cross, R2</p></div>
@@ -357,7 +357,7 @@
           const cleanupResponse=await fetch('./assets/legacy-hair-cleanup.json?v=1');
           if(!cleanupResponse.ok)throw new Error('Legacy hair cleanup data unavailable');
           const headSculpt=cleanLegacyCharacterHead(THREE,imported,await cleanupResponse.json());
-          const standaloneHair=await new GLTFLoader().loadAsync('./assets/reference-sculpt-hair-v10.glb?v=10');
+          const standaloneHair=await new GLTFLoader().loadAsync('./assets/reference-sculpt-hair-v10.glb?v=11');
           const approvedHair=installDetachableHair(THREE,imported,standaloneHair.scene);
           const clipNames = rig.clips.map(clip=>clip.name);
           if (clipNames.join(',') !== 'Idle,Walk,Run,Jump,Land') throw new Error('Missing humanoid animation clips');
