@@ -40,6 +40,12 @@ jobs:
           assert .35 < sc.extents[1] < .55,sc.extents
           print('STANDALONE HAIR VERIFIED',len(names),'mesh groups',triangles,'triangles')
           PY
+      - name: Export standalone 3D hair for multiview visual inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: approved-detachable-hair-3d
+          path: assets/approved-detachable-hair.glb
+          retention-days: 5
       - name: Commit separate hair GLB into playable game
         run: |
           git config user.name "github-actions[bot]"
