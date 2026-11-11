@@ -32,8 +32,8 @@ export function installDetachableHair(THREE, humanoid, hairScene) {
     // Seat its silver plate and engraving directly over the original instead.
     if(o.material?.name==='BRUSHED SILVER HEADBAND' ||
        o.material?.name==='DARK ENGRAVING'){
-      o.position.y-=.068;
-      o.position.z+=.035;
+      o.position.y-=.008;
+      o.position.z+=.053;
       o.scale.x*=1.15;
       if(o.material?.name==='BRUSHED SILVER HEADBAND'){
         const p=o.geometry.getAttribute('position');
@@ -54,6 +54,40 @@ export function installDetachableHair(THREE, humanoid, hairScene) {
   const localBounds=new THREE.Box3().setFromObject(hairScene);
   const height=localBounds.getSize(new THREE.Vector3()).y;
   if(height<.35||height>.55)throw new Error('Detachable hair dimensions invalid');
+
+
+  // Cover the source character's old low-resolution forehead decal, without
+  // deleting face polygons or lowering the correct silver plate onto the eyes.
+  // This gently curved navy underband sits below the new metal, above eyes.
+  const panelVerts=[],panelFaces=[];
+  const W=18,rows=3;
+  for(let row=0;row<rows;row++){
+    const y=1.365+(1.425-1.365)*row/(rows-1)-1.49;
+    for(let i=0;i<=W;i++){
+      const x=-.089+.178*i/W;
+      const z=.197-.013*(x/.089)**2;
+      panelVerts.push(x,y,z);
+    }
+  }
+  for(let row=0;row<rows-1;row++){
+    for(let i=0;i<W;i++){
+      const a=row*(W+1)+i,b=a+1,c=a+(W+1),d=c+1;
+      panelFaces.push(a,b,c,b,d,c);
+    }
+  }
+  const bandGeometry=new THREE.BufferGeometry();
+  bandGeometry.setAttribute('position',new THREE.Float32BufferAttribute(panelVerts,3));
+  bandGeometry.setIndex(panelFaces);
+  bandGeometry.computeVertexNormals();
+  const bandMaterial=new THREE.MeshStandardMaterial({
+    name:'Curved navy underband covers legacy badge', color:0x1a244b,
+    roughness:.95, side:THREE.DoubleSide
+  });
+  const underband=new THREE.Mesh(bandGeometry,bandMaterial);
+  underband.name='Single forehead cloth concealment strip';
+  underband.userData.accessory='Hair';
+  underband.castShadow=false;
+  hairScene.add(underband);
 
   hairScene.name='APPROVED_DETACHABLE_HAIR_ONE_ASSET';
   hairScene.userData.role='Hair';
