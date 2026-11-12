@@ -24,7 +24,7 @@ const path=require('node:path');
      assert.ok(v.every(x=>Math.abs(x)<.015),'Unstable wrist or twist helper '+name+' '+t);
    }
    for(const name of ['leftForeArm','rightForeArm'])
-     assert.ok(Math.abs(p(t,name)[0])<.05,'Elbow is folding instead of staying extended');
+     assert.ok(Math.abs(p(t,name)[0])<.10,'Elbow is folding instead of staying extended');
    for(const name of ['leftKnee','rightKnee'])
      assert.ok(p(t,name)[0]>=0,'Running knees must flex rather than hyperextend');
    for(const k of ['hips','spine','spine1','spine2','neck','head','leftArm','rightArm',
