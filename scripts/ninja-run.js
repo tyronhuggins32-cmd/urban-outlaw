@@ -6,7 +6,7 @@
  * This is a seamless in-place sprint loop. Player movement stays in the game
  * controller, so switching directions or changing speed cannot accumulate drift.
  */
-export const NINJA_RUN_DURATION = 0.48;
+export const NINJA_RUN_DURATION = 0.52;
 const TAU = Math.PI * 2;
 const A = (x = 0, y = 0, z = 0) => [x, y, z];
 const positive = value => Math.max(0, value);
@@ -19,35 +19,36 @@ export function ninjaRunPose(t, key) {
   const rightBack = positive(-s);
   const pulse = Math.cos(2 * TAU * phase);
 
-  // The imported sculpt has a strongly pre-rotated spine. Small local angles
-  // previously produced just 12 degrees of *visible* forward lean. These
-  // retargeted world-axis offsets fold the upper body noticeably forward;
-  // the real result is validated from head/hips joint positions on the GLB.
-  if (key === 'hips') return A(.18, .010 * s, .007 * c);
-  if (key === 'spine') return A(.38, -.013 * s, -.013 * c);
-  if (key === 'spine1') return A(.47, -.020 * s, .010 * c);
-  if (key === 'spine2') return A(.27, .013 * s, -.008 * c);
-  if (key === 'chestBreath') return A(.008 * pulse, 0, .004 * s);
-  if (key === 'neck') return A(-.23, .007 * s);
-  if (key === 'neckFollow') return A(-.08, -.006 * s);
-  if (key === 'head') return A(-.57, -.008 * s, .006 * c);
+  // Shape the entire spine, not just the head, into a low speed silhouette.
+  // This rig has pre-rotated bind joints: verify actual visible lean from the
+  // skinned GLB in tests/ninja-run-rig.cjs, not by adding the Euler angles.
+  if (key === 'hips') return A(.20, .006 * s, .005 * c);
+  if (key === 'spine') return A(.46, -.008 * s, -.007 * c);
+  if (key === 'spine1') return A(.55, -.010 * s, .007 * c);
+  if (key === 'spine2') return A(.30, .008 * s, -.005 * c);
+  if (key === 'chestBreath') return A(.004 * pulse);
+  // Counterbend the neck so the face remains directed down the path.
+  if (key === 'neck') return A(-.25, .003 * s);
+  if (key === 'neckFollow') return A(-.08, -.003 * s);
+  if (key === 'head') return A(-.63, -.004 * s, .002 * c);
 
-  // Arms swept behind the torso and almost parallel to the direction of
-  // travel, instead of pumping opposite the legs as in a conventional sprint.
-  if (key === 'leftShoulder') return A(.035, 0, .018);
-  if (key === 'rightShoulder') return A(.035, 0, -.018);
-  if (key === 'leftArm') return A(1.26 + .035 * s, .013 * c, .14);
-  if (key === 'rightArm') return A(1.26 - .035 * s, -.013 * c, -.14);
-  if (key === 'leftUpperArmSoft') return A(.022 + .010 * s, 0, .006);
-  if (key === 'rightUpperArmSoft') return A(.022 - .010 * s, 0, -.006);
-  if (key === 'leftForeArm') return A(.09 + .025 * c);
-  if (key === 'rightForeArm') return A(.09 - .025 * c);
-  if (key === 'leftForeArmTwist') return A(.009 * s, .017);
-  if (key === 'rightForeArmTwist') return A(-.009 * s, -.017);
-  if (key === 'leftHand') return A(-.045, .015, .018);
-  if (key === 'rightHand') return A(-.045, -.015, -.018);
+  // Both arms trail BEHIND the body for the whole cycle. Keep elbows long and
+  // wrists neutral. Large per-frame wrist and twist motions made hands wobble
+  // even though the shoulder animation was correct.
+  if (key === 'leftShoulder') return A(.012, 0, .012);
+  if (key === 'rightShoulder') return A(.012, 0, -.012);
+  if (key === 'leftArm') return A(1.38 + .009 * s, .003 * c, .10);
+  if (key === 'rightArm') return A(1.38 - .009 * s, -.003 * c, -.10);
+  if (key === 'leftUpperArmSoft') return A(.010, 0, .003);
+  if (key === 'rightUpperArmSoft') return A(.010, 0, -.003);
+  if (key === 'leftForeArm' || key === 'rightForeArm') return A(.012);
+  // Freeze twist helper oscillation at neutral to avoid tearing-looking
+  // deformation in the weighted forearm/wrist region.
+  if (key === 'leftForeArmTwist' || key === 'rightForeArmTwist') return A();
+  if (key === 'leftHand' || key === 'rightHand') return A();
+  // Fingers stay loosely straight, rather than closing into a pumping fist.
   if (key.startsWith('leftFinger') || key.startsWith('rightFinger'))
-    return A(-.04 - .015 * (.5 + .5 * c));
+    return A(-.008);
 
   // Opposing long strides. Bent knees recover the airborne foot without
   // snapping a straight leg; toe-off and ankle pitch articulate each step.
@@ -71,7 +72,7 @@ export function ninjaRunRootMotion(t) {
   const phase = ((t % 1) + 1) % 1;
   return [
     .006 * Math.sin(TAU * phase),
-    .018 * (1 - Math.cos(2 * TAU * phase)),
+    .012 * (1 - Math.cos(2 * TAU * phase)),
     0
   ];
 }
