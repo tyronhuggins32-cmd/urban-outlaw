@@ -142,5 +142,17 @@ const { chromium } = require('playwright');
   await page.waitForFunction(()=>document.getElementById('game')?.dataset.screen==='game');
   if(await page.locator('#mainMenu').isVisible())throw new Error('Keyboard Enter did not resume with the selected brawler');
   await page.screenshot({path:'urban-brawler-resume.png'});
+  // Read-only, fixed side-angle animation preview catches upright/overhead
+  // arm silhouettes that misleading rear-angle screenshots can hide.
+  const sidePage=await browser.newPage({viewport:{width:1100,height:760},deviceScaleFactor:1});
+  sidePage.on('pageerror',e=>errors.push(e.message));
+  await sidePage.goto('http://127.0.0.1:8000/?review=1&run=1',{waitUntil:'domcontentloaded',timeout:30000});
+  await sidePage.waitForFunction(()=>
+    document.querySelector('#loading')?.classList.contains('hidden') &&
+    document.getElementById('game')?.dataset.animation==='run',null,{timeout:75000});
+  await sidePage.waitForTimeout(650);
+  await sidePage.screenshot({path:'urban-animation-ninja-side-review.png'});
+  if(errors.length)throw new Error('Side-preview browser errors: '+errors.join('; '));
+  await sidePage.close();
   await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});
