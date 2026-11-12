@@ -79,6 +79,23 @@ const { chromium } = require('playwright');
   if(ui.skinnedMeshes < 1 || ui.rigJoints < 18 || ui.modelType !== 'skinned-fluid-44' || ui.rigFix !== 'world-axis-v3' || ui.meshSeparation !== 'hand-thigh-seam-v2' || ui.clothSeamPatches!==2 || ui.helperBones!==10 || ui.animatedBones<40)throw new Error('High-detail skinned rig not present: '+JSON.stringify(ui));
   if(Math.abs(ui.height-4.0)>.07)throw new Error('Model not normalized to expected height');
   if(ui.warning)throw new Error('3D load failed; fallback active');
+  // A quick mobile tap must KEEP ninja running enabled while the player moves.
+  await page.locator('#run').click();
+  const ninjaToggle=await page.evaluate(()=>({
+    active:document.getElementById('run').getAttribute('aria-pressed'),
+    text:document.getElementById('run').textContent,
+    enabled:document.getElementById('game').dataset.ninjaRunEnabled
+  }));
+  if(ninjaToggle.active!=='true'||ninjaToggle.enabled!=='true'||ninjaToggle.text!=='RUN ON')
+    throw new Error('Ninja run tap did not latch: '+JSON.stringify(ninjaToggle));
+  await page.keyboard.down('w');
+  await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='run',null,{timeout:6000});
+  await page.screenshot({path:'urban-animation-ninja-toggle.png'});
+  await page.keyboard.up('w');
+  await page.locator('#run').click();
+  if(await page.locator('#run').getAttribute('aria-pressed')!=='false')
+    throw new Error('Ninja run toggle did not turn off');
+  await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='idle',null,{timeout:3000});
   await page.keyboard.down('w');
   await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='walk',null,{timeout:6000});
   const walk=await page.locator('#game').getAttribute('data-animation');
