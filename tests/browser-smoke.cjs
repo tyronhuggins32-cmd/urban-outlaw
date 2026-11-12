@@ -90,7 +90,16 @@ const { chromium } = require('playwright');
     throw new Error('Ninja run tap did not latch: '+JSON.stringify(ninjaToggle));
   await page.keyboard.down('w');
   await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='run',null,{timeout:6000});
+  // A run-state label is not visual proof: let the crossfade finish before recording.
+  await page.waitForTimeout(550);
   await page.screenshot({path:'urban-animation-ninja-toggle.png'});
+  // Move camera about a quarter turn to capture the run's actual side silhouette.
+  await page.mouse.move(250,410);
+  await page.mouse.down();
+  await page.mouse.move(65,410,{steps:9});
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+  await page.screenshot({path:'urban-animation-ninja-side.png'});
   await page.keyboard.up('w');
   await page.locator('#run').click();
   if(await page.locator('#run').getAttribute('aria-pressed')!=='false')
@@ -109,6 +118,7 @@ const { chromium } = require('playwright');
   if(run!=='run')throw new Error('Run clip not activated: '+run);
   const ninjaRunLabel=await page.locator('#animationStatus').innerText();
   if(!ninjaRunLabel.includes('NINJA RUN V3'))throw new Error('Ninja run HUD missing: '+ninjaRunLabel);
+  await page.waitForTimeout(500);
   await page.screenshot({path:'urban-animation-run.png'});
   await page.keyboard.up('Shift');
   await page.keyboard.up('w');
