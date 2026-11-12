@@ -10,14 +10,21 @@ const path=require('node:path');
  assert.ok(NINJA_RUN_DURATION>=.35&&NINJA_RUN_DURATION<=.65,'Ninja run must be a fast repeating gait');
  const p=(t,k)=>ninjaRunPose(t,k);
  const lean=['hips','spine','spine1','spine2'].reduce((a,k)=>a+p(.25,k)[0],0);
- assert.ok(lean>1.15&&lean<1.45,'Corrected rig requires strong upper-body bend; verify visible angle in ninja-run-rig test: '+lean);
+ assert.ok(lean>1.4&&lean<1.65,'Corrected rig requires strong upper-body bend; verify visible angle in ninja-run-rig test: '+lean);
  assert.ok(p(.25,'head')[0]<-.15,'Eyes should counter-rotate forward');
  for(const t of [0,.125,.25,.5,.75,.9]){
    for(const arm of ['leftArm','rightArm']){
      assert.ok(p(t,arm)[0]>1.1,'Arms must stay swept backward, not pump: '+arm+' '+t);
    }
    const left=p(t,'leftArm'),right=p(t,'rightArm');
-   assert.ok(Math.abs(left[0]-right[0])<.1,'Arms should remain streamlined together');
+   assert.ok(Math.abs(left[0]-right[0])<.04,'Arms should remain aligned throughout the stride');
+   // Wrist, hand and twist helper rotations must be steady, not flapping.
+   for(const name of ['leftHand','rightHand','leftForeArmTwist','rightForeArmTwist']){
+     const v=p(t,name);
+     assert.ok(v.every(x=>Math.abs(x)<.015),'Unstable wrist or twist helper '+name+' '+t);
+   }
+   for(const name of ['leftForeArm','rightForeArm'])
+     assert.ok(Math.abs(p(t,name)[0])<.05,'Elbow is folding instead of staying extended');
    for(const name of ['leftKnee','rightKnee'])
      assert.ok(p(t,name)[0]>=0,'Running knees must flex rather than hyperextend');
    for(const k of ['hips','spine','spine1','spine2','neck','head','leftArm','rightArm',
@@ -40,7 +47,7 @@ const path=require('node:path');
  const html=fs.readFileSync(path.resolve('index.html'),'utf8');
  assert.match(rig,/clip\('Run',NINJA_RUN_DURATION,ninjaRunPose\)/,'Run clip must use ninja cycle');
  assert.match(rig,/Run:ninjaRunRootMotion/,'Run clip must use in-place vertical impulse');
- assert.match(html,/runStyle='ninja-lean-v2'/,'Game must expose ninja sprint state');
+ assert.match(html,/runStyle='ninja-pose-v3'/,'Game must expose ninja sprint state');
  assert.match(html,/sprinting\?'Run':'Walk'/,'Sprint controls must activate ninja clip');
  console.log('NINJA RUN VERIFIED: forward lean, arms-back silhouette, alternating strides, seamless loop, and active game wiring');
 })().catch(error=>{console.error(error);process.exit(1)});
