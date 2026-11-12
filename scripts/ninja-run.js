@@ -35,13 +35,13 @@ export function ninjaRunPose(t, key) {
   // Both arms trail BEHIND the body for the whole cycle. Keep elbows long and
   // wrists neutral. Large per-frame wrist and twist motions made hands wobble
   // even though the shoulder animation was correct.
-  if (key === 'leftShoulder') return A(.012, 0, .012);
-  if (key === 'rightShoulder') return A(.012, 0, -.012);
-  if (key === 'leftArm') return A(1.38 + .009 * s, .003 * c, .10);
-  if (key === 'rightArm') return A(1.38 - .009 * s, -.003 * c, -.10);
+  if (key === 'leftShoulder') return A(.032, 0, .018);
+  if (key === 'rightShoulder') return A(.032, 0, -.018);
+  if (key === 'leftArm') return A(1.23 + .009 * s, .003 * c, .15);
+  if (key === 'rightArm') return A(1.23 - .009 * s, -.003 * c, -.15);
   if (key === 'leftUpperArmSoft') return A(.010, 0, .003);
   if (key === 'rightUpperArmSoft') return A(.010, 0, -.003);
-  if (key === 'leftForeArm' || key === 'rightForeArm') return A(.012);
+  if (key === 'leftForeArm' || key === 'rightForeArm') return A(.07);
   // Freeze twist helper oscillation at neutral to avoid tearing-looking
   // deformation in the weighted forearm/wrist region.
   if (key === 'leftForeArmTwist' || key === 'rightForeArmTwist') return A();
