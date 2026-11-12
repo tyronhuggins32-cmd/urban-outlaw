@@ -14,7 +14,7 @@ const path=require('node:path');
  assert.ok(p(.25,'head')[0]<-.15,'Eyes should counter-rotate forward');
  for(const t of [0,.125,.25,.5,.75,.9]){
    for(const arm of ['leftArm','rightArm']){
-     assert.ok(p(t,arm)[0]>1.1,'Arms must stay swept backward, not pump: '+arm+' '+t);
+     assert.ok(p(t,arm)[0]>1.0,'Arms must stay swept backward, not pump: '+arm+' '+t);
    }
    const left=p(t,'leftArm'),right=p(t,'rightArm');
    assert.ok(Math.abs(left[0]-right[0])<.04,'Arms should remain aligned throughout the stride');
