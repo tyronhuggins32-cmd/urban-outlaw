@@ -21,6 +21,31 @@ const m=new THREE.AnimationMixer(root),action=m.clipAction(run);action.play();
 const bones={};root.traverse(o=>{if(o.isBone)bones[o.name.toLowerCase().replace(/[^a-z]/g,'')]=o});
 const get=name=>Object.entries(bones).find(([k])=>k.endsWith(name.toLowerCase()))?.[1];
 const position=name=>get(name).getWorldPosition(new THREE.Vector3());
+// Diagnostic sweep: the original arm bones are heavily pre-rotated.
+// Measure ACTUAL wrist height and shoulder-to-wrist trail, not just Euler values.
+root.updateMatrixWorld(true);
+const calibArms=['LeftArm','RightArm'].map(name=>{
+ const joint=get(name);
+ return {name,joint,bind:joint.quaternion.clone(),
+   parentRest:joint.parent.getWorldQuaternion(new THREE.Quaternion())};
+});
+for(const pitch of [-.25,0,.2,.35,.5,.65,.8,1.0,1.2]){
+ m.setTime(0);
+ for(const a of calibArms){
+   const roll=a.name==='LeftArm'?.15:-.15;
+   const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch,0,roll,'XYZ'));
+   a.joint.quaternion.copy(a.parentRest.clone().invert().multiply(q).multiply(a.parentRest).multiply(a.bind).normalize());
+ }
+ root.updateMatrixWorld(true);
+ const samples=['Left','Right'].map(side=>{
+   const shoulder=position(side+'Arm'),elbow=position(side+'ForeArm'),wrist=position(side+'Hand');
+   const upper=elbow.clone().sub(shoulder).normalize(),lower=wrist.clone().sub(elbow).normalize();
+   return {trail:+(shoulder.z-wrist.z).toFixed(3),height:+(wrist.y-shoulder.y).toFixed(3),straight:+upper.dot(lower).toFixed(3)};
+ });
+ console.log('ARM CALIBRATION',pitch,JSON.stringify(samples));
+}
+m.setTime(0);
+root.updateMatrixWorld(true);
 const measurements=[];
 for(const fraction of [0,.125,.25,.375,.5,.625,.75,.875]){
  m.setTime(run.duration*fraction);root.updateMatrixWorld(true);
