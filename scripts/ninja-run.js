@@ -32,13 +32,16 @@ export function ninjaRunPose(t, key) {
   if (key === 'neckFollow') return A(-.08, -.003 * s);
   if (key === 'head') return A(-.63, -.004 * s, .002 * c);
 
-  // Both arms trail BEHIND the body for the whole cycle. Keep elbows long and
+  // Both arms trail BEHIND the body for the whole cycle. The imported arm
+  // bind pose is rotated: pitching by ~.20 rad (NOT 1+ rad) places hands
+  // behind shoulders at nearly the same height. Verified on the real GLB.
+  // Keep elbows long and
   // wrists neutral. Large per-frame wrist and twist motions made hands wobble
   // even though the shoulder animation was correct.
   if (key === 'leftShoulder') return A(.032, 0, .018);
   if (key === 'rightShoulder') return A(.032, 0, -.018);
-  if (key === 'leftArm') return A(1.08 + .009 * s, .003 * c, .15);
-  if (key === 'rightArm') return A(1.08 - .009 * s, -.003 * c, -.15);
+  if (key === 'leftArm') return A(.20 + .008 * s, .003 * c, .15);
+  if (key === 'rightArm') return A(.20 - .008 * s, -.003 * c, -.15);
   if (key === 'leftUpperArmSoft') return A(.010, 0, .003);
   if (key === 'rightUpperArmSoft') return A(.010, 0, -.003);
   if (key === 'leftForeArm' || key === 'rightForeArm') return A(.09);
