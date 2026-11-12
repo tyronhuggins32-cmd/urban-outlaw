@@ -258,6 +258,7 @@
         const canvas = document.getElementById('viewport');
         const reviewMode = new URLSearchParams(location.search).get('review') === '1';
         const headReviewMode = reviewMode && new URLSearchParams(location.search).get('head')==='1';
+        const ninjaRunPreview = reviewMode && new URLSearchParams(location.search).get('run')==='1';
         if(headReviewMode)document.getElementById('game').dataset.headReview='active';
         document.getElementById('game').classList.toggle('review', reviewMode);
         if (reviewMode) document.getElementById('game').dataset.reviewView = 'front';
@@ -417,7 +418,7 @@
           animationActions.Land.setLoop(THREE.LoopOnce,1);
           animationActions.Jump.clampWhenFinished=true;
           animationActions.Land.clampWhenFinished=true;
-          setCharacterAnimation('Idle');
+          setCharacterAnimation(ninjaRunPreview ? 'Run' : 'Idle');
 
           const data=document.getElementById('game').dataset;
           data.character='clean-head-v5';
@@ -596,7 +597,7 @@
           if (animationMixer) setCharacterAnimation('Idle');
         };
 
-        let orbit = 0; // Show the character's face, not their back, on selection.
+        let orbit = ninjaRunPreview ? Math.PI/2 : 0; // Fixed side camera for dedicated run inspection.
         let elevation = reviewMode ? .10 : .22, distance = headReviewMode ? 2.55 : reviewMode ? 7.5 : 9.5;
         const reviewAngles = {front:0, side:Math.PI/2, back:Math.PI, hero:-Math.PI/4};
         for (const button of document.querySelectorAll('[data-review-angle]')) {
@@ -761,7 +762,9 @@
           if (animationMixer) {
             const airborne=height>.001;
             let nextAnimation;
-            if (airborne) {
+            if (ninjaRunPreview) {
+              nextAnimation='Run';
+            } else if (airborne) {
               landingSeconds=0;
               nextAnimation='Jump';
             } else if (wasAirborne) {
