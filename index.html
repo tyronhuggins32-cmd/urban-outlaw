@@ -39,7 +39,8 @@
     .actions { position: absolute; bottom: max(44px, env(safe-area-inset-bottom)); right: max(25px, env(safe-area-inset-right)); display: flex; gap: 14px; align-items: end; pointer-events: auto; }
     .action { touch-action: none; user-select: none; color: #fff; font-weight: 900; font-size: 12px; letter-spacing: .5px; background: #23496b6b; border: 2px solid #ffffffbf; border-radius: 50%; box-shadow: 0 5px 20px #34546a44; backdrop-filter: blur(7px); }
     .action:active, .action.pressed { background: #ffffff88; }
-    #run { width: 68px; height: 68px; }
+    #run { width: 76px; height: 76px; font-size: 11px; line-height: 1.2; background: #153b75cc; border-color: #d1e5ff; }
+    #run[aria-pressed="true"] { background: #5764ec; border-color: #ffffff; box-shadow: 0 0 0 4px #a8b7ff55, 0 0 24px #637affbb; }
     #jump { width: 92px; height: 92px; background: #ffdb72b0; border-color: #fff4cb; color: #263544; }
     #jump:active { background: #ffeb99; }
     #modelReviewPanel { display:none; position:absolute; inset:0; pointer-events:none; z-index:7; }
@@ -122,7 +123,7 @@
       .stick-wrap { width: 120px; height: 120px; }
       #stick { width: 112px; height: 112px; }
       #jump { width: 82px; height: 82px; }
-      #run { width: 60px; height: 60px; }
+      #run { width: 72px; height: 72px; font-size: 10px; }
     }
   </style>
 </head>
@@ -168,16 +169,16 @@
     </section>
     <button type="button" id="openMenu" aria-label="Return to brawler selection menu">MENU</button>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 5.0 · VISIBLE NINJA RUN</div>
+    <div class="ui version"><span class="dot"></span> BUILD 5.1 · TAP-TO-RUN</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
-    <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift: ninja run · DualSense: sticks, Cross, R2</p></div>
+    <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift/R: ninja run · DualSense: sticks, Cross, R2</p></div>
     <div class="ui help">REFERENCE-SCULPTED 3D CHARACTER</div>
     <div class="ui animation-status" id="animationStatus">SCULPTED · IDLE</div>
     <div id="touchControls">
       <div class="stick-wrap" id="stickZone" aria-label="Movement joystick"><div id="stick"><div id="knob"></div></div></div>
       <div class="actions">
-        <button type="button" class="action" id="run" aria-label="Hold to run">RUN</button>
+        <button type="button" class="action" id="run" aria-label="Toggle ninja run" aria-pressed="false">NINJA RUN</button>
         <button type="button" class="action" id="jump" aria-label="Jump">JUMP</button>
       </div>
     </div>
@@ -447,6 +448,7 @@
           data.animationClips=clipNames.join(',');
           data.walkGait='phased-contact-v3';
           data.runStyle='ninja-lean-v2';
+          data.runActivation='toggle-v1';
         } catch (error) {
           console.error('Could not load reference sculpted GLB:', error);
           document.getElementById('game').dataset.character = 'fallback';
@@ -509,7 +511,7 @@
         scene.add(shadow);
 
         const pressed = new Set();
-        const handled = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift']);
+        const handled = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'r']);
         window.addEventListener('keydown', event => {
           const key = event.key.toLowerCase();
           if (handled.has(key) || key==='escape') event.preventDefault();
@@ -518,11 +520,12 @@
             return;
           }
           if (key==='escape') { returnToBrawlerMenu(); return; }
+          if (key === 'r' && !event.repeat) toggleNinjaRun();
           pressed.add(key);
           if (key === ' ') jumpRequested = true;
         });
         window.addEventListener('keyup', event => pressed.delete(event.key.toLowerCase()));
-        window.addEventListener('blur', () => { pressed.clear(); touchRun = false; stickX = stickY = 0; updateKnob(); });
+        window.addEventListener('blur', () => { pressed.clear(); stickX = stickY = 0; updateKnob(); });
 
         let stickX = 0, stickY = 0;
         let stickPointer = null;
@@ -558,16 +561,17 @@
         let jumpRequested = false, touchRun = false, previousPadJump = false;
         document.getElementById('jump').addEventListener('pointerdown', event => { event.preventDefault(); jumpRequested = true; });
         const runButton = document.getElementById('run');
-        runButton.addEventListener('pointerdown', event => {
-          event.preventDefault();
-          touchRun = true;
-          runButton.classList.add('pressed');
-          runButton.setPointerCapture(event.pointerId);
-        });
-        function stopRun() { touchRun = false; runButton.classList.remove('pressed'); }
-        runButton.addEventListener('pointerup', stopRun);
-        runButton.addEventListener('pointercancel', stopRun);
-        runButton.addEventListener('lostpointercapture', stopRun);
+        function setNinjaRun(enabled) {
+          touchRun = !!enabled;
+          runButton.classList.toggle('pressed', touchRun);
+          runButton.setAttribute('aria-pressed', String(touchRun));
+          runButton.textContent = touchRun ? 'RUN ON' : 'NINJA RUN';
+          document.getElementById('game').dataset.ninjaRunEnabled = String(touchRun);
+        }
+        function toggleNinjaRun() { if (menuStarted) setNinjaRun(!touchRun); }
+        runButton.addEventListener('click', event => { event.preventDefault(); toggleNinjaRun(); });
+        function stopRun() { setNinjaRun(false); }
+        setNinjaRun(false);
 
         const gameRoot = document.getElementById('game');
         const touchToggle = document.getElementById('touchToggle');
@@ -587,7 +591,6 @@
         onReturnToMenu=()=>{
           pressed.clear();
           jumpRequested=false;
-          touchRun=false;
           stopRun();
           stickPointer=null; stickX=stickY=0;updateKnob();
           if (animationMixer) setCharacterAnimation('Idle');
