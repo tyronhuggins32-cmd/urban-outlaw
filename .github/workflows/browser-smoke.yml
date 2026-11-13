@@ -50,6 +50,7 @@ on:
       - 'scripts/combat-hair.js'
       - 'scripts/arena-combat.js'
       - 'tests/combat-game.cjs'
+      - 'tests/combat-wardrobe.cjs'
 permissions:
   contents: read
 jobs:
@@ -65,6 +66,7 @@ jobs:
       - run: npx playwright install chromium
       - name: Verify walking gait and ninja-run sprint
         run: |
+          node tests/combat-wardrobe.cjs
           node tests/ninja-run.cjs
           node tests/ninja-run-rig.cjs
           node tests/walk-gait.cjs
