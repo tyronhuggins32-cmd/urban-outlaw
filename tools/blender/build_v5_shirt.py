@@ -56,7 +56,7 @@ def mix(a,b,t):return a+(b-a)*t
 # Navy cloth: knit noise is physically integrated into a texture, while
 # geometry holds actual sewn folds. A crisp fan emblem is printed into the
 # back-center UV island without an extra floating sprite plane.
-def texture(filename,crest=False,base=(19,30,64)):
+def texture(filename,crest=False,base=(16,25,59)):
     dim=1024
     rng=np.random.default_rng(198)
     X,Y=np.meshgrid(np.arange(dim),np.arange(dim))
@@ -170,7 +170,7 @@ def mesh_surface(name,rows,segments,shape,weight,mat):
 # at abdomen and waistband. The rectangular tailoring comes from a modified
 # superellipse circumference; it never uses straight cylinder rings.
 profile=[
-    (.763,.185,.207),(.810,.188,.201),(.865,.182,.179),
+    (.763,.187,.162),(.810,.190,.167),(.865,.185,.161),
     (.930,.180,.153),(.985,.185,.142),(1.070,.192,.150),
     (1.135,.199,.153),(1.177,.202,.148),(1.207,.171,.133),
     (1.242,.115,.108)
@@ -225,11 +225,12 @@ def torso_weights(t,u):
     # The upper shoulder fabric should deform with the shoulder joint,
     # rather than remaining pinned to the chest while the sleeve rotates.
     lateral=math.cos(u*math.tau)
-    shoulder=.45*gauss(z,1.159,.050)*smooth((abs(lateral)-.36)/.54)
+    shoulder=.66*gauss(z,1.159,.056)*smooth((abs(lateral)-.27)/.68)
     if shoulder>.001:
         base={k:v*(1-shoulder) for k,v in base.items()}
-        side='LeftShoulder' if lateral>0 else 'RightShoulder'
-        base[side]=shoulder
+        side='Left' if lateral>0 else 'Right'
+        base[side+'Shoulder']=shoulder*.58
+        base[side+'Arm']=shoulder*.42
     return base
 body=mesh_surface('V5_Shirt_Body',84,112,torso,torso_weights,NAVY)
 
@@ -268,8 +269,8 @@ def sleeve(side):
     axisV=direction.cross(axisU).normalized()
     def sculpt(t,u,offset=0):
         theta=u*math.tau
-        center=upper+direction*(distance*mix(-.09,.57,t))
-        sleeveR=mix(.050,.095,t)*S+offset
+        center=upper+direction*(distance*mix(-.11,.78,t))
+        sleeveR=mix(.057,.092,t)*S+offset
         wrinkle=.004*S*math.sin(theta*7+t*12)*(.4+.6*t)
         center+=axisU*math.cos(theta)*(sleeveR+wrinkle)
         center+=axisV*math.sin(theta)*(.9*sleeveR+wrinkle*.5)
@@ -278,9 +279,9 @@ def sleeve(side):
         # Bind root sleeve rings to chest/shoulder; gradually hand off skin
         # weights toward the upper arm down the sleeve. The cuff remains free
         # to follow the attacking limb without tearing its shoulder seam.
-        armShare=smooth(t/.55)
-        shoulderShare=(1-armShare)*.63
-        chestShare=(1-armShare)*.37
+        armShare=.13+.87*smooth(t/.83)
+        shoulderShare=(1-armShare)*.58
+        chestShare=(1-armShare)*.42
         return {side+'Arm':armShare,side+'Shoulder':shoulderShare,'Spine2':chestShare}
     name='V5_Shirt_'+side+'Sleeve'
     sleeveObj=mesh_surface(name,25,64,sculpt,weights,PLAIN)
