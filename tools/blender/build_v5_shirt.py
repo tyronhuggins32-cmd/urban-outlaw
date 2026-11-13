@@ -87,10 +87,10 @@ def texture(filename,crest=False,base=(14,22,64)):
         # The atlas's v coordinate increases with physical shirt height.
         xc,yc=int(dim*.25),int(dim*.65)
         dx=X-xc;dy=Y-yc
-        rx,ry=84,166
+        rx,ry=100,157
         circle=(dx/rx)**2+(dy/ry)**2<=1
         red=circle&(dy>=0)&(dy<=ry)
-        bowl=(dx/(rx*.89))**2+(dy/143)**2<=1
+        bowl=(dx/(rx*.91))**2+(dy/151)**2<=1
         white=bowl&(dy<0)&(dy>=-102)
         outline=(np.abs(dx)<rx)&(np.abs(dy)<=4)
         handle=(np.abs(dx)<8)&(dy>=-186)&(dy<=-91)
@@ -170,7 +170,7 @@ def mesh_surface(name,rows,segments,shape,weight,mat,thickness=None):
 # at abdomen and waistband. The rectangular tailoring comes from a modified
 # superellipse circumference; it never uses straight cylinder rings.
 profile=[
-    (.718,.171,.155),(.763,.175,.154),(.810,.177,.158),(.865,.181,.160),
+    (.763,.183,.159),(.810,.184,.161),(.865,.186,.163),
     (.930,.180,.153),(.985,.185,.142),(1.070,.192,.150),
     (1.135,.199,.153),(1.177,.181,.142),(1.207,.153,.126),
     (1.242,.115,.108)
@@ -180,10 +180,10 @@ def width(z):
         lo,hi=profile[k-1],profile[k]
         if z<=hi[0]:
             w=smooth((z-lo[0])/(hi[0]-lo[0]))
-            return mix(lo[1],hi[1],w)*.955,mix(lo[2],hi[2],w)
-    return profile[-1][1]*.955,profile[-1][2]
+            return mix(lo[1],hi[1],w)*1.008,mix(lo[2],hi[2],w)
+    return profile[-1][1]*1.008,profile[-1][2]
 def torso(t,u):
-    z=mix(.718,1.242,t);theta=u*math.tau
+    z=mix(.763,1.242,t);theta=u*math.tau
     X,Y=math.cos(theta),math.sin(theta)
     halfw,halfd=width(z)
     chest=smooth((z-1.04)/.135)
@@ -212,9 +212,9 @@ def torso(t,u):
     y=(halfd+folds*.4+diagonal)*math.copysign(abs(Y)**(1-squareness),Y)
     return pos(x,y,z+.003*bottom*math.sin(theta*6))
 def torso_weights(t,u):
-    z=mix(.718,1.242,t)
+    z=mix(.763,1.242,t)
     if z<.92:
-        f=smooth((z-.718)/.202)
+        f=smooth((z-.763)/.157)
         base={'Hips':1-f*.6,'Spine':f*.6}
     elif z<1.08:
         f=smooth((z-.92)/.16)
@@ -242,8 +242,8 @@ def collar_shape(t,u):
     center_front=gauss(X,0,.47) if front>0 else 0
     z1=1.312-.033*front-.020*front*center_front
     z=mix(z0,z1,t)
-    rX=mix(.113,.126,t)+.002*math.sin(theta*4+t*math.pi)
-    rY=mix(.101,.113,t)
+    rX=mix(.137,.153,t)+.002*math.sin(theta*4+t*math.pi)
+    rY=mix(.112,.124,t)
     fold=.010*gauss(t,.32,.12)*math.cos(theta*2)+.005*gauss(t,.82,.14)*math.sin(theta*3)
     rolled=.008*gauss(t,.93,.10)+.007*gauss(t,.18,.09)
     softR=1+.055*math.cos(theta*5+.6)*gauss(t,.42,.22)
@@ -274,7 +274,7 @@ def sleeve(side):
     def sculpt(t,u,offset=0):
         theta=u*math.tau
         center=upper+direction*(distance*mix(-.11,.78,t))
-        sleeveR=mix(.057,.092,t)*S+offset
+        sleeveR=mix(.075,.082,t)*S+offset
         wrinkle=.004*S*math.sin(theta*7+t*12)*(.4+.6*t)
         center+=axisU*math.cos(theta)*(sleeveR+wrinkle)
         center+=axisV*math.sin(theta)*(.9*sleeveR+wrinkle*.5)
@@ -314,9 +314,9 @@ assert all(any(m.type=='ARMATURE' and m.object==arm for m in o.modifiers) for o 
 # broad and short, which made any shirt look like a square poncho. A common
 # rig-level scale, rather than per-garment deformation, preserves all fitted
 # clothing and animation relationships. This is a candidate, not a live edit.
-arm.scale.x*=.80
-arm.scale.y*=.94
-arm.scale.z*=1.20
+arm.scale.x*=.88
+arm.scale.y*=.96
+arm.scale.z*=1.11
 bpy.context.view_layer.update()
 print('V5_PROPORTION_CORRECTION',tuple(round(x,3) for x in arm.scale),flush=True)
 
@@ -365,7 +365,7 @@ area('soft fill',pos(2,-2,.7),90,3)
 camData=bpy.data.cameras.new('Orthographic garment QA only')
 cam=bpy.data.objects.new('QA shirt camera',camData)
 scene.collection.objects.link(cam);scene.camera=cam
-camData.type='ORTHO';camData.ortho_scale=1.70*S
+camData.type='ORTHO';camData.ortho_scale=1.53*S
 target=arm.matrix_world @ Vector(pos(0,0,1.12))
 for name,ang in [('front',0),('right_side',90),('back',180),('three_quarter',38)]:
     angle=math.radians(ang)
