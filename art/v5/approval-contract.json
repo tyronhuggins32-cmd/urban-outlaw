@@ -58,7 +58,8 @@
         "fan back crest is centered, proportional, full and unobscured",
         "skin-wrap, waist and seam overlaps absent in all combat poses",
         "no disconnected mesh or floating surfaces on model",
-        "hand and leg mesh separation preserved"
+        "hand and leg mesh separation preserved",
+        "No pointed sleeve-root spikes, detached shoulder fabric, or hand collision with shirt in guard and jab renders"
       ],
       "merge_gate": "Only sign if all checks pass; automated rig tests are necessary but insufficient",
       "explicit_approval": false
