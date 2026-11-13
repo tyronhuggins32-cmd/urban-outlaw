@@ -145,13 +145,13 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
         side=abs(shoulder_x)
         if z<1.045 or z>1.235 or side<.09 or side>.31:
             continue
-        weight=(math.exp(-.5*((z-1.133)/.068)**2)*
-                smoothstep((side-.085)/.077)*
-                (1-smoothstep((side-.238)/.07)))
+        weight=(math.exp(-.5*((z-1.123)/.053)**2)*
+                smoothstep((side-.115)/.072)*
+                (1-smoothstep((side-.255)/.060)))
         if weight>.015:
             sign=1 if shoulder_x>0 else -1
-            vertex.co.x+=sign*.0185*scale*weight
-            vertex.co.z+=.0030*scale*weight
+            vertex.co.x+=sign*.016*scale*weight
+            vertex.co.z+=.002*scale*weight
             protected+=1
     joined.data.update()
     print("V5_GARMENT_FOLDS_SCULPTED",displaced,
