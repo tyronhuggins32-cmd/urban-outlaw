@@ -25,22 +25,45 @@ export function installTailoredCloth(THREE,root) {
     leftArm:find('LeftArm'),rightArm:find('RightArm'),
     leftElbow:find('LeftForeArm'),rightElbow:find('RightForeArm')};
   if(Object.values(joints).some(j=>j<0))throw Error('V5 garment bone mapping incomplete');
-  const navy=new THREE.MeshStandardMaterial({color:0x263963,roughness:.94,metalness:0,side:THREE.DoubleSide,vertexColors:true});
-  const gray=new THREE.MeshStandardMaterial({color:0xcac7ca,roughness:.98,metalness:0,side:THREE.DoubleSide,vertexColors:true});
+  const navy=new THREE.MeshStandardMaterial({color:0x283762,roughness:.94,metalness:0,side:THREE.DoubleSide,vertexColors:true});
+  const gray=new THREE.MeshStandardMaterial({color:0xb8b5be,roughness:.98,metalness:0,side:THREE.DoubleSide,vertexColors:true});
+  // Locally generated cotton weave, safe for tests without a browser DOM.
+  function fabricWeave(){
+    if(typeof document==='undefined')return null;
+    const canvas=document.createElement('canvas');canvas.width=canvas.height=256;
+    const ctx=canvas.getContext('2d'),image=ctx.createImageData(256,256);
+    let seed=913726;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+    for(let y=0;y<256;y++)for(let x=0;x<256;x++){
+      const cell=(y*256+x)*4;
+      const weave=(x%5===0?-4:0)+(y%5===0?-4:0);
+      const grain=Math.sin(x*.115+y*.056)*3+Math.cos(y*.18-x*.043)*3;
+      const v=Math.max(207,Math.min(255,236+weave+grain+(random()-.5)*12));
+      image.data[cell]=v;image.data[cell+1]=v;image.data[cell+2]=v;image.data[cell+3]=255;
+    }
+    ctx.putImageData(image,0,0);
+    const texture=new THREE.CanvasTexture(canvas);
+    texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
+    texture.repeat.set(2.4,2.8);
+    texture.colorSpace=THREE.SRGBColorSpace;
+    texture.anisotropy=4;return texture;
+  }
+  const cotton=fabricWeave();
+  if(cotton){navy.map=cotton;gray.map=cotton;}
   const stitch=new THREE.MeshStandardMaterial({color:0xa6a3af,roughness:.99,side:THREE.DoubleSide});
   const materialBand=new THREE.MeshStandardMaterial({color:0x283d6d,roughness:.90,side:THREE.DoubleSide});
   const out=[];
   // Lofted quad rows preserve topology and smooth normals. Weights are exact
   // source-skeleton bone indices, always normalized, never hardcoded numbers.
   function surface(name,rows,radial,point,weight,material,open=true) {
-    const pos=[],colors=[],ids=[],ws=[],idx=[];
+    const pos=[],uvs=[],colors=[],ids=[],ws=[],idx=[];
     for(let i=0;i<=rows;i++){
       const t=i/rows;
       for(let j=0;j<radial;j++){
         const a=j/radial*Math.PI*2;
         const [x,y,z]=point(t,a);
         pos.push(x,y,z);
-        const c=1+.024*Math.sin(a*7+y*21)*Math.sin(t*Math.PI*3)+.017*Math.cos(a*12-y*16);
+        uvs.push(j/radial,t);
+        const c=1+.05*Math.sin(a*7+y*21)*Math.sin(t*Math.PI*3)+.018*Math.cos(a*12-y*16);
         colors.push(Math.min(1.1,c),Math.min(1.1,c),Math.min(1.1,c));
         const pairs=weight(t,a).filter(([_,w])=>w>0).sort((a,b)=>b[1]-a[1]).slice(0,4);
         const total=pairs.reduce((n,x)=>n+x[1],0);
@@ -57,6 +80,7 @@ export function installTailoredCloth(THREE,root) {
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
     g.setAttribute('normal',new THREE.Float32BufferAttribute(new Float32Array(pos.length),3));
+    g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
     g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
     g.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(ids,4));
     g.setAttribute('skinWeight',new THREE.Float32BufferAttribute(ws,4));
@@ -74,10 +98,10 @@ export function installTailoredCloth(THREE,root) {
     const y=.785+.46*t;
     const collarSlope=Math.max(0,Math.min(1,(y-1.15)/.095));
     const shoulder=1-.32*Math.abs(2*t-1);
-    const rx=.207+.044*Math.sin(t*Math.PI)-.119*collarSlope;
-    const rz=.155+.016*Math.sin(t*Math.PI)-.061*collarSlope;
-    const wrinkle=.009*Math.sin(a*9+t*12)*(.28+.72*(1-t));
-    const flare=.021*Math.pow(1-t,1.3);
+    const rx=.188+.077*Math.sin(t*Math.PI)-.097*collarSlope;
+    const rz=.145+.019*Math.sin(t*Math.PI)-.049*collarSlope;
+    const wrinkle=.013*Math.sin(a*9+t*12)*(.28+.72*(1-t));
+    const flare=.014*Math.pow(1-t,1.3);
     return [(rx+flare+wrinkle)*Math.cos(a),
       y+.006*Math.sin(a*5+t*9)*(1-t),
       (rz+flare*.46+wrinkle*.43)*Math.sin(a)-.009*(1-t)];
@@ -126,8 +150,8 @@ export function installTailoredCloth(THREE,root) {
   },()=>[[joints.hips,1]],navy);
   const hip=surface('V5ShortsHipPanel',16,56,(t,a)=>{
     const y=.815-.185*t;
-    const rx=.192+.032*t,
-          rz=.155+.026*t;
+    const rx=.185+.023*t,
+          rz=.152+.019*t;
     const fold=.006*Math.sin(a*7+8*t)*Math.sin(Math.PI*t);
     return [(rx+fold)*Math.cos(a),y,(rz+fold*.45)*Math.sin(a)];
   },t=>[[joints.hips,.92-.56*t],[joints.leftThigh,.04+.28*t],[joints.rightThigh,.04+.28*t]],gray);
@@ -137,8 +161,8 @@ export function installTailoredCloth(THREE,root) {
     const centerX=side*.112;
     const leg=surface((left?'Left':'Right')+'V5BaggyShortLeg',22,44,(t,a)=>{
       const y=.702-.250*t;
-      const width=.138+.026*t-.006*Math.sin(Math.PI*t);
-      const drape=.005*Math.cos(9*a+20*t)*(.3+.7*t)+.003*Math.sin(21*a+8*t);
+      const width=.135+.017*t-.004*Math.sin(Math.PI*t);
+      const drape=.0035*Math.cos(9*a+20*t)*(.3+.7*t)+.002*Math.sin(21*a+8*t);
       const radius=width+drape;
       return [centerX+radius*Math.cos(a)+side*.006*t,
         y+.004*Math.sin(a*7+side*2)*t,
@@ -147,7 +171,7 @@ export function installTailoredCloth(THREE,root) {
     legPieces.push(leg);
     // Thin, flat woven stitch at bottom. No thick tire-shaped cylinders.
     surface((left?'Left':'Right')+'V5HemSeam',2,44,(t,a)=>{
-      const radius=.162+.002*Math.cos(8*a+side);
+      const radius=.153+.002*Math.cos(8*a+side);
       return [centerX+radius*Math.cos(a)+side*.006,.464+.010*t,
         radius*.89*Math.sin(a)+.015];
     },()=>[[thigh,1]],gray);
@@ -168,7 +192,7 @@ export function installTailoredCloth(THREE,root) {
   }
   for(const o of out) if(!o.isSkinnedMesh || o.skeleton!==skeleton)
     throw Error('A V5 cloth panel is not skinned to the character');
-  return {style:'v5-sleeved-tailoring-v4',
+  return {style:'v5-textured-tailoring-v5',
     shirtTriangles:shirt.geometry.index.count/3,
     sleeveTriangles:sleevePieces.reduce((n,o)=>n+o.geometry.index.count/3,0),
     hipTriangles:hip.geometry.index.count/3,
