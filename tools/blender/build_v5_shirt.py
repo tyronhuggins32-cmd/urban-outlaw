@@ -35,7 +35,6 @@ def tail(name):
 # world coordinates. For this rig Z is the vertical axis after GLB import.
 cx=head('Spine2').x
 cy=head('Spine2').y
-origZ=max(v.z for v in source.bound_box)
 print('V5_SHIRT_ARM_COORDS',[(k,tuple(round(v,3) for v in head(k))) for k in N],flush=True)
 # Reference originally specifies garment z=.79..1.35 on a 1.65m character.
 # Relative scale and vertical offset follow the imported character when needed.
