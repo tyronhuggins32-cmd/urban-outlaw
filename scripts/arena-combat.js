@@ -302,10 +302,11 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     // A queued next strike starts as the current strike recovers, preserving a
     // full jab/cross/kick string with no forced idle pose between inputs.
     if(state.attackTime>0){
-      if(state.attackTime<.23 && !['Dodge','Slip'].includes(type)){
+      if(!['Dodge','Slip'].includes(type)){
+        // Store exactly one follow-up through anticipation, contact and recovery.
         state.buffered=type;return true;
       }
-      if(['Dodge','Slip'].includes(type)&&state.attackTime<.12){
+      if(['Dodge','Slip'].includes(type)&&state.attackTime<.16){
         state.attackTime=0;state.attackType=null;state.cooldown=0;
       }else return false;
     }
