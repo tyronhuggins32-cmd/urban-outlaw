@@ -7,6 +7,7 @@ const {GLTFLoader}=await import(require.resolve('three/examples/jsm/loaders/GLTF
 const {pathToFileURL}=require('node:url');
 const {fitCombatWardrobe}=await import(pathToFileURL(path.resolve('scripts/combat-wardrobe.js')));
 const {tailorNinjaClothes}=await import(pathToFileURL(path.resolve('scripts/combat-outfit-v2.js')));
+const {installTailoredCloth}=await import(pathToFileURL(path.resolve('scripts/v5-cloth-mesh.js')));
 const raw=fs.readFileSync('assets/reference-rig-fluid.glb'),n=raw.readUInt32LE(12);
 const gltf=JSON.parse(raw.subarray(20,20+n));
 for(const mesh of gltf.meshes)for(const primitive of mesh.primitives)delete primitive.material;
@@ -15,6 +16,20 @@ gltf.buffers[0].uri='data:application/octet-stream;base64,'+raw.subarray(28+n).t
 const root=(await new GLTFLoader().parseAsync(JSON.stringify(gltf),'')).scene;
 const details=fitCombatWardrobe(THREE,root);
 const tailored=tailorNinjaClothes(THREE,root);
+const seamless=installTailoredCloth(THREE,root);
+assert.ok(seamless.skinWeightedMeshes>=5,'Expected seamless skinned body and short legs');
+assert.ok(seamless.shortsTriangles>3000,'Shorts have insufficient continuous topology');
+assert.ok(root.getObjectByName('ContinuousV5NavyTunic')?.isSkinnedMesh,'Tunic must deform with spine');
+assert.ok(root.getObjectByName('V5ShortsHipPanel')?.isSkinnedMesh,'Hip cloth must deform with pelvis');
+for(const obj of ['LeftV5BaggyShortLeg','RightV5BaggyShortLeg']){
+ const leg=root.getObjectByName(obj);
+ assert.ok(leg?.isSkinnedMesh, 'Missing skinned pant leg '+obj);
+ const skin=leg.geometry.getAttribute('skinWeight');
+ for(let i=0;i<skin.count;i+=9){
+   const total=skin.getX(i)+skin.getY(i)+skin.getZ(i)+skin.getW(i);
+   assert.ok(Math.abs(total-1)<.002,'Short leg skin weights must normalize');
+ }
+}
 const shorts=root.getObjectByName('LooseGrayNinjaShorts_Skinned44');
 assert.ok(shorts?.isSkinnedMesh,'Baggy shorts must be truly skinned');
 assert.ok(tailored.shortsTriangles>300,'Baggy shorts have insufficient detailed surface');
