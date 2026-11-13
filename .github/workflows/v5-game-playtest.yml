@@ -1,0 +1,68 @@
+name: V5 Character in Game (Isolated Playtest)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - gameplay/v5-character-preview
+    paths:
+      - 'index.html'
+      - 'scripts/v5-character-game.js'
+      - 'scripts/import-sculpted-v5-outfit.js'
+      - 'scripts/reference-outfit-v8.js'
+      - 'tools/blender/build_v5_shirt.py'
+      - 'tools/blender/sew_v5_shirt.py'
+      - 'tests/v5-game-preview.cjs'
+      - 'tests/v5-shirt-live-rig.cjs'
+      - '.github/workflows/v5-game-playtest.yml'
+permissions:
+  contents: read
+concurrency:
+  group: v5-game-playtest-\${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  sandbox:
+    name: Verify real in-game V5 character and combat
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install offline DCC modeling tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq blender python3-numpy python3-pil
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install gameplay runtime and Chromium
+        run: |
+          npm install --no-save playwright@1.56.0 three@0.166.1
+          npx playwright install chromium
+      - name: Generate unreleased Blender shirt against original ninja rig
+        run: |
+          mkdir -p art/v5/generated assets/candidates
+          PYTHONPATH=/usr/lib/python3/dist-packages blender -b -t 2 --python tools/blender/build_v5_shirt.py
+          cp art/v5/generated/v5-shirt-candidate.glb assets/candidates/v5-shirt-candidate.glb
+          test -s assets/candidates/v5-shirt-candidate.glb
+      - name: Check source GLB skeleton and cloth UVs
+        run: |
+          python3 tests/v5-shirt-source-qa.py
+          node tests/v5-shirt-live-rig.cjs
+      - name: Serve actual browser game in isolated sandbox
+        run: |
+          python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/urban-v5-browser.log 2>&1 &
+          sleep 2
+          curl -fsSI http://127.0.0.1:8000/index.html
+      - name: Inspect V5 sculpt in playable 3D game, combat and eight animation poses
+        run: node tests/v5-game-preview.cjs
+      - name: Save V5 prototype artifacts and real gameplay screenshots (NOT APPROVED)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: urban-v5-game-sandbox-NOT-APPROVED
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            v5-game-*.png
+            art/v5/generated/shirt_*.png
+            art/v5/generated/shirt-stats.json
+            assets/candidates/v5-shirt-candidate.glb
