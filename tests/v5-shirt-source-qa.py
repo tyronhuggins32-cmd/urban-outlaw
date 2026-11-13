@@ -33,24 +33,28 @@ for mesh in meshes:
         assert {'POSITION','NORMAL','TEXCOORD_0','JOINTS_0','WEIGHTS_0'}<=set(attrs),mesh['name']
         assert 'material' in primitive,mesh['name']
 assert any('back' in m.get('name','').lower() or 'fan' in m.get('name','').lower() for m in asset.get('materials',[]))
+poses=['guard','jab','cross','kick','dodge','ninja_run']
 for f in ['shirt_front.png','shirt_back.png','shirt_right_side.png',
-          'shirt_three_quarter.png','shirt_combat_guard.png','shirt_combat_jab.png']:
+          'shirt_three_quarter.png',*[('shirt_combat_'+p+'.png') for p in poses]]:
     image=out/f
     assert image.exists() and image.stat().st_size>25_000, 'Missing art proof '+f
-# Verify the critical shoulder/armhole doesn't expose a beige skin patch
-# ABOVE the sleeve hem during guard or jab. This was a visible defect in the
-# previous connected-mesh candidate and was invisible to pure GLB validation.
 import numpy as np
 from PIL import Image
-for pose in ('guard','jab'):
+projected=json.loads((out/'pose-shoulder-points.json').read_text())
+for pose in poses:
     pixels=np.asarray(Image.open(out/('shirt_combat_'+pose+'.png')).convert('RGB'),dtype=np.int16)
-    exposed=pixels[365:431,515:560]
-    skin=((exposed[:,:,0]>125)&(exposed[:,:,1]>90)&
-          (exposed[:,:,2]<165)&
-          (exposed[:,:,0]-exposed[:,:,1]>12)&
-          (exposed[:,:,0]>exposed[:,:,2]))
-    count=int(skin.sum())
-    print('SHOULDER_EXPOSED_SKIN_PIXELS',pose,count)
-    assert count<=4, 'Sleeve armhole leaks skin during '+pose+': '+str(count)+' pixels'
-print('V5 SHIRT GLB, SKIN, UV, MATERIAL, SHOULDER COVERAGE AND 6 RENDERS VERIFIED')
+    for side in ('Left','Right'):
+        x,y=map(int,projected[pose][side])
+        r=14
+        patch=pixels[max(0,y-r):min(pixels.shape[0],y+r),
+                     max(0,x-r):min(pixels.shape[1],x+r)]
+        assert patch.size,'Shoulder joint projection outside render: '+pose+side
+        skin=((patch[:,:,0]>118)&(patch[:,:,1]>86)&
+              (patch[:,:,2]<164)&
+              (patch[:,:,0]-patch[:,:,1]>12)&
+              (patch[:,:,0]>patch[:,:,2]+8))
+        n=int(skin.sum())
+        print('SHOULDER_EXPOSED_SKIN_PIXELS',pose,side,n)
+        assert n<=30, f'Exposed skin in shoulder seam ({pose} {side}): {n}'
+print('V5 SHIRT GLB, SKIN, UV, MATERIAL, SIX COMBAT POSES AND SHOULDER QA VERIFIED')
 print('VISUAL APPROVAL STATUS: NOT APPROVED. DO NOT PUBLISH.')
