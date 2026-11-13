@@ -6,7 +6,18 @@ const { chromium } = require('playwright');
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text());else if(msg.type()==='warning')warnings.push(msg.text())});
   await page.goto('http://127.0.0.1:8000/',{waitUntil:'domcontentloaded',timeout:30000});
-  await page.waitForFunction(()=>document.querySelector('#loading')?.classList.contains('hidden'),null,{timeout:75000});
+  try {
+    await page.waitForFunction(()=>document.querySelector('#loading')?.classList.contains('hidden'),null,{timeout:45000});
+  } catch (e) {
+    const diagnostic=await page.evaluate(()=>({
+      loading:document.getElementById('loading')?.innerText,
+      menu:document.getElementById('menuStatus')?.innerText,
+      character:document.getElementById('game')?.dataset.character,
+      screen:document.getElementById('game')?.dataset.screen
+    }));
+    console.log('BOOT FAILURE DIAGNOSTIC',JSON.stringify({diagnostic,errors,warnings}));
+    throw e;
+  }
   await page.waitForTimeout(700);
   const initialMenu=await page.evaluate(()=>({
     title:document.getElementById('brawlerTitle')?.textContent.replace(/\s+/g,' ').trim(),
