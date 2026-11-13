@@ -2,8 +2,8 @@
   "schema_version": "2.0",
   "candidate": {
     "name": "v5-shirt-candidate.glb",
-    "sha256": "4ade46c7f565d0a73b7f18174e48171826bbeb989a639446c92a997807bba97b",
-    "source_run": 43433336069
+    "sha256": "9951174f9cdffd305a3b062279d78497197f0b75f251e0a5fe0ebd061fc0729a",
+    "source_run": 43446454968
   },
   "reference_sha256": {
     "front": "c67b969ccb0ff5fd8f5c0f58d5babaf2ec3863abff3e59049687d1c25b4a0c38",
@@ -99,7 +99,7 @@
     },
     "D01": {
       "status": "FAIL",
-      "finding": "Localized color check reported no exposed skin, but rendered armhole silhouette still looks pinched and spike-like.",
+      "finding": "FAIL: Automated shoulder crop reports 0 exposed-skin pixels for six poses, but rendered shoulder silhouette still has sharp angular sleeve roots; photo reference smoothness not met.",
       "required_change": "Inspect whole upper shoulder rather than one small pixel box; repair sleeve silhouette.",
       "evidence": "shirt_combat_guard.png, shirt_combat_jab.png"
     },
@@ -111,13 +111,13 @@
     },
     "D03": {
       "status": "PASS",
-      "finding": "Latest GLB exports original 44-joint skin, continuous torso-and-sleeves mesh, UVs and normals; structural test passed.",
+      "finding": "PASS: Current complete GLB includes original body + 44-bone skeleton, sewn shirt, UV/normal/skinning and matches Three.js full-rig replacement importer; run 43446454968 passed.",
       "required_change": "Retest whenever model source changes.",
       "evidence": "shirt_combat_guard.png, shirt_combat_jab.png"
     },
     "D04": {
       "status": "UNVERIFIED",
-      "finding": "No full run, kick, cross, and dodge garment proof images are present.",
+      "finding": "UNVERIFIED: Six action renders now exist (guard/jab/cross/kick/dodge/ninja-run), but visual movement is not yet acceptable or exhaustively proven for all active in-game motion states.",
       "required_change": "Produce those four pose render sequences and inspect clipping.",
       "evidence": "shirt_combat_guard.png, shirt_combat_jab.png"
     },
@@ -135,5 +135,5 @@
     }
   },
   "human_release_signoff": null,
-  "review_notes": "Rechecked the newest available exported Blender candidate and its front/back proof renders; remaining silhouette and crest defects persist. Source images unchanged."
+  "review_notes": "Current full-character rigged candidate passes Blender woven-cloth structural test, six action pose exports, and real Three.js 44-bone import compatibility. Front/back render still does not visually match final close-ups: broad stiff collar, shoulders and sleeves too geometric, flat waist with weak gathers, wrong short/gear appearance, fan placement and relief remain approximate. Guard screenshot also shows a posed hand in front of the crotch, not believable combat guard; movement screenshots alone do not prove animation polish. Remains rejected; never merged into main."
 }
