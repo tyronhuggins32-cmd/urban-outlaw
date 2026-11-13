@@ -56,7 +56,7 @@ def mix(a,b,t):return a+(b-a)*t
 # Navy cloth: knit noise is physically integrated into a texture, while
 # geometry holds actual sewn folds. A crisp fan emblem is printed into the
 # back-center UV island without an extra floating sprite plane.
-def texture(filename,crest=False,base=(35,49,94)):
+def texture(filename,crest=False,base=(24,37,76)):
     dim=1024
     rng=np.random.default_rng(198)
     X,Y=np.meshgrid(np.arange(dim),np.arange(dim))
@@ -69,13 +69,13 @@ def texture(filename,crest=False,base=(35,49,94)):
     if crest:
         # u=.25 corresponds to the back-facing +Y quadrant in this pattern.
         # The atlas's v coordinate increases with physical shirt height.
-        xc,yc=int(dim*.25),int(dim*.64)
-        dx=X-xc;dy=Y-yc;r=73
+        xc,yc=int(dim*.25),int(dim*.62)
+        dx=X-xc;dy=Y-yc;r=100
         circle=dx*dx+dy*dy<=r*r
         red=circle&(dy>=0)&(dy<=r)
-        white=circle&(dy<0)&(dy>=-43)&(np.abs(dx)<r*np.sqrt(np.clip(1-(dy/(r*.80))**2,0,1)))
+        white=circle&(dy<0)&(dy>=-69)&(np.abs(dx)<r*np.sqrt(np.clip(1-(dy/(r*.85))**2,0,1)))
         outline=(circle)&(np.abs(dy)<=3)
-        handle=(np.abs(dx)<9)&(dy>=-85)&(dy<=-40)
+        handle=(np.abs(dx)<11)&(dy>=-123)&(dy<=-60)
         rgb[red,:3]=[.68,.28,.34]
         rgb[white,:3]=[.94,.92,.90]
         rgb[outline,:3]=[.15,.19,.31]
@@ -149,9 +149,9 @@ def mesh_surface(name,rows,segments,shape,weight,mat):
 # at abdomen and waistband. The rectangular tailoring comes from a modified
 # superellipse circumference; it never uses straight cylinder rings.
 profile=[
-    (.790,.196,.153),(.835,.199,.155),(.905,.193,.146),
-    (.985,.189,.142),(1.070,.193,.151),(1.135,.211,.156),
-    (1.177,.225,.151),(1.207,.194,.141),(1.242,.115,.108)
+    (.765,.204,.208),(.825,.205,.205),(.905,.194,.155),
+    (.985,.185,.140),(1.070,.193,.150),(1.135,.200,.153),
+    (1.177,.202,.148),(1.207,.171,.133),(1.242,.115,.108)
 ]
 def width(z):
     for k in range(1,len(profile)):
@@ -161,37 +161,37 @@ def width(z):
             return mix(lo[1],hi[1],w),mix(lo[2],hi[2],w)
     return profile[-1][1:]
 def torso(t,u):
-    z=mix(.790,1.242,t);theta=u*math.tau
+    z=mix(.765,1.242,t);theta=u*math.tau
     X,Y=math.cos(theta),math.sin(theta)
     halfw,halfd=width(z)
     chest=smooth((z-1.04)/.135)
-    bottom=1-smooth((z-.850)/.20)
+    bottom=1-smooth((z-.900)/.21)
     # Looser but non-bulbous shirt with side drape.
     folds=(
-       .006*bottom*math.sin(9*theta+z*20)+
-       .0035*math.sin(6*theta-17*z)*gauss(z,.95,.11)
+       .012*bottom*math.sin(9*theta+z*20)+
+       .005*math.sin(6*theta-17*z)*gauss(z,.95,.11)
     )
     # Three distinct slanted folds above the gathered waistband, the most
     # prominent feature in the user's close-up.
     localX=(halfw+folds)*X
     front=Y<0
     diagonal=(
-      .010*gauss(z,.845+.12*localX,.021)*gauss(localX,-.055,.14)+
-      .007*gauss(z,.886-.29*localX,.015)*gauss(localX,.080,.13)+
-      .004*gauss(z,.943+.11*localX,.012)
+      .019*gauss(z,.835+.18*localX,.023)*gauss(localX,-.055,.14)+
+      .012*gauss(z,.888-.26*localX,.018)*gauss(localX,.080,.13)+
+      .009*gauss(z,.944+.14*localX,.017)
     ) if front else (
       .008*gauss(z,.831-.20*localX,.021)+
       .005*gauss(z,.892+.20*localX,.022)
     )
     d=(halfd+folds*.45+diagonal)*Y
-    squareness=.15
+    squareness=.06
     x=(halfw+folds)*math.copysign(abs(X)**(1-squareness),X)
     y=(halfd+folds*.4+diagonal)*math.copysign(abs(Y)**(1-squareness),Y)
     return pos(x,y,z+.003*bottom*math.sin(theta*6))
 def torso_weights(t,u):
-    z=mix(.79,1.242,t)
+    z=mix(.765,1.242,t)
     if z<.92:
-        f=smooth((z-.79)/.13)
+        f=smooth((z-.765)/.155)
         return {'Hips':1-f*.6,'Spine':f*.6}
     if z<1.08:
         f=smooth((z-.92)/.16)
@@ -204,20 +204,20 @@ body=mesh_surface('V5_Shirt_Body',84,112,torso,torso_weights,NAVY)
 def collar_shape(t,u):
     theta=u*math.tau;X,Y=math.cos(theta),math.sin(theta)
     front=max(0,-Y)
-    z0=1.228
-    z1=1.340-.045*front
+    z0=1.208
+    z1=1.314-.040*front
     z=mix(z0,z1,t)
-    rX=mix(.115,.139,t)+.003*math.sin(theta*4+t*math.pi)
-    rY=mix(.103,.117,t)
-    fold=.008*gauss(t,.72,.14)*math.cos(theta*2)
+    rX=mix(.113,.126,t)+.002*math.sin(theta*4+t*math.pi)
+    rY=mix(.101,.113,t)
+    fold=.006*gauss(t,.72,.14)*math.cos(theta*2)
     return pos((rX+fold)*X,(rY+fold)*Y,z)
 collar=mesh_surface('V5_Shirt_Collar',27,88,collar_shape,lambda t,u:{'Spine2':1},PLAIN)
 
 # Shirt bottom doubled edge and inset stitch ridge, both deform with hips.
 def hem_shape(t,u):
-    x,y,z=torso(.007+t*.030,u)
+    x,y,z=torso(.010+t*.022,u)
     a=u*math.tau
-    return (x+S*.003*math.cos(a),y+S*.003*math.sin(a),z-S*.005*(1-t))
+    return (x+S*.004*math.cos(a),y+S*.004*math.sin(a),z-S*.004*(1-t))
 hem=mesh_surface('V5_Shirt_Hem',5,112,hem_shape,lambda t,u:{'Hips':.85,'Spine':.15},PLAIN)
 
 # The sleeve axis uses original arm endpoints, not guessed world coordinates.
@@ -235,8 +235,8 @@ def sleeve(side):
     def sculpt(t,u,offset=0):
         theta=u*math.tau
         center=upper+direction*(distance*mix(.04,.53,t))
-        sleeveR=mix(.101,.083,t)*S+offset
-        wrinkle=.003*S*math.sin(theta*7+t*12)*(.4+.6*t)
+        sleeveR=mix(.089,.087,t)*S+offset
+        wrinkle=.004*S*math.sin(theta*7+t*12)*(.4+.6*t)
         center+=axisU*math.cos(theta)*(sleeveR+wrinkle)
         center+=axisV*math.sin(theta)*(.9*sleeveR+wrinkle*.5)
         return tuple(center)
@@ -277,7 +277,7 @@ for obj in bpy.data.objects:
 source.hide_render=False
 scene=bpy.context.scene
 scene.render.engine='CYCLES'
-scene.cycles.samples=12
+scene.cycles.samples=24
 scene.cycles.use_denoising=False
 bpy.context.view_layer.cycles.use_denoising=False
 scene.render.resolution_x=750
