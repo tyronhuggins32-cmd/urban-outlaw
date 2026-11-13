@@ -125,12 +125,12 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
         valley2=bump(z,.913-.20*u,.022)
         ridge3=bump(z,.959+.12*u,.024)
         valley3=bump(z,.978+.12*u,.016)
-        frontFold=(.037*ridge1-.016*valley1+
-                   .027*ridge2-.016*valley2+
-                   .014*ridge3-.010*valley3)
-        backFold=(.018*bump(z,.835-.13*u,.031)
-                  -.012*bump(z,.876-.13*u,.022)
-                  +.010*bump(z,.944+.1*u,.028))
+        frontFold=(.048*ridge1-.023*valley1+
+                   .038*ridge2-.022*valley2+
+                   .024*ridge3-.017*valley3)
+        backFold=(.025*bump(z,.835-.13*u,.031)
+                  -.017*bump(z,.876-.13*u,.022)
+                  +.014*bump(z,.944+.1*u,.028))
         delta=scale*xmask*(front*frontFold-back*backFold)
         if abs(delta)>.00005:
             vertex.co.y-=delta
