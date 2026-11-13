@@ -1,0 +1,79 @@
+{
+  "version": "1.0",
+  "source": "User-supplied 3D GAME CHARACTER - MODEL APPROVAL SHEET (v5), front, side, back, and 3/4 reference",
+  "state": "NOT_APPROVED",
+  "release_policy": "DO_NOT_MERGE_OR_DEPLOY_UNLESS_ALL_ACCEPTANCE_CRITERIA_PASS",
+  "method": "Standalone DCC-authored, hand-shaped and skinned GLB garment asset, not runtime primitive cylinders or generated clothing tubes.",
+  "protected": [
+    "existing 44-bone playable character rig",
+    "approved head and separate hair",
+    "existing fighting gameplay and controls",
+    "live main branch"
+  ],
+  "targets": {
+    "shirt": {
+      "color": "dark navy blue with subtle cotton knit texture",
+      "shape": "loose but anatomically tapered, not straight or barrel shaped",
+      "collar": "standing folded navy collar at chin level, with open unobstructed face",
+      "sleeves": "continuous garment sleeves with naturally folded cuffs reaching above elbows",
+      "drape": "slight asymmetric folds under chest, gathered lower hem, no hard planar shelf",
+      "skin": "no exposed shoulder holes, neck clipping, or skin breakthrough",
+      "back": "Uchiha red upper half, white lower fan with white handle, centered across shoulder blades, full round fan not half a semicircle"
+    },
+    "shorts": {
+      "color": "cool light gray cotton",
+      "cut": "two true separate above-knee Bermuda legs, slightly loose, natural gusset and fabric folds",
+      "detail": "visible waist, pockets, sewn side seam, slightly hemmed cuffs",
+      "accessories": "two navy bands and small slender pouch on character right short leg",
+      "restrictions": "no rigid cylinders, dark triangles, rectangular flap boxes, disconnected waist, or skin clipping"
+    },
+    "animation": {
+      "idle": "cloth has subtle but not distracting motion",
+      "attacks": "no shoulder seam separation, sleeves and shorts deform smoothly with limbs",
+      "run": "no waist detachment, knees remain clear, legs separate, cloth follows thigh skinning",
+      "bones": 44
+    },
+    "verification": {
+      "orthographic_views": [
+        "front",
+        "left side",
+        "back",
+        "three-quarter"
+      ],
+      "animation_keyframes": [
+        "idle",
+        "run contact",
+        "jump",
+        "guard",
+        "jab",
+        "cross",
+        "kick",
+        "dodge"
+      ],
+      "mandatory_manual_checks": [
+        "source reference side-by-side crop, same camera height and body scale",
+        "shirt silhouette and sleeve profile match from front and side",
+        "collar upper opening exposes mouth and never crosses cheek/eyes",
+        "shorts hem width, length and folds match from front and back",
+        "fan back crest is centered, proportional, full and unobscured",
+        "skin-wrap, waist and seam overlaps absent in all combat poses",
+        "no disconnected mesh or floating surfaces on model",
+        "hand and leg mesh separation preserved"
+      ],
+      "merge_gate": "Only sign if all checks pass; automated rig tests are necessary but insufficient",
+      "explicit_approval": false
+    }
+  },
+  "last_baseline": {
+    "build": "8.2",
+    "status": "REJECTED",
+    "defects": [
+      "straight box-shaped shirt, unnatural rigid shoulder silhouette",
+      "shorts too broad/square with minimal cloth-like geometry",
+      "wraps and footwear visually oversized",
+      "crest is visually incorrect/too small on back",
+      "missing natural seam, fold and pocket detail",
+      "overall render far below approval sheet reference"
+    ]
+  }
+}
