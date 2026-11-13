@@ -1,0 +1,138 @@
+{
+  "schema_version": "2.0",
+  "candidate": {
+    "name": "v5-shirt-candidate.glb",
+    "sha256": "fd54a6cd7ccc7e5f762880119c8318a42a40e502e8daf7587f55d1c891dcf8e5",
+    "source_run": 43432710683
+  },
+  "reference_sha256": {
+    "front": "c67b969ccb0ff5fd8f5c0f58d5babaf2ec3863abff3e59049687d1c25b4a0c38",
+    "back": "742ebc9e02210ecc739dfdfad10d6324fd40d0be2424a4a06ea6a8e9cfa20de7"
+  },
+  "reviewed_date": "2026-11-13",
+  "reviewer": "Assistant preliminary visual audit; NOT a release sign-off",
+  "status": "REJECTED",
+  "checks": {
+    "F01": {
+      "status": "FAIL",
+      "finding": "Collar reads as a thick ring; its folded layered profile does not match the reference.",
+      "required_change": "Resculpt curved folded lip, lower the front and preserve face clearance.",
+      "evidence": "shirt_front.png"
+    },
+    "F02": {
+      "status": "FAIL",
+      "finding": "Front shoulders are wide, almost horizontal and angular versus softly sloping reference.",
+      "required_change": "Reshape the garment shoulder silhouette and armhole transition.",
+      "evidence": "shirt_front.png"
+    },
+    "F03": {
+      "status": "FAIL",
+      "finding": "Cuffs form outward triangular wings and sleeve length does not match the close-up.",
+      "required_change": "Extend relaxed sleeve fabric to reference length; form gentle continuous opening.",
+      "evidence": "shirt_front.png"
+    },
+    "F04": {
+      "status": "FAIL",
+      "finding": "Upper torso is a broad flat slab, rather than subtle anatomical waist taper.",
+      "required_change": "Rework torso circumference and fabric drape.",
+      "evidence": "shirt_front.png"
+    },
+    "F05": {
+      "status": "FAIL",
+      "finding": "Only faint smooth shading; three asymmetric gathered fabric folds are not visible.",
+      "required_change": "Sculpt loose waist folds with actual geometric depth and soft light response.",
+      "evidence": "shirt_front.png"
+    },
+    "F06": {
+      "status": "FAIL",
+      "finding": "Bottom is a hard horizontal shelf and not a gathered cloth hem overlapping gray shorts.",
+      "required_change": "Tailor soft double hem and remove hard sheet edge.",
+      "evidence": "shirt_front.png"
+    },
+    "F07": {
+      "status": "FAIL",
+      "finding": "Candidate navy is visibly brighter and more uniform than dark muted knit in supplied close-up.",
+      "required_change": "Match material and roughness under consistent lighting.",
+      "evidence": "shirt_front.png"
+    },
+    "F08": {
+      "status": "PASS",
+      "finding": "Candidate front is plain navy with no visible fan or red atlas bleed.",
+      "required_change": "Keep front unprinted.",
+      "evidence": "shirt_front.png"
+    },
+    "B01": {
+      "status": "FAIL",
+      "finding": "Back collar is a straight thick tube and visually crowds tied-back hair.",
+      "required_change": "Sculpt tapered layered cloth collar around neck.",
+      "evidence": "shirt_back.png"
+    },
+    "B02": {
+      "status": "FAIL",
+      "finding": "Crest is egg-shaped; red section is vertically elongated and white bowl is undersized.",
+      "required_change": "Correct entire fan geometry and white lower fan shape.",
+      "evidence": "shirt_back.png"
+    },
+    "B03": {
+      "status": "FAIL",
+      "finding": "Crest is too narrow relative to upper-back shirt width (visually about 25% vs 33–42% target).",
+      "required_change": "Enlarge crest, preserve centered placement.",
+      "evidence": "shirt_back.png"
+    },
+    "B04": {
+      "status": "FAIL",
+      "finding": "Sleeves project outward as angular flanges and rear shoulders are boxy.",
+      "required_change": "Rework sewn shoulder slope and cuffs from back view.",
+      "evidence": "shirt_back.png"
+    },
+    "B05": {
+      "status": "FAIL",
+      "finding": "Lower back too flat and rectangular, missing reference gathered side folds.",
+      "required_change": "Resculpt soft hanging back fabric and hem.",
+      "evidence": "shirt_back.png"
+    },
+    "B06": {
+      "status": "UNVERIFIED",
+      "finding": "Crest lies on fabric in idle view, but distortion under movement has not been checked.",
+      "required_change": "Render logo under torso twist and check texture deformation.",
+      "evidence": "shirt_back.png"
+    },
+    "D01": {
+      "status": "FAIL",
+      "finding": "Localized color check reported no exposed skin, but rendered armhole silhouette still looks pinched and spike-like.",
+      "required_change": "Inspect whole upper shoulder rather than one small pixel box; repair sleeve silhouette.",
+      "evidence": "shirt_combat_guard.png, shirt_combat_jab.png"
+    },
+    "D02": {
+      "status": "FAIL",
+      "finding": "Posed sleeves still appear unnaturally pinched/creased around shoulders.",
+      "required_change": "Inspect shoulder continuity under guard and jab at multiple angles.",
+      "evidence": "shirt_combat_guard.png, shirt_combat_jab.png"
+    },
+    "D03": {
+      "status": "PASS",
+      "finding": "Latest GLB exports original 44-joint skin, continuous torso-and-sleeves mesh, UVs and normals; structural test passed.",
+      "required_change": "Retest whenever model source changes.",
+      "evidence": "shirt_combat_guard.png, shirt_combat_jab.png"
+    },
+    "D04": {
+      "status": "UNVERIFIED",
+      "finding": "No full run, kick, cross, and dodge garment proof images are present.",
+      "required_change": "Produce those four pose render sequences and inspect clipping.",
+      "evidence": "shirt_combat_guard.png, shirt_combat_jab.png"
+    },
+    "P01": {
+      "status": "FAIL",
+      "finding": "Source vs candidate has been compared, but side-by-side matching viewpoints and full animation proof set are incomplete.",
+      "required_change": "Generate aligned source/render comparisons and all required combat views.",
+      "evidence": "GitHub branch and build outputs"
+    },
+    "P02": {
+      "status": "PASS",
+      "finding": "Candidate remains on art/v5-garment-sculpt-gated and has not been merged to main.",
+      "required_change": "Continue isolating all iterations and block release until accepted.",
+      "evidence": "GitHub branch and build outputs"
+    }
+  },
+  "human_release_signoff": null
+}
