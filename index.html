@@ -426,7 +426,16 @@
           const { attachSeamPatches } = await import('./scripts/cloth-seam-patches.js?v=2');
           const { cleanLegacyCharacterHead } = await import('./scripts/clean-head-v5.js?v=4');
           const { installDetachableHair } = await import('./scripts/install-detachable-hair.js?v=11');
-          const gltf = await new GLTFLoader().loadAsync('./assets/reference-rig-fluid.glb?v=20');
+          const modelLoader=new GLTFLoader();
+          const modelUrl=prototypeMode?'./assets/candidates/v5-shirt-candidate.glb?v=1':'./assets/reference-rig-fluid.glb?v=20';
+          const gltf=await modelLoader.loadAsync(modelUrl);
+          let v5Proof=null,selectV5ShirtForPreview=null;
+          if(prototypeMode){
+            const mod=await import('./scripts/v5-character-game.js?v=1');
+            selectV5ShirtForPreview=mod.selectV5ShirtForPreview;
+            const baseline=await modelLoader.loadAsync('./assets/reference-rig-fluid.glb?v=20');
+            v5Proof=mod.verifyV5PlayableRig(THREE,baseline.scene,gltf.scene);
+          }
           const imported = gltf.scene;
           imported.name = 'Urban Outlaw continuous reference-sculpted skinned character';
           const motionResponse=await fetch('./assets/animations/walking-retargeted.json?v=1');
@@ -462,6 +471,7 @@
           const clothPatches=attachSeamPatches(THREE,imported);
           wardrobe=fitCombatWardrobe(THREE,imported);
           const tailored=fitReferenceOutfit(THREE,imported);
+          const v5Wardrobe=prototypeMode?selectV5ShirtForPreview(imported):null;
           const hairFlow=refineCombatHair(THREE,imported,standaloneHair.scene);
           characterModel = new THREE.Group();
           characterModel.name = 'Reference Sculpt Rig v1';
@@ -501,7 +511,7 @@
             if(!o.isMesh)return;
             const repaint=m=>{
               const cloned=m.clone(),name=o.name.toLowerCase();
-              if(/tunic|collar|sleeve|waisthem|combatpouch|thighstrap/.test(name)){
+              if(/tunic|collar|sleeve|waisthem|combatpouch|thighstrap|v5_shirt|referencev8/.test(name)){
                 cloned.color.set(0x763b50);
               }else if(/sandals|sho|sole|anklecuff|topshinband/.test(name)){
                 cloned.color.set(0x201c32);
@@ -527,7 +537,15 @@
           setCharacterAnimation(ninjaRunPreview ? 'Run' : 'Idle');
 
           const data=document.getElementById('game').dataset;
-          data.character='clean-head-v5';
+          data.character=prototypeMode?'v5-sculpted-fighter-prototype':'clean-head-v5';
+          if(prototypeMode){
+            data.prototypeState=v5Wardrobe.status;
+            data.prototypeShirtMeshes=String(v5Wardrobe.shirtMeshes);
+            data.prototypeHiddenLegacy=String(v5Wardrobe.hiddenLegacyShirtMeshes);
+            data.prototypeBindDeviation=v5Proof.bindDeviation.toFixed(4);
+            data.prototypeMode=v5Proof.replacementMode;
+            data.prototypeTriangles=String(v5Proof.triangles);
+          }
           data.hairLocks='0'; // No extra procedural hair or double headband.
           data.hairDrawGroups='0'; // Only standalone GLB has hair meshes.
           data.oldHairRemoved=String(headSculpt.removedTriangles);
@@ -556,7 +574,7 @@
           data.walkGait='phased-contact-v3';
           data.runStyle='ninja-pose-v4';
           data.runActivation='toggle-v1';
-          data.uniformStyle=tailored.style;
+          data.uniformStyle=prototypeMode?'v5-sewn-blender-sculpt-NOT-APPROVED':tailored.style;
           data.uniformClothMeshes=String(tailored.pieces);
           data.uniformSleeveTriangles=String(tailored.sleeveTriangles);
           data.uniformCrestAttached=String(tailored.crest==='fabric-integrated-uchiha-fan');
