@@ -49,7 +49,7 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
     # Local voxels merge the armholes, removing open sleeve/root overlaps.
     # Resolution stays fine enough to preserve the reference's fabric folds
     # without multiplying mobile game polygons excessively.
-    joined.data.remesh_voxel_size=max(.0050, .0085*scale)
+    joined.data.remesh_voxel_size=max(.0040, .0060*scale)
     joined.data.use_remesh_preserve_volume=True
     bpy.ops.object.voxel_remesh()
 
@@ -76,8 +76,8 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
     # Very small surface relaxation removes shoulder sawtooth artifacts and
     # softens the old tube-on-tube intersection without erasing waist folds.
     relax=joined.modifiers.new("Tailored seam surface relaxation","SMOOTH")
-    relax.factor=.62
-    relax.iterations=3
+    relax.factor=.55
+    relax.iterations=2
     bpy.ops.object.modifier_apply(modifier=relax.name)
 
     # Retarget weights from the art-shaped donor surface. Remesh operators
