@@ -8,7 +8,7 @@ export function fitCombatWardrobe(THREE, root) {
   root.updateMatrixWorld(true);
   let body;
   const bones=[];
-  root.traverse(o=>{if(o.isBone)bones.push(o);if(o.isSkinnedMesh&&!body)body=o});
+  root.traverse(o=>{if(o.isBone)bones.push(o);if(o.isSkinnedMesh&&!/^v5_shirt_/i.test(o.name)&&!body)body=o});
   if(!body || bones.length<34)throw Error('Combat wardrobe requires original skinned rig');
   const find=(suffix)=>bones.find(b=>b.name.toLowerCase().replace(/[^a-z0-9]/g,'').endsWith(suffix.toLowerCase()));
   const spine=find('Spine2'),neck=find('Neck'),leftArm=find('LeftArm'),rightArm=find('RightArm');
