@@ -192,7 +192,7 @@
     </section>
     <button type="button" id="openMenu" aria-label="Return to brawler selection menu">MENU</button>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 6.0 · ARENA COMBAT</div>
+    <div class="ui version"><span class="dot"></span> BUILD 6.1 · NINJA FIGHTER</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD move · J punch · K heavy · I kick · L guard · Q dodge</strong><p>Space jump · Shift/R ninja run · DualSense: □ punch, △ heavy, ○ dodge, L2 guard</p></div>
@@ -388,7 +388,8 @@
         loading.textContent = loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-          const {fitCombatWardrobe} = await import('./scripts/combat-wardrobe.js?v=1');
+          const {fitCombatWardrobe} = await import('./scripts/combat-wardrobe.js?v=2');
+          const {refineCombatHair} = await import('./scripts/combat-hair.js?v=1');
           const {createCombatClips} = await import('./scripts/arena-combat.js?v=1');
           const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=11');
           const { attachSeamPatches } = await import('./scripts/cloth-seam-patches.js?v=2');
@@ -429,6 +430,7 @@
 
           const clothPatches=attachSeamPatches(THREE,imported);
           wardrobe=fitCombatWardrobe(THREE,imported);
+          const hairFlow=refineCombatHair(THREE,imported,standaloneHair.scene);
           characterModel = new THREE.Group();
           characterModel.name = 'Reference Sculpt Rig v1';
           characterModel.add(imported);
@@ -503,6 +505,9 @@
           data.uniformStyle=wardrobe.style;
           data.uniformShirtTriangles=String(wardrobe.shirtTriangles);
           data.uniformAccessories=String(wardrobe.accessories);
+          data.hairFlow=hairFlow.style;
+          data.hairFlowLocks=String(hairFlow.locks);
+          data.hairFlowTriangles=String(hairFlow.triangles);
           data.combatClips=combatClips.map(c=>c.name).join(',');
         } catch (error) {
           console.error('Could not load reference sculpted GLB:', error);
