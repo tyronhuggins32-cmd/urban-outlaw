@@ -13,6 +13,9 @@ on:
       - 'tools/blender/v5_shirt_textures.py'
 permissions:
   contents: read
+concurrency:
+  group: v5-shirt-sculpt-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   offline-shirt-build:
     name: Model shirt offline and capture evidence
