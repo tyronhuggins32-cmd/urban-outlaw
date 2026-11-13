@@ -129,7 +129,7 @@ const { chromium } = require('playwright');
   await page.keyboard.up('Space');
   if(jump!=='jump')throw new Error('Jump clip not activated: '+jump);
   await page.screenshot({path:'urban-body-animated-test.png'});
-  await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='land',null,{timeout:7000});
+  await page.waitForFunction(()=>Number(document.getElementById('game')?.dataset.landTransitions)>0,null,{timeout:9000});
   await page.screenshot({path:'urban-animation-landing.png'});
   await page.waitForFunction(()=>['idle','ready'].includes(document.getElementById('game')?.dataset.animation),null,{timeout:7000});
   if(errors.length)throw new Error('Browser errors: '+errors.join('; '));
