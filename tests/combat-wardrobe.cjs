@@ -16,6 +16,7 @@ const root=(await new GLTFLoader().parseAsync(JSON.stringify(gltf),'')).scene;
 const wraps=fitCombatWardrobe(THREE,root);
 const result=fitReferenceOutfit(THREE,root);
 assert.equal(result.style,'reference-v8-ninja-tailored');
+assert(result.removedUnderlayerTriangles>200,'Old dark shorts triangles must be trimmed below the new garment');
 assert(result.shirtTriangles>5000,'Shirt surface does not have enough smooth fabric topology');
 assert(result.shortsTriangles>6000,'Shorts surface does not have smooth geometry');
 assert(result.sleeveTriangles>1500,'Short sleeves must be continuous skinned fabric');
@@ -48,6 +49,6 @@ console.log('V8 OUTFIT VERIFIED',JSON.stringify({
  style:result.style,shirtTriangles:result.shirtTriangles,shortsTriangles:result.shortsTriangles,
  sleeveTriangles:result.sleeveTriangles,clothMeshes:result.pieces,
  shirtWidth:+(shirtBB.max.x-shirtBB.min.x).toFixed(3),
- collarTop:+collarBB.max.y.toFixed(3),oldShirtHidden:true
+ collarTop:+collarBB.max.y.toFixed(3),oldShirtHidden:true,removedUnderlayerTriangles:result.removedUnderlayerTriangles
 }));
 })().catch(e=>{console.error(e);process.exit(1)});
