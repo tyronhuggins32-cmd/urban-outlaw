@@ -2,8 +2,8 @@
   "schema_version": "2.0",
   "candidate": {
     "name": "v5-shirt-candidate.glb",
-    "sha256": "fd54a6cd7ccc7e5f762880119c8318a42a40e502e8daf7587f55d1c891dcf8e5",
-    "source_run": 43432710683
+    "sha256": "4ade46c7f565d0a73b7f18174e48171826bbeb989a639446c92a997807bba97b",
+    "source_run": 43433336069
   },
   "reference_sha256": {
     "front": "c67b969ccb0ff5fd8f5c0f58d5babaf2ec3863abff3e59049687d1c25b4a0c38",
@@ -134,5 +134,6 @@
       "evidence": "GitHub branch and build outputs"
     }
   },
-  "human_release_signoff": null
+  "human_release_signoff": null,
+  "review_notes": "Rechecked the newest available exported Blender candidate and its front/back proof renders; remaining silhouette and crest defects persist. Source images unchanged."
 }
