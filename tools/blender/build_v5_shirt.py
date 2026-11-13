@@ -287,11 +287,19 @@ def sleeve(side):
     return sleeveObj
 l=sleeve('Left');r=sleeve('Right')
 
-# Make the model inspectable in the original rig, but do not delete any
-# character component, shorts or hair from the base.
-garments=[body,collar,hem,l,r]+[
+# Reconstruct the armholes rather than leaving two tubes intersecting the
+# shirt shell. This produces ONE skinned torso-and-sleeves garment.
+import sys as _sys
+_sys.path.insert(0,str(Path(__file__).resolve().parent))
+from sew_v5_shirt import sew_torso_to_sleeves
+stitched=sew_torso_to_sleeves(body,[l,r],S,(cx,cy),low)
+print('V5_SHIRT_SEWING',stitched['new_faces'],stitched['weighted_vertices'],flush=True)
+
+# Preserve separate hem, raised cowl and sleeve cuff embroidery only.
+# None of these are shoulder caps.
+garments=[body,collar,hem]+[
   o for o in bpy.data.objects if o.type=='MESH' and o.name.endswith('_Cuff')]
-assert len(garments)==7,len(garments)
+assert len(garments)==5,len(garments)
 assert all(any(m.type=='ARMATURE' and m.object==arm for m in o.modifiers) for o in garments)
 
 # Export a portable GLB with its original skeleton for future in-game skin
