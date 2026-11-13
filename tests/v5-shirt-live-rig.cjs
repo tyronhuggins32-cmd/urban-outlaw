@@ -30,9 +30,12 @@ const fs=require('node:fs'),path=require('node:path'),{pathToFileURL}=require('n
  assert(result.parts.every(p=>p.bones.length>=44),'Candidate lost original 44-joint bone mapping');
  const scale=result.sourceRigScale;
  assert([scale.x,scale.y,scale.z].every(v=>Number.isFinite(v)&&v>.5&&v<1.8),'Non-finite rig scale');
- console.log('V5 LIVE-RIG IMPORT VERIFIED',JSON.stringify({
+ assert.equal(result.replacementMode,'FULL_CHARACTER_RIG','Proportion changes must be treated as full rig replacement');
+ assert(result.bindDeviation>.015&&result.bindDeviation<.40,'Unexpected candidate skeleton mismatch');
+ console.log('V5 FULL-RIG REPLACEMENT COMPATIBILITY VERIFIED',JSON.stringify({
    parts:result.parts.map(p=>p.name),triangleCount:result.triangles,
    fullRigScale:[scale.x,scale.y,scale.z].map(v=>+v.toFixed(3)),
-   status:result.status
+   bindDeviation:+result.bindDeviation.toFixed(3),
+   replacementMode:result.replacementMode,status:result.status
  }));
 })().catch(e=>{console.error('V5 LIVE-RIG INCOMPATIBLE',e);process.exit(1)});
