@@ -56,7 +56,7 @@ def mix(a,b,t):return a+(b-a)*t
 # Navy cloth: knit noise is physically integrated into a texture, while
 # geometry holds actual sewn folds. A crisp fan emblem is printed into the
 # back-center UV island without an extra floating sprite plane.
-def texture(filename,crest=False,base=(14,22,64)):
+def texture(filename,crest=False,base=(12,19,59)):
     dim=1024
     rng=np.random.default_rng(198)
     X,Y=np.meshgrid(np.arange(dim),np.arange(dim))
@@ -85,15 +85,15 @@ def texture(filename,crest=False,base=(14,22,64)):
     if crest:
         # u=.25 corresponds to the back-facing +Y quadrant in this pattern.
         # The atlas's v coordinate increases with physical shirt height.
-        xc,yc=int(dim*.25),int(dim*.65)
+        xc,yc=int(dim*.25),int(dim*.71)
         dx=X-xc;dy=Y-yc
-        rx,ry=100,157
+        rx,ry=100,189
         circle=(dx/rx)**2+(dy/ry)**2<=1
         red=circle&(dy>=0)&(dy<=ry)
         bowl=(dx/(rx*.91))**2+(dy/151)**2<=1
         white=bowl&(dy<0)&(dy>=-102)
         outline=(np.abs(dx)<rx)&(np.abs(dy)<=4)
-        handle=(np.abs(dx)<8)&(dy>=-186)&(dy<=-91)
+        handle=(np.abs(dx)<8)&(dy>=-205)&(dy<=-91)
         rgb[red,:3]=[.68,.28,.34]
         rgb[white,:3]=[.94,.92,.90]
         rgb[outline,:3]=[.15,.19,.31]
@@ -242,11 +242,11 @@ def collar_shape(t,u):
     center_front=gauss(X,0,.47) if front>0 else 0
     z1=1.312-.033*front-.020*front*center_front
     z=mix(z0,z1,t)
-    rX=mix(.137,.153,t)+.002*math.sin(theta*4+t*math.pi)
-    rY=mix(.112,.124,t)
-    fold=.010*gauss(t,.32,.12)*math.cos(theta*2)+.005*gauss(t,.82,.14)*math.sin(theta*3)
-    rolled=.008*gauss(t,.93,.10)+.007*gauss(t,.18,.09)
-    softR=1+.055*math.cos(theta*5+.6)*gauss(t,.42,.22)
+    rX=mix(.146,.163,t)+.0015*math.sin(theta*4+t*math.pi)
+    rY=mix(.114,.125,t)
+    fold=.006*gauss(t,.32,.12)*math.cos(theta*2)+.003*gauss(t,.82,.14)*math.sin(theta*3)
+    rolled=.006*gauss(t,.93,.10)+.004*gauss(t,.18,.09)
+    softR=1+.020*math.cos(theta*5+.6)*gauss(t,.42,.22)
     z+=.003*math.sin(theta*5+.6)*gauss(t,.95,.14)
     return pos(((rX+fold)*softR+rolled)*X,((rY+fold)*softR+rolled)*Y,z)
 collar=mesh_surface('V5_Shirt_Collar',27,88,collar_shape,lambda t,u:{'Spine2':1},PLAIN,thickness=.007*S)
@@ -274,7 +274,7 @@ def sleeve(side):
     def sculpt(t,u,offset=0):
         theta=u*math.tau
         center=upper+direction*(distance*mix(-.11,.78,t))
-        sleeveR=mix(.075,.082,t)*S+offset
+        sleeveR=mix(.076,.079,t)*S+offset
         wrinkle=.004*S*math.sin(theta*7+t*12)*(.4+.6*t)
         center+=axisU*math.cos(theta)*(sleeveR+wrinkle)
         center+=axisV*math.sin(theta)*(.9*sleeveR+wrinkle*.5)
