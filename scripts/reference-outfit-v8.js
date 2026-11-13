@@ -25,13 +25,13 @@ export function fitReferenceOutfit(THREE,root) {
   const names=body.skeleton.bones.map(b=>b.name.toLowerCase());
   function covered(i){
     const y=points.getY(i),x=points.getX(i),z=points.getZ(i);
-    if(y<.445||y>.851||Math.abs(x)>.34||Math.abs(z)>.3)return false;
+    if(y<.435||y>.870||Math.abs(x)>.36||Math.abs(z)>.32)return false;
     let weight=0;
     for(let k=0;k<4;k++){
       const name=names[si.getComponent(i,k)]||'';
       if(/hips|upleg|spine/.test(name))weight+=sw.getComponent(i,k);
     }
-    return weight>.55;
+    return weight>.33;
   }
   const cleanIndex=[],cleanGroups=[];
   const groupSet=source.groups.length?source.groups:
@@ -113,14 +113,14 @@ export function fitReferenceOutfit(THREE,root) {
     if(logo){
       // Back faces negative Z. In the torso's cylindrical UV map,
       // that is u=.75. t=.7 is the upper-center of the jersey.
-      const x=size*.75,y=size*.31,r=25;
+      const x=size*.75,y=size*.355,r=34;
       ctx.beginPath();ctx.arc(x,y,r,Math.PI,2*Math.PI);ctx.closePath();
       ctx.fillStyle='#b24c58';ctx.fill();
       ctx.beginPath();ctx.moveTo(x-r,y+1);ctx.lineTo(x+r,y+1);
-      ctx.quadraticCurveTo(x+r*.72,y+20,x,y+22);
-      ctx.quadraticCurveTo(x-r*.72,y+20,x-r,y+1);
+      ctx.quadraticCurveTo(x+r*.70,y+27,x,y+29);
+      ctx.quadraticCurveTo(x-r*.70,y+27,x-r,y+1);
       ctx.closePath();ctx.fillStyle='#f1eeeb';ctx.fill();
-      ctx.fillRect(x-4,y+20,8,30);
+      ctx.fillRect(x-5,y+26,10,38);
       ctx.lineWidth=1.4;ctx.strokeStyle='#d6d1d0';
       ctx.beginPath();ctx.moveTo(x-r,y+2);ctx.lineTo(x+r,y+2);ctx.stroke();
     }
@@ -188,9 +188,11 @@ export function fitReferenceOutfit(THREE,root) {
     const folds=(.0035+.004*(1-t))*Math.sin(a*8+16*t)+
       .002*Math.sin(a*13-11*t);
     const frontBias=Math.sin(a)>0?.009:0;
+    const upperShoulder=Math.exp(-Math.pow((y-1.192)/.055,2));
+    const shoulderBack=Math.sin(a)<0?.045*upperShoulder*Math.pow(Math.abs(Math.cos(a)),.65):0;
     return [(rx+folds)*Math.cos(a),
       y+.004*Math.sin(a*5+8*t)*(1-t),
-      (rz+folds*.38+frontBias)*Math.sin(a)-.007];
+      (rz+shoulderBack+folds*.38+frontBias)*Math.sin(a)-.007];
   },(t)=>{
     const w=smooth(t);
     return [[bi.hips,Math.max(0,.90-2.0*w)],
