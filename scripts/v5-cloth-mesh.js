@@ -168,7 +168,7 @@ export function installTailoredCloth(THREE,root) {
   }
   for(const o of out) if(!o.isSkinnedMesh || o.skeleton!==skeleton)
     throw Error('A V5 cloth panel is not skinned to the character');
-  return {style:'v5-seamless-tailoring-v3',
+  return {style:'v5-sleeved-tailoring-v4',
     shirtTriangles:shirt.geometry.index.count/3,
     sleeveTriangles:sleevePieces.reduce((n,o)=>n+o.geometry.index.count/3,0),
     hipTriangles:hip.geometry.index.count/3,
