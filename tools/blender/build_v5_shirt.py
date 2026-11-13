@@ -242,8 +242,8 @@ def collar_shape(t,u):
     center_front=gauss(X,0,.47) if front>0 else 0
     z1=1.312-.033*front-.020*front*center_front
     z=mix(z0,z1,t)
-    rX=mix(.146,.163,t)+.0015*math.sin(theta*4+t*math.pi)
-    rY=mix(.114,.125,t)
+    rX=mix(.118,.132,t)+.0015*math.sin(theta*4+t*math.pi)
+    rY=mix(.103,.114,t)
     fold=.006*gauss(t,.32,.12)*math.cos(theta*2)+.003*gauss(t,.82,.14)*math.sin(theta*3)
     rolled=.006*gauss(t,.93,.10)+.004*gauss(t,.18,.09)
     softR=1+.020*math.cos(theta*5+.6)*gauss(t,.42,.22)
@@ -273,10 +273,10 @@ def sleeve(side):
     axisV=direction.cross(axisU).normalized()
     def sculpt(t,u,offset=0):
         theta=u*math.tau
-        center=upper+direction*(distance*mix(-.10,.99,t))
-        center.x+=(.021 if side=='Left' else -.021)*S*smooth(t)
-        sleeveR=mix(.073,.125,t)*S+offset
-        wrinkle=.008*S*math.sin(theta*7+t*12)*(.30+.70*t)
+        center=upper+direction*(distance*mix(-.07,.65,t))
+        center.x+=(.008 if side=='Left' else -.008)*S*smooth(t)
+        sleeveR=mix(.084,.089,t)*S+offset
+        wrinkle=.004*S*math.sin(theta*7+t*12)*(.30+.70*t)
         center+=axisU*math.cos(theta)*(sleeveR+wrinkle)
         center+=axisV*math.sin(theta)*(.9*sleeveR+wrinkle*.5)
         return tuple(center)
@@ -284,9 +284,9 @@ def sleeve(side):
         # Bind root sleeve rings to chest/shoulder; gradually hand off skin
         # weights toward the upper arm down the sleeve. The cuff remains free
         # to follow the attacking limb without tearing its shoulder seam.
-        armShare=.12+.88*smooth(t/.67)
-        shoulderShare=(1-armShare)*.58
-        chestShare=(1-armShare)*.42
+        armShare=.35+.65*smooth(t/.60)
+        shoulderShare=(1-armShare)*.62
+        chestShare=(1-armShare)*.38
         return {side+'Arm':armShare,side+'Shoulder':shoulderShare,'Spine2':chestShare}
     name='V5_Shirt_'+side+'Sleeve'
     sleeveObj=mesh_surface(name,25,64,sculpt,weights,PLAIN)
