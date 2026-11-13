@@ -12,6 +12,6 @@ for(const [name,values]of Object.entries(d.bones)){
  assert(Math.abs(values.slice(0,4).reduce((a,v,j)=>a+v*values[values.length-4+j],0))>.99999,name+' loop seam');
 }
 for(let c=0;c<3;c++)assert(Math.abs(d.hips[c]-d.hips[d.hips.length-3+c])<1e-6,'Root loop seam');
-const html=fs.readFileSync('index.html','utf8');assert(html.includes('const speed = sprinting ? 95 : walkSpeed'));assert(html.includes('walkSpeed=walkData.groundSpeed*imported.scale.z'));
+const html=fs.readFileSync('index.html','utf8');assert(html.includes('const speed = sprinting ? (fighting ? 14 : 95) : walkSpeed'),'Arena sprint cap and free sprint must coexist');assert(html.includes('walkSpeed=walkData.groundSpeed*imported.scale.z'));
 assert(!fs.readFileSync('scripts/reference-character-animations-v2.js','utf8').includes('walk-cycle-v4'),'Old analytical gait still active');
-console.log('RECORDED WALK DATA VERIFIED: 22 mapped bones, continuous loop, stride-derived travel and sprint 95');
+console.log('RECORDED WALK DATA VERIFIED: 22 mapped bones, continuous loop, stride-derived travel and arena-capped sprint');
