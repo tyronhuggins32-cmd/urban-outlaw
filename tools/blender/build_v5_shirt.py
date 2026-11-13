@@ -56,7 +56,7 @@ def mix(a,b,t):return a+(b-a)*t
 # Navy cloth: knit noise is physically integrated into a texture, while
 # geometry holds actual sewn folds. A crisp fan emblem is printed into the
 # back-center UV island without an extra floating sprite plane.
-def texture(filename,crest=False,base=(16,25,59)):
+def texture(filename,crest=False,base=(14,22,64)):
     dim=1024
     rng=np.random.default_rng(198)
     X,Y=np.meshgrid(np.arange(dim),np.arange(dim))
@@ -87,13 +87,13 @@ def texture(filename,crest=False,base=(16,25,59)):
         # The atlas's v coordinate increases with physical shirt height.
         xc,yc=int(dim*.25),int(dim*.65)
         dx=X-xc;dy=Y-yc
-        rx,ry=72,190
+        rx,ry=84,166
         circle=(dx/rx)**2+(dy/ry)**2<=1
         red=circle&(dy>=0)&(dy<=ry)
-        bowl=(dx/rx)**2+(dy/138)**2<=1
-        white=bowl&(dy<0)&(dy>=-115)
+        bowl=(dx/(rx*.89))**2+(dy/143)**2<=1
+        white=bowl&(dy<0)&(dy>=-102)
         outline=(np.abs(dx)<rx)&(np.abs(dy)<=4)
-        handle=(np.abs(dx)<7)&(dy>=-177)&(dy<=-110)
+        handle=(np.abs(dx)<8)&(dy>=-186)&(dy<=-91)
         rgb[red,:3]=[.68,.28,.34]
         rgb[white,:3]=[.94,.92,.90]
         rgb[outline,:3]=[.15,.19,.31]
@@ -120,7 +120,7 @@ PLAIN=material('Shirt plain navy knit',plainTex)
 
 # Pattern-based 3D cloth surface. Each ring is irregular and independently
 # shaped from waist to shoulder, producing fabric not a straight cylinder.
-def mesh_surface(name,rows,segments,shape,weight,mat):
+def mesh_surface(name,rows,segments,shape,weight,mat,thickness=None):
     vertices=[];faces=[];UV=[]
     for i in range(rows+1):
         t=i/rows
@@ -161,7 +161,7 @@ def mesh_surface(name,rows,segments,shape,weight,mat):
     # A robust, manifold seam-fusion shell must remain thicker than voxels.
     # The earlier .003 m wall was narrower than the remesh cell and left
     # see-through chest pinholes. This thickness goes inward by default.
-    solid.thickness=.018*S
+    solid.thickness=.018*S if thickness is None else thickness
     solid.offset=-.6
     solid.use_rim=True
     return obj
@@ -244,16 +244,20 @@ def collar_shape(t,u):
     z=mix(z0,z1,t)
     rX=mix(.113,.126,t)+.002*math.sin(theta*4+t*math.pi)
     rY=mix(.101,.113,t)
-    fold=.012*gauss(t,.57,.17)*math.cos(theta*2)
-    return pos((rX+fold)*X,(rY+fold)*Y,z)
-collar=mesh_surface('V5_Shirt_Collar',27,88,collar_shape,lambda t,u:{'Spine2':1},PLAIN)
+    fold=.010*gauss(t,.32,.12)*math.cos(theta*2)+.005*gauss(t,.82,.14)*math.sin(theta*3)
+    rolled=.008*gauss(t,.93,.10)+.007*gauss(t,.18,.09)
+    softR=1+.055*math.cos(theta*5+.6)*gauss(t,.42,.22)
+    z+=.003*math.sin(theta*5+.6)*gauss(t,.95,.14)
+    return pos(((rX+fold)*softR+rolled)*X,((rY+fold)*softR+rolled)*Y,z)
+collar=mesh_surface('V5_Shirt_Collar',27,88,collar_shape,lambda t,u:{'Spine2':1},PLAIN,thickness=.007*S)
 
 # Shirt bottom doubled edge and inset stitch ridge, both deform with hips.
 def hem_shape(t,u):
     x,y,z=torso(.012+t*.014,u)
     a=u*math.tau
-    return (x+S*.014*math.cos(a),y+S*.014*math.sin(a),z-S*.006*(1-t))
-hem=mesh_surface('V5_Shirt_Hem',5,112,hem_shape,lambda t,u:{'Hips':.85,'Spine':.15},PLAIN)
+    wave=.005*S*(math.sin(6*a+.9)+.45*math.sin(11*a-1.2))
+    return (x+S*.006*math.cos(a),y+S*.006*math.sin(a),z-S*.003*(1-t)+wave*(1-t))
+hem=mesh_surface('V5_Shirt_Hem',5,112,hem_shape,lambda t,u:{'Hips':.85,'Spine':.15},PLAIN,thickness=.006*S)
 
 # The sleeve axis uses original arm endpoints, not guessed world coordinates.
 def sleeve(side):
@@ -287,7 +291,7 @@ def sleeve(side):
     sleeveObj=mesh_surface(name,25,64,sculpt,weights,PLAIN)
     def cuff(t,u):
         return sculpt(.967+.033*t,u,offset=.002*S)
-    mesh_surface(name+'_Cuff',4,64,cuff,lambda t,u:{side+'Arm':1},PLAIN)
+    mesh_surface(name+'_Cuff',4,64,cuff,lambda t,u:{side+'Arm':1},PLAIN,thickness=.005*S)
     return sleeveObj
 l=sleeve('Left');r=sleeve('Right')
 
@@ -331,7 +335,7 @@ scene.cycles.samples=32
 scene.cycles.use_denoising=False
 bpy.context.view_layer.cycles.use_denoising=False
 scene.render.resolution_x=750
-scene.render.resolution_y=940
+scene.render.resolution_y=1120
 scene.render.resolution_percentage=100
 scene.render.image_settings.file_format='PNG'
 scene.render.film_transparent=False
@@ -351,8 +355,8 @@ area('soft fill',pos(2,-2,.7),90,3)
 camData=bpy.data.cameras.new('Orthographic garment QA only')
 cam=bpy.data.objects.new('QA shirt camera',camData)
 scene.collection.objects.link(cam);scene.camera=cam
-camData.type='ORTHO';camData.ortho_scale=1.15*S
-target=Vector(pos(0,0,1.055))
+camData.type='ORTHO';camData.ortho_scale=1.34*S
+target=Vector(pos(0,0,1.12))
 for name,ang in [('front',0),('right_side',90),('back',180),('three_quarter',38)]:
     angle=math.radians(ang)
     cam.location=Vector(pos(math.sin(angle)*2.3,-math.cos(angle)*2.3,1.08))
