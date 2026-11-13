@@ -7,6 +7,10 @@ on:
     paths:
       - 'art/v5/**'
       - 'tools/blender/rig_v5_garments.py'
+      - 'tools/blender/build_v5_shirt.py'
+      - 'tools/blender/sew_v5_shirt.py'
+      - 'tests/v5-shirt-live-rig.cjs'
+      - 'scripts/import-sculpted-v5-outfit.js'
       - 'scripts/import-sculpted-v5-outfit.js'
       - 'tests/v5-approval-gate.cjs'
       - 'tests/v5-shirt-approval-gate.cjs'
