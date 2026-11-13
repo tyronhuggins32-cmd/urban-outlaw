@@ -113,9 +113,9 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
     for vertex in joined.data.vertices:
         u=(vertex.co.x-cx)/scale
         z=(vertex.co.z-bottom)/scale
-        if z<.775 or z>1.015 or abs(u)>.21:
+        if z<.758 or z>1.070 or abs(u)>.23:
             continue
-        xmask=smoothstep((.215-abs(u))/.06)
+        xmask=smoothstep((.235-abs(u))/.072)
         if xmask<=0.:continue
         front=smoothstep((cy-vertex.co.y)/(.126*scale))
         back=smoothstep((vertex.co.y-cy)/(.126*scale))
@@ -125,12 +125,12 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
         valley2=bump(z,.913-.20*u,.022)
         ridge3=bump(z,.959+.12*u,.024)
         valley3=bump(z,.978+.12*u,.016)
-        frontFold=(.028*ridge1-.012*valley1+
-                   .020*ridge2-.012*valley2+
-                   .010*ridge3-.008*valley3)
-        backFold=(.011*bump(z,.835-.13*u,.031)
-                  -.009*bump(z,.876-.13*u,.022)
-                  +.008*bump(z,.944+.1*u,.028))
+        frontFold=(.037*ridge1-.016*valley1+
+                   .027*ridge2-.016*valley2+
+                   .014*ridge3-.010*valley3)
+        backFold=(.018*bump(z,.835-.13*u,.031)
+                  -.012*bump(z,.876-.13*u,.022)
+                  +.010*bump(z,.944+.1*u,.028))
         delta=scale*xmask*(front*frontFold-back*backFold)
         if abs(delta)>.00005:
             vertex.co.y-=delta
@@ -151,7 +151,7 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
         if weight>.015:
             sign=1 if shoulder_x>0 else -1
             vertex.co.x+=sign*.016*scale*weight
-            vertex.co.z+=.002*scale*weight
+            vertex.co.z-=.010*scale*weight
             protected+=1
     joined.data.update()
     print("V5_GARMENT_FOLDS_SCULPTED",displaced,
