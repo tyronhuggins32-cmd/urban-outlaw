@@ -345,6 +345,12 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     state.dodgeTimer=Math.max(0,state.dodgeTimer-dtSafe);
     state.enemyStun=Math.max(0,state.enemyStun-dtSafe);
     state.enemyGuard=Math.max(0,state.enemyGuard-dtSafe);
+    state.enemyEvade=Math.max(0,state.enemyEvade-dtSafe);
+    state.counterWindow=Math.max(0,state.counterWindow-dtSafe);
+    state.impactPause=Math.max(0,state.impactPause-dtSafe);
+    state.comboTimer=Math.max(0,state.comboTimer-dtSafe);
+    if(state.comboTimer===0&&state.attackTime===0)state.comboStep=0;
+    if(state.guard)state.guardAge+=dtSafe;
     state.messageTimer=Math.max(0,state.messageTimer-dtSafe);
     state.stamina=clamp(state.stamina+(state.guard?7:21)*dtSafe,0,100);
     if(state.guard)state.stamina=Math.max(0,state.stamina-9*dtSafe);
@@ -355,32 +361,47 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     const directionLen=Math.max(.0001,Math.hypot(dx,dz));
     const fxDir=Math.sin(facing),fzDir=Math.cos(facing);
     const facingScore=(dx*fxDir+dz*fzDir)/directionLen;
-    // Strict attack timing means a hit happens once at the actual contact frame.
+    // A short windup precedes the hitbox, and one contact resolves per strike.
     if(state.attackTime>0){
-      const old=state.attackTime;state.attackTime=Math.max(0,state.attackTime-dtSafe);
-      const duration={Light:.35,Heavy:.58,Kick:.64,Dodge:.42}[state.attackType];
-      const hitAt={Light:.20,Heavy:.30,Kick:.33,Dodge:Infinity}[state.attackType];
-      if(!state.hitApplied&&old>=duration-hitAt&&state.attackTime<duration-hitAt){
+      const type=state.attackType,old=state.attackTime;
+      state.attackTime=Math.max(0,old-dtSafe);
+      const frame=contactFrame[type];
+      if(frame!==undefined&&!state.hitApplied &&
+         old>=state.attackLength-frame &&
+         state.attackTime<state.attackLength-frame){
         state.hitApplied=true;
-        const reach={Light:4.0,Heavy:4.4,Kick:4.6}[state.attackType];
-        if(distance<=reach&&facingScore>-.05&&state.enemyHealth>0){
-          const guarded=state.enemyGuard>0;
-          const base={Light:12,Heavy:21,Kick:23}[state.attackType];
-          const damage=Math.max(2,Math.round(base*(guarded?.28:1)));
+        if(distance<=range[type]&&facingScore>-.12&&state.enemyHealth>0&&state.enemyEvade<=0){
+          const guarded=state.enemyGuard>0,counter=state.counterWindow>0;
+          const damage=Math.max(2,Math.round((power[type]+(counter?9:0))*(guarded?.32:1)));
           state.enemyHealth=Math.max(0,state.enemyHealth-damage);
           state.damageDealt+=damage;state.hits++;state.combo++;
-          state.enemyStun={Light:.18,Heavy:.36,Kick:.42}[state.attackType];
-          state.enemyWindup=0;
-          fighter.position.x+=dx/directionLen*(state.attackType==='Light'?.3:.75);
-          fighter.position.z+=dz/directionLen*(state.attackType==='Light'?.3:.75);
+          state.enemyStun=stumble[type]+(counter?.16:0);
+          state.enemyWindup=0;state.impactPause=.055;state.counterWindow=0;
+          const push=type==='Light'?.18:type==='Cross'?.25:.52;
+          fighter.position.x+=dx/directionLen*push;
+          fighter.position.z+=dz/directionLen*push;
           effect(new THREE.Vector3(fighter.position.x,2.8,fighter.position.z),damage);
-          announce(guarded?'BLOCKED · '+damage:'HIT '+damage+' · COMBO '+state.combo,.85);
-          if(state.enemyHealth===0){
-            state.wins++;state.spawnTimer=2.4;announce('K.O.! · ROUND WON',2.2);
-          }
-        }else{state.combo=0;announce('WHIFF · GET CLOSER',.7);}
+          announce((guarded?'BLOCKED':counter?'COUNTER HIT':'HIT')+' '+damage+' · CHAIN '+state.combo,.75);
+          if(state.enemyHealth===0){state.wins++;state.spawnTimer=2.4;announce('K.O.! · ROUND WON',2.2);}
+        }else if(state.enemyEvade>0) {
+          announce('RIVAL EVADED · TRACK THEIR STEP',.7);state.combo=0;
+        }else{state.combo=0;announce('WHIFF · GET CLOSER',.65);}
       }
-      if(state.attackTime<=0)state.attackType=null;
+      // Move the collider through a real, short lateral evade, not just a pose.
+      if(['Dodge','Slip'].includes(type)){
+        const shift=dtSafe*(type==='Slip'?8.0:10.6);
+        player.position.x+=dz/directionLen*state.evadeDir*shift;
+        player.position.z-=dx/directionLen*state.evadeDir*shift;
+        const radius=Math.hypot(player.position.x,player.position.z);
+        if(radius>20){player.position.x*=20/radius;player.position.z*=20/radius;}
+      }
+      if(state.attackTime<=0){
+        state.attackType=null;
+        if(state.buffered){
+          const buffered=state.buffered;state.buffered=null;state.cooldown=0;
+          beginAttack(buffered);
+        }
+      }
     }
     if(state.enemyHealth===0){
       state.spawnTimer-=dtSafe;
@@ -401,16 +422,23 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
         }
         state.enemyAttack-=dtSafe;
         if(state.enemyAttack<=0&&distance<4.2){
-          state.enemyAttack=1.5+Math.random()*.65-Math.min(.35,state.round*.025);
-          state.enemyWindup=.42;announce('INCOMING STRIKE · GUARD OR DODGE',.5);
-          state.enemyGuard=.20;
+          state.enemyAttack=1.18+Math.random()*.65-Math.min(.30,state.round*.02);
+          state.enemyWindup=.36;announce('INCOMING · SLIP OR GUARD',.43);
+          state.enemyGuard=.13;
         }
         if(state.enemyWindup>0){
           state.enemyWindup-=dtSafe;
           if(state.enemyWindup<=0&&distance<4.5){
-            if(state.dodgeTimer>.04){announce('PERFECT EVADE',.8);}
-            else{
+            if(state.dodgeTimer>.04){
+              announce('PERFECT EVADE · COUNTER NOW',.8);
+              state.counterWindow=.55;
+            }else{
               const blocked=state.guard&&state.stamina>3;
+              if(blocked&&state.guardAge<.32){
+                state.counterWindow=.58;
+                announce('PERFECT PARRY · COUNTER NOW',.8);
+                state.enemyStun=.36;
+              }
               const damage=blocked?2:8+Math.min(12,state.round*2);
               state.health=Math.max(0,state.health-damage);
               state.enemyHits++;state.combo=0;
@@ -427,7 +455,8 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     if(rivalMixer){
       let next='Ready';
       if(state.enemyHealth<=0||state.enemyStun>0)next='Hit';
-      else if(state.enemyWindup>0)next='Light';
+      else if(state.enemyEvade>0)next='Slip';
+      else if(state.enemyWindup>0)next='Cross';
       else if(distance>3.45)next='Walk';
       if(next!==rivalState){
         rivalActions[rivalState]?.fadeOut(.15);
