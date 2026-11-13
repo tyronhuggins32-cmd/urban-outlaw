@@ -17,7 +17,7 @@ While the regular main game is unchanged, the sandbox includes:
 
 ## How it is tested
 
-The GitHub workflow [V5 Character in Game (Isolated Playtest)](../../.github/workflows/v5-game-playtest.yml) installs Blender, generates the actual shirt GLB, and copies it temporarily to `assets/candidates/v5-shirt-candidate.glb`. It then checks mesh/UV/skin structure, the original face and wrapped outfit, boots the **real Three.js browser game**, and captures front/side/back and combat movement screenshots. The generated model exists only inside the workflow workspace and as a **NOT APPROVED** artifact. It is not committed to `main` or deployed as a public game update.
+The GitHub workflow [V5 Character in Game (Isolated Playtest)](../.github/workflows/v5-game-playtest.yml) installs Blender, generates the actual shirt GLB, and copies it temporarily to `assets/candidates/v5-shirt-candidate.glb`. It then checks mesh/UV/skin structure, the original face and wrapped outfit, boots the **real Three.js browser game**, and captures front/side/back and combat movement screenshots. The generated model exists only inside the workflow workspace and as a **NOT APPROVED** artifact. It is not committed to `main` or deployed as a public game update.
 
 ```bash
 # Repeat the playtest from this branch in a Blender-equipped environment:
