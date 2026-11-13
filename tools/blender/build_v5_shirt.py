@@ -87,13 +87,13 @@ def texture(filename,crest=False,base=(16,25,59)):
         # The atlas's v coordinate increases with physical shirt height.
         xc,yc=int(dim*.25),int(dim*.65)
         dx=X-xc;dy=Y-yc
-        rx,ry=92,190
+        rx,ry=59,190
         circle=(dx/rx)**2+(dy/ry)**2<=1
         red=circle&(dy>=0)&(dy<=ry)
         bowl=(dx/rx)**2+(dy/138)**2<=1
         white=bowl&(dy<0)&(dy>=-115)
-        outline=(np.abs(dx)<rx)&(np.abs(dy)<=6)
-        handle=(np.abs(dx)<10)&(dy>=-177)&(dy<=-110)
+        outline=(np.abs(dx)<rx)&(np.abs(dy)<=4)
+        handle=(np.abs(dx)<7)&(dy>=-177)&(dy<=-110)
         rgb[red,:3]=[.68,.28,.34]
         rgb[white,:3]=[.94,.92,.90]
         rgb[outline,:3]=[.15,.19,.31]
