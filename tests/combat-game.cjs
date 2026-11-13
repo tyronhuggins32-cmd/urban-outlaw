@@ -31,16 +31,16 @@ const {chromium}=require('playwright');
  await page.screenshot({path:'urban-combat-outfit-mobile.png'});
  // Approach opponent in facing direction; check real timed hit/damage.
  await page.keyboard.down('w');
- await page.waitForTimeout(880);
+ await page.waitForFunction(()=>Number(document.getElementById('game')?.dataset.combatEnemyDistance)<3.4,null,{timeout:7500});
  await page.keyboard.up('w');
  console.log('FIGHT APPROACH',JSON.stringify(await page.locator('#game').evaluate(el=>({...el.dataset}))));
  for(let attempt=0;attempt<5;attempt++){
   await page.locator('#attackLight').dispatchEvent('pointerdown',{pointerType:'touch'});
-  await page.waitForTimeout(440);
+  await page.waitForTimeout(980);
   const hp=Number(await page.locator('#game').getAttribute('data-combat-enemy-health'));
   console.log('ATTACK RESULT',attempt,hp,JSON.stringify(await page.locator('#game').evaluate(el=>({action:el.dataset.combatLastAction,started:el.dataset.combatAttacksStarted,hits:el.dataset.combatHits,dist:el.dataset.combatEnemyDistance,player:el.dataset.combatPlayerPosition,enemy:el.dataset.combatEnemyPosition,message:el.dataset.combatMessage,anim:el.dataset.animation}))));
   if(hp<start.enemy)break;
-  if(attempt<4){await page.keyboard.down('w');await page.waitForTimeout(135);await page.keyboard.up('w');}
+  if(attempt<4 && Number(await page.locator('#game').getAttribute('data-combat-enemy-distance'))>3.8){await page.keyboard.down('w');await page.waitForTimeout(140);await page.keyboard.up('w');}
  }
  const enemyHP=Number(await page.locator('#game').getAttribute('data-combat-enemy-health'));
  if(!(enemyHP<start.enemy))throw Error('Attack input did not deal any real damage to opponent');
