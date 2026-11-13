@@ -453,6 +453,19 @@
           const headSculpt=cleanLegacyCharacterHead(THREE,imported,await cleanupResponse.json());
           const standaloneHair=await new GLTFLoader().loadAsync('./assets/reference-sculpt-hair-v10.glb?v=11');
           const approvedHair=installDetachableHair(THREE,imported,standaloneHair.scene);
+          // The full V5 garment rig leaves too little face visible between
+          // the plated forehead and high collar. Lift the entire head joint
+          // (including the already-attached hair) slightly, never a detached
+          // texture or guessed separate hair cap. Sandbox only.
+          let prototypeHeadLift=0;
+          if(prototypeMode){
+            const heads=[];
+            imported.traverse(o=>{if(o.isBone&&o.name.toLowerCase().replace(/[^a-z]/g,'').endsWith('head'))heads.push(o)});
+            if(heads.length!==1)throw Error('V5 face adjustment needs one skull joint');
+            prototypeHeadLift=.052;
+            heads[0].position.y+=prototypeHeadLift;
+            heads[0].updateMatrixWorld(true);
+          }
           const clipNames = rig.clips.map(clip=>clip.name);
           if (clipNames.join(',') !== 'Idle,Walk,Run,Jump,Land') throw new Error('Missing humanoid animation clips');
           let meshCount = 0, triangleCount = 0, skinnedMeshes = 0;
@@ -553,6 +566,7 @@
             data.prototypeTriangles=String(v5Proof.triangles);
             data.prototypeRestoredFace=String(v5Proof.originalBody.vertices);
             data.prototypeRetargetedBoneIndices=String(v5Proof.originalBody.remappedBones);
+            data.prototypeHeadLift=prototypeHeadLift.toFixed(3);
           }
           data.hairLocks='0'; // No extra procedural hair or double headband.
           data.hairDrawGroups='0'; // Only standalone GLB has hair meshes.
