@@ -1,15 +1,14 @@
 # Urban Outlaw
 
-**Build 6.3: Ninja Duel (playable arena fighter).** A real 44-bone skinned ninja wearing a navy combat tunic, high collar, forearm and shin wraps, sandals and thigh pouch. The source continuous sculpted hair is adjusted backward without adding random duplicate spikes. A second independently skinned rival with its own animation mixer fights back.
+**Build 7.2: V5 Outfit + Fluid Martial Arts.** The playable ninja's dark navy shirt and light-gray shorts are built as continuous, multi-joint skinned fabric meshes based on the provided V5 reference, not as mannequin boxes. High collar, fabric shoulders, loose sleeves, softly folded shirt hem, knee-length shorts with fitted hip shell, pant-leg seams, thigh straps, forearm/shin wraps, sandals and 3D red-and-white Uchiha fan crest are included. The original detachable source-sculpt hair and 44-bone body remain in use.
 
-The 3D courtyard now supports directional punches, heavy strikes, kicks, guard damage reduction, evasive dodges, stamina, enemy AI, knockout rounds and health bars. These are real, timed hit events against a moving opponent, not automated text prompts.
+**Combat overhaul inspired by the user's movement reference video:** The second detailed ninja still fights back in a 3D arena. The combat clips are now full-body, timed 30-joint animation curves featuring a fast lead jab, follow-up cross, hook, roundhouse, low sweep, shoulder slip, lateral evade, guard, parry, and hit recovery. Input buffering lets fast successive attacks become combos rather than being discarded. Attacks include real short lunges; dodges shift the player collider laterally; well-timed defense enables counters. Contact is driven by actual attack windows, facing, distance and stamina, not a visual effect alone.
 
-**Controls**
-- Keyboard: WASD movement, **J** punch, **K** heavy, **I** kick, **L** hold guard, **Q** dodge, Space jump, Shift sprint or R toggle ninja run.
-- Touch: joystick, PUNCH, HEAVY, KICK, GUARD (hold), DODGE, JUMP and toggle NINJA RUN.
-- PS5/DualSense: left stick movement, Square punch, Triangle heavy, L1 kick, Circle dodge, L2 guard, Cross jump and R2 sprint.
+**Controls:** Keyboard WASD movement; **J** quick jab/cross, **K** heavy strike, **I** kick, **L** hold guard, **Q** dodge/slip, Space jump, Shift sprint or R toggle. iPhone has movement joystick and attack/guard/dodge buttons. DualSense uses left stick, Square punch, Triangle heavy, Circle dodge, L1 kick, L2 guard and Cross jump.
 
-The full 3D outfit uses a skinned shirt from the existing body's weighted topology. The original 3D face/hair sculpt remains the base. This is a substantial playable model-and-combat upgrade, **not a claim of perfect one-to-one reconstruction of a 2D reference**. Visual refinements can continue without replacing the fight engine.
+The code passes automated checks for skinning, animation quaternion continuity, foot/knee motion, and real AI combat. The new costume is a reference-driven approximation, **not yet a perfect 1:1 scan or professionally hand-sculpted clothing mesh**. Future detail work can refine stitching, material textures and facial proportions without rewriting gameplay.
+
+[Play Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/) | [View character review mode](https://tyronhuggins32-cmd.github.io/urban-outlaw/?review=1)
 
 ## Previous character reconstruction history
 
