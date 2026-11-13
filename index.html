@@ -367,6 +367,7 @@
         let opponentVisual = null;
         let enemyWalkData = null;
         let enemyClipFactory = null;
+        let fluidClipFactory = null;
         let walkSpeed = 3.2;
         let animationActions = {};
         let activeAnimation = '';
@@ -375,7 +376,7 @@
           if (!animationMixer || activeAnimation === state || !animationActions[state]) return;
           const oldAction = animationActions[activeAnimation];
           const combatAction=['Ready','Light','Cross','Heavy','Kick','Sweep','Guard','Dodge','Slip','Parry','Hit'].includes(state);
-          const blend=combatAction || ['Light','Heavy','Kick','Guard','Dodge','Hit'].includes(activeAnimation) ? .095 : state === 'Jump' || state === 'Land' ? .09 : .24;
+          const blend=combatAction || ['Ready','Light','Cross','Heavy','Kick','Sweep','Guard','Dodge','Slip','Parry','Hit'].includes(activeAnimation) ? .095 : state === 'Jump' || state === 'Land' ? .09 : .24;
           if (oldAction) oldAction.fadeOut(blend);
           const nextAction = animationActions[state];
           nextAction.reset().setEffectiveWeight(1).setEffectiveTimeScale(1);
@@ -395,9 +396,10 @@
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
           const {fitCombatWardrobe} = await import('./scripts/combat-wardrobe.js?v=5');
           const {tailorNinjaClothes} = await import('./scripts/combat-outfit-v2.js?v=1');
-          const {createFluidCombatClips} = await import('./scripts/fluid-combat-clips.js?v=1');
+          const {createFluidCombatClips} = await import('./scripts/fluid-combat-clips.js?v=2');
+          fluidClipFactory=createFluidCombatClips;
           const {refineCombatHair} = await import('./scripts/combat-hair.js?v=3');
-          const {createCombatClips} = await import('./scripts/arena-combat.js?v=3');
+          const {createCombatClips} = await import('./scripts/arena-combat.js?v=4');
           const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=11');
           const { attachSeamPatches } = await import('./scripts/cloth-seam-patches.js?v=2');
           const { cleanLegacyCharacterHead } = await import('./scripts/clean-head-v5.js?v=4');
@@ -584,9 +586,9 @@
           document.getElementById('game').appendChild(warning);
         }
         if(!reviewMode) {
-          const {createCombatArena,createCombatSystem}=await import('./scripts/arena-combat.js?v=3');
+          const {createCombatArena,createCombatSystem}=await import('./scripts/arena-combat.js?v=4');
           createCombatArena(THREE,scene);
-          combat=createCombatSystem(THREE,scene,player,opponentVisual,{walkData:enemyWalkData,createReferenceClips:enemyClipFactory,createCombatClips:createFluidCombatClips});
+          combat=createCombatSystem(THREE,scene,player,opponentVisual,{walkData:enemyWalkData,createReferenceClips:enemyClipFactory,createCombatClips:fluidClipFactory});
           document.getElementById('game').dataset.combatEngine='arena-v1';
         }
         function updateFallbackView(orbit, facing, moving) {
