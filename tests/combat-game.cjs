@@ -47,6 +47,18 @@ const {chromium}=require('playwright');
  const enemyHP=Number(await page.locator('#game').getAttribute('data-combat-enemy-health'));
  if(!(enemyHP<start.enemy))throw Error('Attack input did not deal any real damage to opponent');
  await page.screenshot({path:'urban-combat-hit.png'});
+ // Rapid repeated strikes must QUEUE fluid follow-ups, not disappear mid-swing.
+ const beforeChains=Number(await page.locator('#game').getAttribute('data-combat-attacks-started'));
+ await page.locator('#attackLight').dispatchEvent('pointerdown',{pointerType:'touch'});
+ await page.waitForTimeout(85);
+ await page.locator('#attackLight').dispatchEvent('pointerdown',{pointerType:'touch'});
+ await page.waitForFunction(before=>Number(document.getElementById('game')?.dataset.combatAttacksStarted)>=before+2,
+   beforeChains,{timeout:8000});
+ const chainHistory=await page.locator('#game').getAttribute('data-combat-chain-history');
+ if(!chainHistory.includes('Cross'))
+   throw new Error('Rapid jab-to-cross did not alternate attack animation: '+chainHistory);
+ console.log('FLUID COMBO VERIFIED',chainHistory);
+ await page.screenshot({path:'urban-combat-combo.png'});
  // Block must play a combat animation, then release cleanly.
  await page.locator('#attackGuard').dispatchEvent('pointerdown',{pointerType:'touch'});
  await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='guard',null,{timeout:3500});
