@@ -36,7 +36,11 @@ const fs=require('node:fs'),path=require('node:path'),{pathToFileURL}=require('n
    }
  }
  const action=(name)=>clips.find(c=>c.name===name);
- const find=(name,term)=>action(name).tracks.find(t=>t.name.includes(term+'.quaternion'));
+ const find=(name,term)=>{
+   let joint=null;
+   root.traverse(o=>{if(o.isBone&&o.name.toLowerCase().endsWith(term.toLowerCase()))joint=o});
+   return joint?{...action(name).tracks.find(t=>t.name===joint.uuid+'.quaternion')}:null;
+ };
  const left=find('Light','LeftArm'),crossLeft=find('Cross','LeftArm');
  const right=find('Light','RightArm'),crossRight=find('Cross','RightArm');
  assert(left&&right&&crossLeft&&crossRight,'Missing alternating punch shoulder tracks');
