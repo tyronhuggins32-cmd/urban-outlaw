@@ -220,6 +220,14 @@ export function createCombatSystem(THREE,scene,player) {
     document.getElementById('game').dataset.combatEnemyHealth=String(Math.round(state.enemyHealth));
     document.getElementById('game').dataset.combatRound=String(state.round);
     document.getElementById('game').dataset.combatAttack=state.attackType||'none';
+    const data=document.getElementById('game').dataset;
+    data.combatLastAction=state.lastAction||'none';
+    data.combatAttacksStarted=String(state.attacksStarted);
+    data.combatHits=String(state.hits);
+    data.combatEnemyDistance=vec(player,fighter).toFixed(2);
+    data.combatPlayerPosition=player.position.x.toFixed(2)+','+player.position.z.toFixed(2);
+    data.combatEnemyPosition=fighter.position.x.toFixed(2)+','+fighter.position.z.toFixed(2);
+    data.combatMessage=state.message;
   }
   function queue(type) {
     if(type==='GuardOn'){state.guard=true;return true;}
@@ -234,6 +242,7 @@ export function createCombatSystem(THREE,scene,player) {
     state.hitApplied=false;
     state.cooldown={Light:.12,Heavy:.18,Kick:.25,Dodge:.08}[type];
     state.attacksStarted++;
+    state.lastAction=type;
     if(type==='Dodge')state.dodgeTimer=.44;
     announce(type==='Dodge'?'EVADE!':type==='Light'?'QUICK STRIKE':type==='Heavy'?'POWER STRIKE':'ROUNDHOUSE',.45);
     return true;
