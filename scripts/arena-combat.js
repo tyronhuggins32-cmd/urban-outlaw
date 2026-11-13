@@ -205,10 +205,10 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     for(const child of [...fighter.children])fighter.remove(child);
     fighter.add(opponentVisual);
     const rivalRig=enemyMotion.createReferenceClips(THREE,opponentVisual,enemyMotion.walkData);
-    const clips=[...rivalRig.clips,...createCombatClips(THREE,opponentVisual)];
+    const clips=[...rivalRig.clips,...(enemyMotion.createCombatClips||createCombatClips)(THREE,opponentVisual)];
     rivalMixer=new THREE.AnimationMixer(opponentVisual);
     rivalActions=Object.fromEntries(clips.map(clip=>[clip.name,rivalMixer.clipAction(clip)]));
-    for(const name of ['Light','Heavy','Kick','Dodge','Hit']){
+    for(const name of ['Light','Cross','Heavy','Kick','Sweep','Dodge','Slip','Parry','Hit']){
       rivalActions[name].setLoop(THREE.LoopOnce,1);
     }
     rivalActions.Ready.play();rivalState='Ready';
@@ -218,11 +218,19 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     round:1,combo:0,wins:0,guard:false,active:false,cooldown:0,attackTime:0,attackType:null,hitApplied:false,
     dodgeTimer:0,stagger:0,enemyAttack:0,enemyWindup:0,enemyStun:0,enemyGuard:0,
     spawnTimer:0,messageTimer:0,message:'MOVE INTO RANGE · START THE FIGHT',
-    enemySide:1,hits:0,damageDealt:0,defeated:false,attacksStarted:0,enemyHits:0};
+    enemySide:1,hits:0,damageDealt:0,defeated:false,attacksStarted:0,enemyHits:0,
+    buffered:null,comboStep:0,comboTimer:0,attackLength:0,
+    evadeDir:1,counterWindow:0,guardAge:0,impactPause:0,enemyEvade:0};
   fighter.position.set(2.0,0,7.8);
   const vec=(a,b)=>Math.hypot(a.position.x-b.position.x,a.position.z-b.position.z);
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const events=[];const available=['Light','Heavy','Kick','Dodge'];
+  const events=[];const available=['Light','Heavy','Kick','Dodge','Sweep','Slip','Parry'];
+  const duration={Light:.30,Cross:.32,Heavy:.49,Kick:.55,Sweep:.52,Dodge:.36,Slip:.34,Parry:.33};
+  const staminaCost={Light:7,Cross:9,Heavy:18,Kick:19,Sweep:22,Dodge:15,Slip:13,Parry:9};
+  const contactFrame={Light:.12,Cross:.14,Heavy:.23,Kick:.24,Sweep:.25,Parry:.14};
+  const range={Light:4.3,Cross:4.45,Heavy:4.55,Kick:4.75,Sweep:4.4,Parry:4.2};
+  const power={Light:11,Cross:14,Heavy:19,Kick:22,Sweep:16,Parry:10};
+  const stumble={Light:.14,Cross:.20,Heavy:.28,Kick:.36,Sweep:.40,Parry:.45};
   const impactMaterial=new THREE.MeshBasicMaterial({color:0xffda76,transparent:true,opacity:.95,depthWrite:false});
   const fx=[];
   function effect(position,power) {
@@ -256,23 +264,53 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     data.combatEnemyPosition=fighter.position.x.toFixed(2)+','+fighter.position.z.toFixed(2);
     data.combatMessage=state.message;
   }
-  function queue(type) {
-    if(type==='GuardOn'){state.guard=true;return true;}
-    if(type==='GuardOff'){state.guard=false;return true;}
-    if(!state.active||state.health<=0||state.enemyHealth<=0||state.stagger>0)return false;
-    if(!available.includes(type))return false;
-    if(state.cooldown>0||state.attackTime>0)return false;
-    const staminaCost={Light:8,Heavy:20,Kick:24,Dodge:18}[type];
-    if(state.stamina<staminaCost){announce('NOT ENOUGH STAMINA',.65);return false;}
-    state.stamina-=staminaCost;
-    state.attackType=type;state.attackTime={Light:.35,Heavy:.58,Kick:.64,Dodge:.42}[type];
-    state.hitApplied=false;
-    state.cooldown={Light:.12,Heavy:.18,Kick:.25,Dodge:.08}[type];
+  function beginAttack(request) {
+    const type=request==='Light'?(state.comboStep%2?'Cross':'Light'):
+      request==='Dodge' && state.enemyWindup>.01&&state.enemyWindup<.38?'Slip':
+      request==='Heavy' && state.comboStep>=3?'Sweep':request;
+    const cost=staminaCost[type];
+    if(!duration[type]||state.stamina<cost){
+      announce('NOT ENOUGH STAMINA',.55);return false;
+    }
+    state.stamina-=cost;
+    state.attackType=type;
+    state.attackTime=duration[type];state.attackLength=duration[type];
+    state.hitApplied=false;state.buffered=null;
+    state.cooldown=.05;
     state.attacksStarted++;
     state.lastAction=type;
-    if(type==='Dodge')state.dodgeTimer=.44;
-    announce(type==='Dodge'?'EVADE!':type==='Light'?'QUICK STRIKE':type==='Heavy'?'POWER STRIKE':'ROUNDHOUSE',.45);
+    if(!['Dodge','Slip'].includes(type)) {
+      state.comboStep++;state.comboTimer=1.10;
+    } else {
+      state.dodgeTimer=duration[type]+.04;
+      state.evadeDir=state.evadeDir===1?-1:1;
+    }
+    if(type==='Parry')state.counterWindow=.4;
+    announce(({Light:'LEAD JAB',Cross:'REAR CROSS',Heavy:'HOOK STRIKE',
+      Kick:'ROUNDHOUSE',Sweep:'LOW SWEEP',Dodge:'SIDE STEP',
+      Slip:'SHOULDER SLIP',Parry:'COUNTER!'}[type]||type),.38);
     return true;
+  }
+  function queue(type) {
+    if(type==='GuardOn'){
+      if(!state.guard)state.guardAge=0;
+      state.guard=true;return true;
+    }
+    if(type==='GuardOff'){state.guard=false;state.guardAge=0;return true;}
+    if(!state.active||state.health<=0||state.enemyHealth<=0||state.stagger>0)return false;
+    if(!available.includes(type))return false;
+    // A queued next strike starts as the current strike recovers, preserving a
+    // full jab/cross/kick string with no forced idle pose between inputs.
+    if(state.attackTime>0){
+      if(state.attackTime<.23 && !['Dodge','Slip'].includes(type)){
+        state.buffered=type;return true;
+      }
+      if(['Dodge','Slip'].includes(type)&&state.attackTime<.12){
+        state.attackTime=0;state.attackType=null;state.cooldown=0;
+      }else return false;
+    }
+    if(state.cooldown>.04)return false;
+    return beginAttack(type);
   }
   function begin(){state.active=true;hud.hidden=false;announce('DEFEAT THE SHADOW RIVAL',2);ui();}
   function pause(){state.active=false;state.guard=false;}
