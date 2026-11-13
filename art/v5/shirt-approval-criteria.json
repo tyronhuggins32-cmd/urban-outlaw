@@ -1,0 +1,218 @@
+{
+  "schema_version": "2.0",
+  "title": "V5 Ninja Shirt: Reference-locked Visual Approval Standard",
+  "release_rule": "ALL_BLOCKERS_PASS_OR_DO_NOT_DEPLOY",
+  "target": "Exact front and back shirt match using user's two final close-up screenshots; full V5 sheet still governs entire character.",
+  "reference": {
+    "front": {
+      "filename": "8EB7F32A-3C38-4E2A-83DD-613F58905D5F.jpeg",
+      "sha256": "c67b969ccb0ff5fd8f5c0f58d5babaf2ec3863abff3e59049687d1c25b4a0c38",
+      "width": 707,
+      "height": 1536,
+      "focus_region_px": [
+        23,
+        633,
+        689,
+        1329
+      ],
+      "render_view": "shirt_front.png"
+    },
+    "back": {
+      "filename": "BBD3AE08-92F5-42D3-9D0B-E9F497578130.jpeg",
+      "sha256": "742ebc9e02210ecc739dfdfad10d6324fd40d0be2424a4a06ea6a8e9cfa20de7",
+      "width": 707,
+      "height": 1536,
+      "focus_region_px": [
+        21,
+        605,
+        689,
+        1331
+      ],
+      "render_view": "shirt_back.png"
+    }
+  },
+  "proofs_required": [
+    "shirt_front.png",
+    "shirt_back.png",
+    "shirt_right_side.png",
+    "shirt_three_quarter.png",
+    "shirt_combat_guard.png",
+    "shirt_combat_jab.png"
+  ],
+  "rules": [
+    {
+      "id": "F01",
+      "view": "front",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "High, soft standing collar, folded at throat, below mouth; clean non-tubular opening.",
+      "reject_if": "Hard ring, face obstruction, missing fold."
+    },
+    {
+      "id": "F02",
+      "view": "front",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Rounded natural shoulder slope flows continuously into both short sleeves.",
+      "reject_if": "Square shoulder armor, raised sleeve roots, disconnected seams."
+    },
+    {
+      "id": "F03",
+      "view": "front",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Short relaxed sleeves match reference length and slight flare; hems visible above elbows.",
+      "reject_if": "Sleeves too short/long, flared triangular wings, floating cuffs."
+    },
+    {
+      "id": "F04",
+      "view": "front",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Relaxed navy cotton torso: gently tapered at waist, not straight barrel or rigid rectangular slab.",
+      "reject_if": "Flat boxy silhouette or overly tight athletic shirt."
+    },
+    {
+      "id": "F05",
+      "view": "front",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "At least three naturally asymmetric folds above gathered waistband, with plausible shaded depth.",
+      "reject_if": "Featureless straight torso, printed-only crease stripes, sharp polygon creases."
+    },
+    {
+      "id": "F06",
+      "view": "front",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Hem has folded-over edge and softly gathered volume, overlaps gray shorts waistband naturally.",
+      "reject_if": "Waist gap, floating shelf, abrupt horizontal cut, shorts clipping."
+    },
+    {
+      "id": "F07",
+      "view": "front",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Fabric is dark muted navy with subtle knit texture, rough cotton finish.",
+      "reject_if": "Saturated metallic blue, gloss, flat uniform plastic or obvious texture repeats."
+    },
+    {
+      "id": "F08",
+      "view": "front",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Unbroken plain navy front; no fan crest, graphic or pink texture bleed.",
+      "reject_if": "Front artwork, red streaks, atlas seams or unrequested decoration."
+    },
+    {
+      "id": "B01",
+      "view": "back",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Standing collar curves around the neck at correct width, no overlap with tied hair.",
+      "reject_if": "Wide hard blue pipe, collar/hair intersections."
+    },
+    {
+      "id": "B02",
+      "view": "back",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Full Uchiha fan, red rounded upper cap, white shallow lower bowl, straight centered white handle, dark clean divider.",
+      "reject_if": "Egg/oval logo, ellipse, missing bowl, stretched handle, angular pieces."
+    },
+    {
+      "id": "B03",
+      "view": "back",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Fan center aligns with spine, sits between shoulder blades and occupies about one-third of shirt width (visual range 0.33–0.42).",
+      "reject_if": "Off-center, too small/large or vertically displaced crest."
+    },
+    {
+      "id": "B04",
+      "view": "back",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Smooth shoulders and relaxed sleeves repeat front proportions; hem and seam flow remain symmetric.",
+      "reject_if": "Wings, hard flat caps, mismatched sleeve lengths."
+    },
+    {
+      "id": "B05",
+      "view": "back",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Subtle fabric folds gather in lower back and hem; natural cotton shading.",
+      "reject_if": "Flat rigid panel or bulging cylindrical lower back."
+    },
+    {
+      "id": "B06",
+      "view": "back",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Logo is flush on deforming fabric, not a floating badge; warps naturally with cloth.",
+      "reject_if": "Floating crest, severe distortion, texture seam through symbol."
+    },
+    {
+      "id": "D01",
+      "view": "guard,jab",
+      "priority": "BLOCKER",
+      "kind": "both",
+      "criterion": "No exposed shoulder skin, disconnected sleeve islands, or armhole spikes in guard and jab.",
+      "reject_if": "Any shoulder hole or floating sleeve root."
+    },
+    {
+      "id": "D02",
+      "view": "guard,jab",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "Fabric sleeves follow upper arm without implausible torsion or collapse when attacking.",
+      "reject_if": "Twisted cuff, imploding shoulder, sleeve piercing arm."
+    },
+    {
+      "id": "D03",
+      "view": "all",
+      "priority": "BLOCKER",
+      "kind": "technical",
+      "criterion": "All garment vertices properly weighted to original 44-bone skeleton, continuous torso-and-sleeves mesh and valid normals/UVs.",
+      "reject_if": "Detached mesh island, unweighted vertices, wrong bind pose."
+    },
+    {
+      "id": "D04",
+      "view": "run,kick,cross,dodge",
+      "priority": "BLOCKER",
+      "kind": "visual",
+      "criterion": "New garment still maintains silhouette and no clipping through representative movement frames.",
+      "reject_if": "Waist detachment, clipping into body/hands, shirt rigid in movement."
+    },
+    {
+      "id": "P01",
+      "view": "all",
+      "priority": "BLOCKER",
+      "kind": "policy",
+      "criterion": "Candidate reviewed in matched front/back/side/3-4 framing and all required animation proofs before any merge.",
+      "reject_if": "Only source code, rig metrics or idle portrait were checked."
+    },
+    {
+      "id": "P02",
+      "view": "all",
+      "priority": "BLOCKER",
+      "kind": "policy",
+      "criterion": "Main branch is untouched until the actual candidate hash is signed off and every listed blocker passes.",
+      "reject_if": "Unreviewed or stale model promoted."
+    }
+  ],
+  "approval_requirements": {
+    "required_outcomes": [
+      "PASS"
+    ],
+    "all_criteria_mandatory": true,
+    "evidence_for_each": true,
+    "reviewer_identity_required": true,
+    "candidate_sha256_required": true,
+    "reference_sha256_required": true,
+    "cannot_approve_with_open_defects": true,
+    "shader_color_is_not_sufficient_for_shape": true,
+    "automated_geometry_tests_are_necessary_not_sufficient": true,
+    "live_game_unchanged_while_rejected": true
+  }
+}
