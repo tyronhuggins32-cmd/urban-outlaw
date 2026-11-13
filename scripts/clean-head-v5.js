@@ -1,7 +1,7 @@
 /** Remove only texture-classified obsolete hair. Preserve the face, ears, UVs,
  * normals, skin weights and the existing metal forehead plate. */
 export function cleanLegacyCharacterHead(THREE,root,cleanup){
- let skin,head;root.traverse(o=>{if(o.isSkinnedMesh&&!skin)skin=o;if(o.isBone&&/head$/i.test(o.name))head=o});
+ let skin,head;root.traverse(o=>{if(o.isSkinnedMesh&&!/^v5_shirt_/i.test(o.name)&&!skin)skin=o;if(o.isBone&&/head$/i.test(o.name))head=o});
  if(!skin||!head||cleanup?.version!==1)throw new Error('Head cleanup data missing');
  if(skin.userData.hairCleanup)return skin.userData.hairCleanup;
  const g=skin.geometry,p=g.attributes.position,idx=g.index;
