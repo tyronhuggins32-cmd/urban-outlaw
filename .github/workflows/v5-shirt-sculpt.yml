@@ -21,14 +21,14 @@ jobs:
       - name: Install modeling renderer
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq blender
+          sudo apt-get install -y -qq blender python3-numpy
       - name: Inspect original rig shape and bone positions
-        run: blender -b -t 2 --python tools/blender/v5_shirt_diagnostic.py
+        run: PYTHONPATH=/usr/lib/python3/dist-packages blender -b -t 2 --python tools/blender/v5_shirt_diagnostic.py
       - name: Build new shirt candidate
         if: hashFiles('tools/blender/build_v5_shirt.py') != ''
         run: |
           mkdir -p art/v5/generated
-          blender -b -t 2 --python tools/blender/build_v5_shirt.py
+          PYTHONPATH=/usr/lib/python3/dist-packages blender -b -t 2 --python tools/blender/build_v5_shirt.py
       - name: Save shirt candidate and render previews
         if: always()
         uses: actions/upload-artifact@v4
