@@ -370,20 +370,45 @@ for name,ang in [('front',0),('right_side',90),('back',180),('three_quarter',38)
 # attached sleeve panels follow the same 44-bone skeleton.
 arm.pose.bones[N['LeftArm']].rotation_mode='XYZ'
 arm.pose.bones[N['RightArm']].rotation_mode='XYZ'
-for poseName,angles in [
-    ('guard',(.46,-.48)),
-    ('jab',(.70,-.11)),
+from bpy_extras.object_utils import world_to_camera_view
+proofs={}
+scene.frame_set(1)
+for poseName,left,right,spine,hips,leg in [
+    ('guard',.46,-.48,.08,0,0),
+    ('jab',.70,-.11,.10,0,0),
+    ('cross',-.13,.86,-.11,0,0),
+    ('kick',-.16,.15,-.10,0,.94),
+    ('dodge',-.40,-.39,.36,.14,0),
+    ('ninja_run',-.90,-.89,.34,0,.45),
 ]:
-    arm.pose.bones[N['LeftArm']].rotation_euler=(angles[0],0,-.12)
-    arm.pose.bones[N['RightArm']].rotation_euler=(angles[1],0,.12)
+    arm.pose.bones[N['LeftArm']].rotation_euler=(left,0,-.12)
+    arm.pose.bones[N['RightArm']].rotation_euler=(right,0,.12)
+    arm.pose.bones[N['Spine1']].rotation_mode='XYZ'
+    arm.pose.bones[N['Spine1']].rotation_euler=(spine,0,0)
+    arm.pose.bones[N['Hips']].rotation_mode='XYZ'
+    arm.pose.bones[N['Hips']].rotation_euler=(hips,0,0)
+    leg_name=next((b.name for b in arm.data.bones if b.name.lower().endswith('rightupleg')),None)
+    if leg_name:
+        arm.pose.bones[leg_name].rotation_mode='XYZ'
+        arm.pose.bones[leg_name].rotation_euler=(leg,0,0)
     bpy.context.view_layer.update()
     cam.location=Vector(pos(0,-2.3,1.08))
     cam.rotation_euler=(target-cam.location).to_track_quat('-Z','Y').to_euler()
     scene.render.filepath=str((OUT/('shirt_combat_'+poseName+'.png')).resolve())
+    shoulder_points={}
+    for side in ('Left','Right'):
+        joint=arm.pose.bones[N[side+'Arm']]
+        uv=world_to_camera_view(scene,cam,arm.matrix_world @ joint.head)
+        shoulder_points[side]=[round(uv.x*scene.render.resolution_x,2),
+                               round((1-uv.y)*scene.render.resolution_y,2)]
+    proofs[poseName]=shoulder_points
     bpy.ops.render.render(write_still=True)
-    print('V5_SHIRT_COMBAT_POSE',poseName,flush=True)
-arm.pose.bones[N['LeftArm']].rotation_euler=(0,0,0)
-arm.pose.bones[N['RightArm']].rotation_euler=(0,0,0)
+    print('V5_SHIRT_COMBAT_POSE',poseName,shoulder_points,flush=True)
+for bone in arm.pose.bones:
+    bone.rotation_mode='XYZ'
+    bone.rotation_euler=(0,0,0)
+with open(OUT/'pose-shoulder-points.json','w') as f:
+    json.dump(proofs,f,indent=2)
 
 with open(OUT/'shirt-stats.json','w') as f:
     json.dump({'status':'NOT APPROVED','garment_meshes':[o.name for o in garments],
