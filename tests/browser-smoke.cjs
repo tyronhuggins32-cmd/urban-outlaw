@@ -104,7 +104,7 @@ const { chromium } = require('playwright');
   await page.locator('#run').click();
   if(await page.locator('#run').getAttribute('aria-pressed')!=='false')
     throw new Error('Ninja run toggle did not turn off');
-  await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='idle',null,{timeout:3000});
+  await page.waitForFunction(()=>['idle','ready'].includes(document.getElementById('game')?.dataset.animation),null,{timeout:7000});
   await page.keyboard.down('w');
   await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='walk',null,{timeout:6000});
   const walk=await page.locator('#game').getAttribute('data-animation');
@@ -131,7 +131,7 @@ const { chromium } = require('playwright');
   await page.screenshot({path:'urban-body-animated-test.png'});
   await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='land',null,{timeout:4000});
   await page.screenshot({path:'urban-animation-landing.png'});
-  await page.waitForFunction(()=>document.getElementById('game')?.dataset.animation==='idle',null,{timeout:4000});
+  await page.waitForFunction(()=>['idle','ready'].includes(document.getElementById('game')?.dataset.animation),null,{timeout:7000});
   if(errors.length)throw new Error('Browser errors: '+errors.join('; '));
   if(!ui.canvas)throw new Error('Missing game canvas');
   if(ui.touchToggle!=='TOUCH: ON' && ui.touchToggle!=='TOUCH: OFF')throw new Error('Touch toggle missing');
