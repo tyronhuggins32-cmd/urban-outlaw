@@ -1,0 +1,25 @@
+name: V5 Outfit Art Approval (No Deployment)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - art/v5-garment-sculpt-gated
+    paths:
+      - 'art/v5/**'
+      - 'tools/blender/rig_v5_garments.py'
+      - 'scripts/import-sculpted-v5-outfit.js'
+      - 'tests/v5-approval-gate.cjs'
+      - '.github/workflows/v5-art-approval.yml'
+permissions:
+  contents: read
+jobs:
+  approve-source-art:
+    name: Block unapproved sculpt from release
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Blender source syntax
+        run: python3 -m py_compile tools/blender/rig_v5_garments.py
+      - name: Fail closed until 4-angle and combat pose art matches supplied v5 sheet
+        run: node tests/v5-approval-gate.cjs
