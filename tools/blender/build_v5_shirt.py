@@ -25,7 +25,7 @@ def bone(key):
     a=[value for name,value in bn.items() if name.endswith(key.lower())]
     if not a: raise RuntimeError('No skeleton joint '+key)
     return a[0]
-N={k:bone(k) for k in ['Hips','Spine','Spine1','Spine2','Neck','LeftArm','RightArm','LeftForeArm','RightForeArm']}
+N={k:bone(k) for k in ['Hips','Spine','Spine1','Spine2','Neck','LeftShoulder','RightShoulder','LeftArm','RightArm','LeftForeArm','RightForeArm']}
 print('V5_SHIRT_JOINTS',N,flush=True)
 def head(name):
     return arm.data.bones[N[name]].head_local.copy()
@@ -212,12 +212,22 @@ def torso_weights(t,u):
     z=mix(.763,1.242,t)
     if z<.92:
         f=smooth((z-.765)/.155)
-        return {'Hips':1-f*.6,'Spine':f*.6}
-    if z<1.08:
+        base={'Hips':1-f*.6,'Spine':f*.6}
+    elif z<1.08:
         f=smooth((z-.92)/.16)
-        return {'Spine':1-f,'Spine1':f}
-    f=smooth((z-1.08)/.162)
-    return {'Spine1':1-f,'Spine2':f}
+        base={'Spine':1-f,'Spine1':f}
+    else:
+        f=smooth((z-1.08)/.162)
+        base={'Spine1':1-f,'Spine2':f}
+    # The upper shoulder fabric should deform with the shoulder joint,
+    # rather than remaining pinned to the chest while the sleeve rotates.
+    lateral=math.cos(u*math.tau)
+    shoulder=.45*gauss(z,1.159,.050)*smooth((abs(lateral)-.36)/.54)
+    if shoulder>.001:
+        base={k:v*(1-shoulder) for k,v in base.items()}
+        side='LeftShoulder' if lateral>0 else 'RightShoulder'
+        base[side]=shoulder
+    return base
 body=mesh_surface('V5_Shirt_Body',84,112,torso,torso_weights,NAVY)
 
 # 3D collar is open at the face, slightly higher behind and gently folded.
@@ -261,7 +271,14 @@ def sleeve(side):
         center+=axisU*math.cos(theta)*(sleeveR+wrinkle)
         center+=axisV*math.sin(theta)*(.9*sleeveR+wrinkle*.5)
         return tuple(center)
-    weights=lambda t,u:{side+'Arm':1}
+    def weights(t,u):
+        # Bind root sleeve rings to chest/shoulder; gradually hand off skin
+        # weights toward the upper arm down the sleeve. The cuff remains free
+        # to follow the attacking limb without tearing its shoulder seam.
+        armShare=smooth(t/.45)
+        shoulderShare=(1-armShare)*.63
+        chestShare=(1-armShare)*.37
+        return {side+'Arm':armShare,side+'Shoulder':shoulderShare,'Spine2':chestShare}
     name='V5_Shirt_'+side+'Sleeve'
     sleeveObj=mesh_surface(name,25,64,sculpt,weights,PLAIN)
     def cuff(t,u):
