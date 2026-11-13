@@ -14,6 +14,18 @@ The source \`art/v5/source/clothes-sculpt.glb\` must contain seven named garment
 
 The importer \`scripts/import-sculpted-v5-outfit.js\` validates candidate mesh names, source skeleton bone names, bind poses, UV coordinates and normalized weights before mounting anything. It is review-only and never hides the main outfit or publishes a model.
 
+## Shirt-only working source (November 13, 2026)
+
+The user supplied separate front and back close-ups, `IMG_0286.jpeg` and `IMG_0287.jpeg`, to guide the shirt reconstruction. This is model work, not a request for an approval-sheet image.
+
+The experimental editable shirt is reproducibly built by `tools/blender/build_v5_shirt.py`. The latest GitHub Actions shirt-only run is [43422775023](https://github.com/tyronhuggins32-cmd/urban-outlaw/actions/runs/43422775023), whose artifact contains an editable `.blend` file, a rigged `.glb`, two garment fabric textures, and front/side/back and guard/jab diagnostic renders.
+
+**Technical check: PASSED.** Seven shirt meshes export with 44-joint skeletal skinning, UVs, normals, weights, two garment materials, and six test renders.
+
+**Visual match: FAILED.** The shoulder and sleeve join visibly pinches in combat guard and jab poses, with some skin exposure. The shirt still looks too flat and stiff compared with the close-up's smooth sewn shoulders and loose gathered fabric. The back fan and front cowl are improved, but the model does **not** pass the full V5 reference.
+
+The next geometry change must use a properly sewn one-piece shoulder-to-sleeve topology, not another stack of disconnected cap meshes or a release of this failed candidate. The branch remains isolated, and nothing has been promoted to `main`.
+
 ## Pass/fail standard
 
 A candidate needs orthographic *front, side, back and three-quarter* views matched to the reference at equal character height, along with *guard, jab, kick and ninja-run* deformation checks. The approval contract in \`art/v5/approval-contract.json\` records what each view needs to match. A correct skeleton is necessary but cannot substitute for an accurate shirt/shorts silhouette, details, color, fabric folds or crest.
