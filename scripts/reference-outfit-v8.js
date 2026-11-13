@@ -14,6 +14,46 @@ export function fitReferenceOutfit(THREE,root) {
        o.name!=='LooseGrayNinjaShorts_Skinned44' && !body)body=o;
   });
   if(!body||body.skeleton.bones.length<44)throw new Error('Reference clothing requires original 44-bone body');
+  // Cut ONLY the covered original undergarment polygons from the source
+  // skinned body, preserving all hands, exposed legs, neck and face. The legacy
+  // dark-gray shorts previously broke through the new light-gray waist in
+  // multiple sharp triangular artifacts.
+  const source=body.geometry,points=source.getAttribute('position');
+  const si=source.getAttribute('skinIndex'),sw=source.getAttribute('skinWeight');
+  const original=source.index?.array;
+  if(!original||!si||!sw)throw new Error('Reference outfit requires indexed, weighted body geometry');
+  const names=body.skeleton.bones.map(b=>b.name.toLowerCase());
+  function covered(i){
+    const y=points.getY(i),x=points.getX(i),z=points.getZ(i);
+    if(y<.445||y>.851||Math.abs(x)>.34||Math.abs(z)>.3)return false;
+    let weight=0;
+    for(let k=0;k<4;k++){
+      const name=names[si.getComponent(i,k)]||'';
+      if(/hips|upleg|spine/.test(name))weight+=sw.getComponent(i,k);
+    }
+    return weight>.55;
+  }
+  const cleanIndex=[],cleanGroups=[];
+  const groupSet=source.groups.length?source.groups:
+    [{start:0,count:original.length,materialIndex:0}];
+  for(const group of groupSet){
+    const before=cleanIndex.length;
+    for(let k=group.start;k<group.start+group.count;k+=3){
+      const a=original[k],b=original[k+1],c=original[k+2];
+      if(covered(a)&&covered(b)&&covered(c))continue;
+      cleanIndex.push(a,b,c);
+    }
+    const count=cleanIndex.length-before;
+    if(count)cleanGroups.push({start:before,count,materialIndex:group.materialIndex});
+  }
+  const removedUnderlayerTriangles=(original.length-cleanIndex.length)/3;
+  if(removedUnderlayerTriangles<200)throw new Error('Old shorts underlayer was not removed');
+  const unclipped=source.clone();
+  unclipped.setIndex(cleanIndex);
+  unclipped.clearGroups();
+  for(const g of cleanGroups)unclipped.addGroup(g.start,g.count,g.materialIndex);
+  body.geometry=unclipped;
+
   const skeleton=body.skeleton;
   const get=k=>skeleton.bones.findIndex(b=>b.name.toLowerCase().replace(/[^a-z0-9]/g,'').endsWith(k.toLowerCase()));
   const bi={
@@ -39,8 +79,8 @@ export function fitReferenceOutfit(THREE,root) {
   const profile=[
     // y, lateral half-width, front/back half-depth.
     [.795,.201,.145],[.850,.199,.140],[.915,.191,.134],
-    [1.010,.186,.131],[1.097,.196,.134],[1.160,.213,.137],
-    [1.207,.167,.115],[1.250,.108,.097]
+    [1.010,.186,.131],[1.097,.196,.134],[1.160,.213,.152],
+    [1.207,.183,.140],[1.250,.108,.097]
   ];
   function atHeight(y) {
     for(let i=1;i<profile.length;i++)if(y<=profile[i][0]){
@@ -261,6 +301,6 @@ export function fitReferenceOutfit(THREE,root) {
       legMeshes.reduce((sum,o)=>sum+o.geometry.index.count/3,0),
     sleeveTriangles:arms.reduce((sum,o)=>sum+o.geometry.index.count/3,0),
     crest:'fabric-integrated-uchiha-fan',collar:collar.name,
-    fabricTexture:!!navy.map
+    fabricTexture:!!navy.map,removedUnderlayerTriangles
   };
 }
