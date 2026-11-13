@@ -16,7 +16,7 @@ const {chromium}=require('playwright');
  });
  console.log('COMBAT MODEL',JSON.stringify(atBoot));
  if(atBoot.model!=='clean-head-v5')throw Error('Original skinned ninja failed to load');
- if(atBoot.uniform!=='v5-tailored-separates-v6'||atBoot.clothMeshes<5||atBoot.shirt<200||atBoot.shorts<300||atBoot.drape<100||atBoot.pockets!==2||atBoot.crest!=='UchihaFanBackCrest'||atBoot.accessories<25)
+ if(atBoot.uniform!=='reference-v8-ninja-tailored'||atBoot.clothMeshes<11||atBoot.shirt<5000||atBoot.shorts<6000||atBoot.crest!=='fabric-integrated-uchiha-fan'||atBoot.accessories<25)
    throw Error('3D outfit missing/failed to skin: '+JSON.stringify(atBoot));
  if(atBoot.hairFlow!=='source-sculpt-swept-v2'||atBoot.hairLocks!==1||atBoot.enemyModel!=='skinned-rival-44')throw Error('Hair refinement did not attach to head bone: '+JSON.stringify(atBoot));
  if(atBoot.clips!=='Ready,Light,Cross,Heavy,Kick,Sweep,Guard,Dodge,Slip,Parry,Hit'||atBoot.engine!=='arena-v1')
