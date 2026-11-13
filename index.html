@@ -192,7 +192,7 @@
     </section>
     <button type="button" id="openMenu" aria-label="Return to brawler selection menu">MENU</button>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 6.1 · NINJA FIGHTER</div>
+    <div class="ui version"><span class="dot"></span> BUILD 6.2 · RIVAL DUEL</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD move · J punch · K heavy · I kick · L guard · Q dodge</strong><p>Space jump · Shift/R ninja run · DualSense: □ punch, △ heavy, ○ dodge, L2 guard</p></div>
@@ -364,6 +364,9 @@
         let animationMixer = null;
         let combat = null;
         let wardrobe = null;
+        let opponentVisual = null;
+        let enemyWalkData = null;
+        let enemyClipFactory = null;
         let walkSpeed = 3.2;
         let animationActions = {};
         let activeAnimation = '';
@@ -460,6 +463,28 @@
             throw new Error('Reference character placement failed');
           }
 
+          // Rival is a second independent skinned 44-joint ninja, not a boxy
+          // placeholder. SkeletonUtils remaps bones without sharing animation state.
+          const {clone:cloneSkeleton}=await import('three/addons/utils/SkeletonUtils.js');
+          opponentVisual=cloneSkeleton(imported);
+          opponentVisual.name='ShadowRival_SkinnedNinja';
+          opponentVisual.traverse(o=>{
+            if(!o.isMesh)return;
+            const repaint=m=>{
+              const cloned=m.clone(),name=o.name.toLowerCase();
+              if(/tunic|collar|sleeve|waisthem|combatpouch|thighstrap/.test(name)){
+                cloned.color.set(0x763b50);
+              }else if(/sandals|sho|sole|anklecuff|topshinband/.test(name)){
+                cloned.color.set(0x201c32);
+              }else if(/sweptlayeredhairvolume/.test(name)){
+                cloned.color.set(0x342a45);
+              }
+              return cloned;
+            };
+            o.material=Array.isArray(o.material)?o.material.map(repaint):repaint(o.material);
+          });
+          enemyWalkData=walkData;
+          enemyClipFactory=createReferenceClips;
           animationMixer=new THREE.AnimationMixer(imported);
           const combatClips=createCombatClips(THREE,imported);
           animationActions=Object.fromEntries([...rig.clips,...combatClips].map(clip=>[clip.name,animationMixer.clipAction(clip)]));
@@ -506,6 +531,7 @@
           data.uniformShirtTriangles=String(wardrobe.shirtTriangles);
           data.uniformAccessories=String(wardrobe.accessories);
           data.hairFlow=hairFlow.style;
+          data.enemyModel='skinned-rival-44';
           data.hairFlowLocks=String(hairFlow.locks);
           data.hairFlowTriangles=String(hairFlow.triangles);
           data.combatClips=combatClips.map(c=>c.name).join(',');
@@ -550,7 +576,7 @@
         if(!reviewMode) {
           const {createCombatArena,createCombatSystem}=await import('./scripts/arena-combat.js?v=2');
           createCombatArena(THREE,scene);
-          combat=createCombatSystem(THREE,scene,player);
+          combat=createCombatSystem(THREE,scene,player,opponentVisual,{walkData:enemyWalkData,createReferenceClips:enemyClipFactory});
           document.getElementById('game').dataset.combatEngine='arena-v1';
         }
         function updateFallbackView(orbit, facing, moving) {
