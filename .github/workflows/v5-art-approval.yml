@@ -9,6 +9,7 @@ on:
       - 'tools/blender/rig_v5_garments.py'
       - 'scripts/import-sculpted-v5-outfit.js'
       - 'tests/v5-approval-gate.cjs'
+      - 'tests/v5-shirt-approval-gate.cjs'
       - '.github/workflows/v5-art-approval.yml'
 permissions:
   contents: read
@@ -21,5 +22,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate Blender source syntax
         run: python3 -m py_compile tools/blender/rig_v5_garments.py
-      - name: Fail closed until 4-angle and combat pose art matches supplied v5 sheet
+      - name: Validate the full twenty-item shirt audit is complete
+        run: node tests/v5-shirt-approval-gate.cjs --audit
+      - name: Block release while close-up shirt visual criteria still fail
+        run: node tests/v5-shirt-approval-gate.cjs --require-pass
+      - name: Block full outfit release until all model approval views pass
+        if: always()
         run: node tests/v5-approval-gate.cjs
