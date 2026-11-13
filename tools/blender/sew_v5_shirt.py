@@ -99,6 +99,45 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
     relax.iterations=2
     bpy.ops.object.modifier_apply(modifier=relax.name)
 
+    # Carve the close-up's asymmetrical gathered cotton folds into actual
+    # 3D surface normals. This is not a color overlay: each subtle ridge and
+    # valley is geometric, placed diagonally above the waist and blended out
+    # before reaching side seams. The previous one-piece render was too flat.
+    cx,cy=center
+    def smoothstep(x):
+        x=max(0.,min(1.,x))
+        return x*x*(3-2*x)
+    def bump(value,center,width):
+        return math.exp(-.5*((value-center)/width)**2)
+    displaced=0
+    for vertex in joined.data.vertices:
+        u=(vertex.co.x-cx)/scale
+        z=(vertex.co.z-bottom)/scale
+        if z<.775 or z>1.015 or abs(u)>.21:
+            continue
+        xmask=smoothstep((.215-abs(u))/.06)
+        if xmask<=0.:continue
+        front=smoothstep((cy-vertex.co.y)/(.126*scale))
+        back=smoothstep((vertex.co.y-cy)/(.126*scale))
+        ridge1=bump(z,.816+.13*u,.028)
+        valley1=bump(z,.848+.13*u,.021)
+        ridge2=bump(z,.885-.20*u,.032)
+        valley2=bump(z,.913-.20*u,.022)
+        ridge3=bump(z,.959+.12*u,.024)
+        valley3=bump(z,.978+.12*u,.016)
+        frontFold=(.028*ridge1-.012*valley1+
+                   .020*ridge2-.012*valley2+
+                   .010*ridge3-.008*valley3)
+        backFold=(.011*bump(z,.835-.13*u,.031)
+                  -.009*bump(z,.876-.13*u,.022)
+                  +.008*bump(z,.944+.1*u,.028))
+        delta=scale*xmask*(front*frontFold-back*backFold)
+        if abs(delta)>.00005:
+            vertex.co.y-=delta
+            displaced+=1
+    joined.data.update()
+    print("V5_GARMENT_FOLDS_SCULPTED",displaced,flush=True)
+
     # Retarget weights from the art-shaped donor surface. Remesh operators
     # discard original per-vertex weights; never leave garments unweighted.
     donor_coords=donor.data.vertices
