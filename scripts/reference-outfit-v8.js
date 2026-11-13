@@ -56,7 +56,7 @@ export function fitReferenceOutfit(THREE,root) {
     const size=512,c=document.createElement('canvas');
     c.width=c.height=size;
     const ctx=c.getContext('2d'),img=ctx.createImageData(size,size);
-    const base=new THREE.Color(color);
+    const base=[parseInt(color.slice(1,3),16),parseInt(color.slice(3,5),16),parseInt(color.slice(5,7),16)];
     let seed=650731;
     const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
     for(let y=0;y<size;y++)for(let x=0;x<size;x++){
@@ -64,9 +64,9 @@ export function fitReferenceOutfit(THREE,root) {
       const threads=(x%4===0?-4:0)+(y%4===0?-5:0);
       const noise=(rand()-.5)*9+Math.sin(y*.13+x*.05)*2;
       const shade=1+(threads+noise)/255;
-      img.data[index]=Math.round(base.r*255*shade);
-      img.data[index+1]=Math.round(base.g*255*shade);
-      img.data[index+2]=Math.round(base.b*255*shade);
+      img.data[index]=Math.round(base[0]*shade);
+      img.data[index+1]=Math.round(base[1]*shade);
+      img.data[index+2]=Math.round(base[2]*shade);
       img.data[index+3]=255;
     }
     ctx.putImageData(img,0,0);
