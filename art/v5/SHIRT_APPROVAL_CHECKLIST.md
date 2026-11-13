@@ -1,10 +1,12 @@
 # Urban Outlaw V5: strict shirt approval checklist
 
-**Status: REJECTED, NOT RELEASED.** Baseline: latest exported candidate from development run 43433336069 using GLB fingerprint `4ade46c7f565d0a73b7f18174e48171826bbeb989a639446c92a997807bba97b`. Evaluated using the two user-supplied *final* shirt close-ups. Both are screenshot references, **not** a license to call this artifact approved simply because it exported.
+**Status: REJECTED, NOT RELEASED.** Baseline: latest exported full-character candidate from development run 43446454968 using GLB fingerprint `9951174f9cdffd305a3b062279d78497197f0b75f251e0a5fe0ebd061fc0729a`. Evaluated using the two user-supplied *final* shirt close-ups. Both are screenshot references, **not** a license to call this artifact approved simply because it exported.
 
 **Current tally:** 3 pass, 15 fail, 2 without complete visual evidence. Release requires **20/20 PASS** with matched views, independent actual pose renders and signed candidate-specific evidence. No weighted score, average rating, or partial credit.
 
 **Source-of-truth:** Front image `8EB7F32A-3C38-4E2A-83DD-613F58905D5F.jpeg` (SHA-256: `c67b969ccb0ff5fd8f5c0f58d5babaf2ec3863abff3e59049687d1c25b4a0c38`). Back image `BBD3AE08-92F5-42D3-9D0B-E9F497578130.jpeg` (SHA-256: `742ebc9e02210ecc739dfdfad10d6324fd40d0be2424a4a06ea6a8e9cfa20de7`). Full V5 model approval sheet remains the source for the shorts, hair, wraps, proportions and whole character.
+
+**Latest technical run:** [Blender + Three.js full-rig tests passed](https://github.com/tyronhuggins32-cmd/urban-outlaw/actions/runs/43446454968). The five garment meshes share the original 44-bone skeleton, and six action screenshots exist. The character still fails visual fidelity, particularly the collar, shoulder slopes, sleeve fabric and gathered hem. An in-game playable deployment was **not** performed.
 
 ## Mandatory acceptance criteria
 
