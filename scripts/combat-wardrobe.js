@@ -78,10 +78,10 @@ export function fitCombatWardrobe(THREE, root) {
   result.meshes.push(shirt);result.shirtTriangles=triangles.length/3;
 
   // Raised dark-blue collar enclosing the lower neck, linked to upper spine.
-  const collar=mesh(new THREE.CylinderGeometry(.151,.163,.185,32,2,true),navy,'HighNinjaCollar');
-  collar.position.set(0,1.288,-.016);mount(collar,spine);
-  const collarEdge=mesh(new THREE.TorusGeometry(.151,.009,7,32),hem,'CollarTopSeam');
-  collarEdge.rotation.x=Math.PI/2;collarEdge.position.set(0,1.379,-.016);mount(collarEdge,spine);
+  const collar=mesh(new THREE.CylinderGeometry(.139,.15,.137,32,2,true),navy,'HighNinjaCollar');
+  collar.position.set(0,1.178,-.018);mount(collar,spine);
+  const collarEdge=mesh(new THREE.TorusGeometry(.139,.009,7,32),hem,'CollarTopSeam');
+  collarEdge.rotation.x=Math.PI/2;collarEdge.position.set(0,1.246,-.018);mount(collarEdge,spine);
   // Band at shirt waist and hem, without covering fitted shorts.
   const waist=mesh(new THREE.CylinderGeometry(.164,.165,.06,28,1,true),dark,'TunicWaistHem');
   waist.position.set(0,.837,0);mount(waist,find('Hips'));
@@ -113,15 +113,15 @@ export function fitCombatWardrobe(THREE, root) {
     tubeBetween(side+'ForearmWrapBase',elbow,hand,.21,.91,.052,wraps,elbow);
     for(let i=0;i<8;i++)ringAt(side+'ForearmWrap'+i,elbow,hand,.24+i*.088,.054,.009,i%3===0?trim:wraps,elbow);
     // Shin bandages + a navy cuff at the upper edge of each shin.
-    tubeBetween(side+'ShinUnderwrap',calf,foot,.22,.91,.086,wraps,calf);
-    for(let i=0;i<8;i++)ringAt(side+'ShinWrap'+i,calf,foot,.24+i*.088,.089,.013,i%3===0?trim:wraps,calf);
-    ringAt(side+'TopShinBand',calf,foot,.19,.094,.027,navy,calf);
-    ringAt(side+'AnkleCuff',calf,foot,.92,.088,.034,navy,calf);
+    tubeBetween(side+'ShinUnderwrap',calf,foot,.22,.91,.077,wraps,calf);
+    for(let i=0;i<8;i++)ringAt(side+'ShinWrap'+i,calf,foot,.24+i*.088,.079,.012,i%3===0?trim:wraps,calf);
+    ringAt(side+'TopShinBand',calf,foot,.19,.085,.026,navy,calf);
+    ringAt(side+'AnkleCuff',calf,foot,.92,.081,.028,navy,calf);
     // Sandal sole and wide forefoot strap, bound to each actual foot joint.
-    const sole=mesh(new THREE.BoxGeometry(.168,.036,.275),dark,side+'CombatSandalSole');
-    sole.position.copy(worldPos(foot)).add(V(0,-.059,.084));mount(sole,foot);result.boots++;
-    const sandal=mesh(new THREE.BoxGeometry(.170,.045,.073),navy,side+'OpenToeStrap');
-    sandal.position.copy(worldPos(foot)).add(V(0,-.015,.132));mount(sandal,foot);
+    const sole=mesh(new THREE.BoxGeometry(.143,.020,.224),dark,side+'CombatSandalSole');
+    sole.position.copy(worldPos(foot)).add(V(0,-.051,.070));mount(sole,foot);result.boots++;
+    const sandal=mesh(new THREE.BoxGeometry(.145,.033,.063),navy,side+'OpenToeStrap');
+    sandal.position.copy(worldPos(foot)).add(V(0,-.016,.111));mount(sandal,foot);
     // Trouser band accents and a compact padded equipment pouch.
     if(side==='Right'){
       const strap=mesh(new THREE.BoxGeometry(.024,.047,.22),navy,'OuterThighStrap');
