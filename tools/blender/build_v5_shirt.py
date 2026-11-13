@@ -56,7 +56,7 @@ def mix(a,b,t):return a+(b-a)*t
 # Navy cloth: knit noise is physically integrated into a texture, while
 # geometry holds actual sewn folds. A crisp fan emblem is printed into the
 # back-center UV island without an extra floating sprite plane.
-def texture(filename,crest=False,base=(12,19,59)):
+def texture(filename,crest=False,base=(26,39,83)):
     dim=1024
     rng=np.random.default_rng(198)
     X,Y=np.meshgrid(np.arange(dim),np.arange(dim))
@@ -90,10 +90,10 @@ def texture(filename,crest=False,base=(12,19,59)):
         rx,ry=100,189
         circle=(dx/rx)**2+(dy/ry)**2<=1
         red=circle&(dy>=0)&(dy<=ry)
-        bowl=(dx/(rx*.91))**2+(dy/151)**2<=1
-        white=bowl&(dy<0)&(dy>=-102)
+        bowl=(dx/(rx*.89))**2+(dy/109)**2<=1
+        white=bowl&(dy<0)&(dy>=-106)
         outline=(np.abs(dx)<rx)&(np.abs(dy)<=4)
-        handle=(np.abs(dx)<8)&(dy>=-205)&(dy<=-91)
+        handle=(np.abs(dx)<8)&(dy>=-198)&(dy<=-98)
         rgb[red,:3]=[.68,.28,.34]
         rgb[white,:3]=[.94,.92,.90]
         rgb[outline,:3]=[.15,.19,.31]
