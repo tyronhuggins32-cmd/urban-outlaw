@@ -238,9 +238,11 @@ body=mesh_surface('V5_Shirt_Body',84,112,torso,torso_weights,NAVY)
 def collar_shape(t,u):
     theta=u*math.tau;X,Y=math.cos(theta),math.sin(theta)
     front=max(0,-Y)
-    z0=1.208
+    z0=1.183
     center_front=gauss(X,0,.47) if front>0 else 0
-    z1=1.312-.033*front-.020*front*center_front
+    # The front of the collar falls below the mouth while the back remains
+    # tall under the tied hair, matching the user's actual V5 close-up.
+    z1=1.316-.077*front-.021*front*center_front
     z=mix(z0,z1,t)
     rX=mix(.118,.132,t)+.0015*math.sin(theta*4+t*math.pi)
     rY=mix(.103,.114,t)
