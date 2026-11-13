@@ -23,7 +23,7 @@ jobs:
       - name: Install modeling renderer
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq blender python3-numpy
+          sudo apt-get install -y -qq blender python3-numpy python3-pil
       - name: Inspect original rig shape and bone positions
         run: PYTHONPATH=/usr/lib/python3/dist-packages blender -b -t 2 --python tools/blender/v5_shirt_diagnostic.py
       - name: Build new shirt candidate
