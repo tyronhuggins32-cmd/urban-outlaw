@@ -1,95 +1,109 @@
 /**
- * V5 sculpted-outfit candidate importer.
- *
- * Unlike the old procedural garment generators, this imports a standalone
- * hand-authored clothing GLB made in Blender/Maya. The file must be rigged to
- * Urban Outlaw's existing 44-bone skeleton in its original bind pose.
- *
- * IMPORTANT: Importing here is for candidate review. Do not publish the asset
- * or hide the live outfit until every visual and animation approval gate passes.
+ * V5 reference shirt candidate, safely imported with the real 44-bone rig.
+ * New topology: torso and sleeves are ONE sewn mesh, plus separate folded
+ * collar, soft hem and two narrow sleeve cuffs. This importer deliberately
+ * leaves the player's currently approved outfit intact until art signoff.
  */
-export function inspectSculptedOutfit(THREE,character,outfitScene){
-  let characterBody=null;
-  character.traverse(node=>{
-    if(node.isSkinnedMesh && node.skeleton?.bones.length===44 &&
-      !characterBody && !/referencev8|fittednavy|loosegray/i.test(node.name))
-      characterBody=node;
-  });
-  if(!characterBody)throw Error('V5 candidate: cannot find 44-bone source body');
-  const original=characterBody.skeleton;
-  const clean=name=>name.toLowerCase().replace(/[^a-z0-9]/g,'').replace(/^mixamorig/,'');
-  const byName=new Map(original.bones.map(b=>[clean(b.name),b]));
-  const allowedNames=[
-    'V5_Shirt_Body','V5_Shirt_Collar','V5_Shirt_LeftSleeve',
-    'V5_Shirt_RightSleeve','V5_Shorts_Waist','V5_Shorts_LeftLeg',
-    'V5_Shorts_RightLeg'
-  ];
-  const garments=[];
-  outfitScene.traverse(node=>{if(node.isSkinnedMesh)garments.push(node)});
-  const names=new Set(garments.map(g=>g.name));
-  const missing=allowedNames.filter(n=>!names.has(n));
-  if(missing.length)throw Error('V5 candidate missing garment surfaces: '+missing.join(', '));
-  const results=[];
-  for(const garment of garments){
-    const attr=garment.geometry.attributes;
-    if(!attr?.position||!attr?.normal||!attr?.uv||!attr?.skinIndex||!attr?.skinWeight)
-      throw Error(garment.name+': missing normals, UVs or rig weights');
-    if(garment.geometry.index?.count<1200)
-      throw Error(garment.name+': insufficient sculpted topology');
-    const mapped=[];
-    for(const bone of garment.skeleton.bones){
-      const match=byName.get(clean(bone.name));
-      if(!match)throw Error(garment.name+': unknown bone '+bone.name);
-      mapped.push(match);
-    }
-    // Check actual bind pose. A mismatched bind cannot be fixed by arbitrary
-    // geometry repositioning, because combat would tear the sleeves/waist.
-    const bodyBoneIndices=new Map(original.bones.map((b,i)=>[b,i]));
-    for(let i=0;i<mapped.length;i++){
-      const rest=original.boneInverses[bodyBoneIndices.get(mapped[i])];
-      const other=garment.skeleton.boneInverses[i];
-      let deviation=0;
-      for(let k=0;k<16;k++)deviation=Math.max(deviation,
-        Math.abs(rest.elements[k]-other.elements[k]));
-      if(deviation>.012)throw Error(garment.name+': bind pose mismatch '+mapped[i].name+
-        ' ('+deviation.toFixed(4)+')');
-    }
-    const sw=attr.skinWeight,si=attr.skinIndex;
-    for(let i=0;i<sw.count;i+=Math.max(1,Math.floor(sw.count/250))){
-      const ws=[sw.getX(i),sw.getY(i),sw.getZ(i),sw.getW(i)];
-      if(Math.abs(ws.reduce((a,b)=>a+b,0)-1)>.01 ||
-        !ws.every(Number.isFinite))throw Error(garment.name+': invalid weights');
-      const idx=[si.getX(i),si.getY(i),si.getZ(i),si.getW(i)];
-      if(idx.some(k=>k<0||k>=mapped.length))throw Error(garment.name+': bone index out of range');
-    }
-    results.push({name:garment.name,mesh:garment,bones:mapped,
-      triangles:garment.geometry.index.count/3,vertices:attr.position.count});
-  }
-  return {results,original,body:characterBody,
-    triangles:results.reduce((n,r)=>n+r.triangles,0)};
-}
+export const V5_SHIRT_PARTS=Object.freeze([
+  'V5_Shirt_Body','V5_Shirt_Collar','V5_Shirt_Hem',
+  'V5_Shirt_LeftSleeve_Cuff','V5_Shirt_RightSleeve_Cuff'
+]);
 
-export function installSculptedOutfit(THREE,character,outfitScene) {
-  const candidate=inspectSculptedOutfit(THREE,character,outfitScene);
-  const attached=[];
-  for(const item of candidate.results){
-    const old=item.mesh;
-    const g=old.geometry.clone();
-    const material=Array.isArray(old.material) ?
-      old.material.map(m=>m.clone()) : old.material.clone();
-    const out=new THREE.SkinnedMesh(g,material);
-    out.name='ApprovedCandidate_'+item.name;
-    out.castShadow=true;out.receiveShadow=false;out.frustumCulled=false;
-    out.position.copy(old.position);out.quaternion.copy(old.quaternion);
-    out.scale.copy(old.scale);
-    const oldSkeleton=old.skeleton;
-    out.bind(new THREE.Skeleton(item.bones,
-      oldSkeleton.boneInverses.map(m=>m.clone())),old.bindMatrix.clone());
-    candidate.body.parent.add(out);
-    attached.push(out);
+const normalizeName=name=>name.toLowerCase().replace(/[^a-z0-9]/g,'').replace(/^mixamorig/,'');
+function findBody(root){
+  let body=null;
+  root.traverse(o=>{
+    if(o.isSkinnedMesh&&o.skeleton?.bones?.length>=44&&!/^v5_shirt_/i.test(o.name)&&
+       !/referencev8|fittednavy|loosegray/i.test(o.name)&&!body)body=o;
+  });
+  return body;
+}
+export function inspectSculptedOutfit(THREE,character,outfitScene){
+  const body=findBody(character);
+  if(!body)throw Error('V5 candidate needs original 44-bone source character');
+  const original=body.skeleton;
+  const byName=new Map(original.bones.map(b=>[normalizeName(b.name),b]));
+  const targetNames=new Set(V5_SHIRT_PARTS);
+  const meshes=[];
+  outfitScene.updateMatrixWorld(true);
+  outfitScene.traverse(mesh=>{
+    if(mesh.isSkinnedMesh&&targetNames.has(mesh.name))meshes.push(mesh);
+  });
+  const names=new Set(meshes.map(m=>m.name));
+  const missing=V5_SHIRT_PARTS.filter(name=>!names.has(name));
+  if(missing.length)throw Error('Sculpted shirt missing actual sewn fabric: '+missing.join(', '));
+  if(meshes.length!==V5_SHIRT_PARTS.length)
+    throw Error('Sculpted shirt has duplicate garment mesh names');
+  const oldSleeves=[];
+  outfitScene.traverse(m=>{
+    if(/^V5_Shirt_(LeftSleeve|RightSleeve)$/.test(m.name))oldSleeves.push(m.name);
+  });
+  if(oldSleeves.length)throw Error('Old detached sleeve tubes must not be present');
+  const parentBoneIndex=new Map(original.bones.map((b,i)=>[b,i]));
+  const results=[];
+  for(const mesh of meshes){
+    const attr=mesh.geometry.attributes;
+    if(!attr?.position||!attr?.normal||!attr?.uv||!attr?.skinIndex||!attr?.skinWeight)
+      throw Error(mesh.name+': incomplete sculpted garment (missing UV/normal/weights)');
+    const tris=mesh.geometry.index?.count/3||0;
+    if(tris<100)throw Error(mesh.name+': missing substantial surface topology');
+    if(!mesh.skeleton?.bones?.length)throw Error(mesh.name+': unrigged cloth');
+    const remapped=[];
+    for(const candidateBone of mesh.skeleton.bones){
+      const actual=byName.get(normalizeName(candidateBone.name));
+      if(!actual)throw Error(mesh.name+': unknown joint '+candidateBone.name);
+      remapped.push(actual);
+    }
+    for(let i=0;i<remapped.length;i++){
+      const sourceIndex=parentBoneIndex.get(remapped[i]);
+      const referenceInverse=original.boneInverses[sourceIndex];
+      const candidateInverse=mesh.skeleton.boneInverses[i];
+      let maxError=0;
+      for(let k=0;k<16;k++)
+        maxError=Math.max(maxError,Math.abs(referenceInverse.elements[k]-candidateInverse.elements[k]));
+      if(maxError>.015)
+        throw Error(mesh.name+': rest bind pose mismatch for '+remapped[i].name+' ('+maxError.toFixed(4)+')');
+    }
+    const weights=attr.skinWeight,index=attr.skinIndex;
+    const stride=Math.max(1,Math.floor(weights.count/500));
+    for(let i=0;i<weights.count;i+=stride){
+      const vals=[weights.getX(i),weights.getY(i),weights.getZ(i),weights.getW(i)];
+      const total=vals.reduce((a,b)=>a+b,0);
+      if(Math.abs(total-1)>.012||vals.some(v=>!Number.isFinite(v)))
+        throw Error(mesh.name+': unnormalized/nonfinite skin weights at '+i);
+      const ids=[index.getX(i),index.getY(i),index.getZ(i),index.getW(i)];
+      if(ids.some(j=>j<0||j>=remapped.length))throw Error(mesh.name+': invalid bone index at '+i);
+    }
+    results.push({name:mesh.name,mesh,bones:remapped,triangles:tris,vertices:attr.position.count});
   }
-  // IMPORTANT: This importer only mounts the candidate in review mode.
-  // A separate release procedure must explicitly choose which older garment
-  // surfaces to hide after the approval contract has been signed.
-  return {meshes:attached,triangles:candidate.triangles,status:'CANDIDATE_ONLY'};
+  const candidateBody=findBody(outfitScene);
+  const sourceBone=candidateBody?.skeleton?.bones?.find(b=>normalizeName(b.name).endsWith('hips'));
+  const actualBone=original.bones.find(b=>normalizeName(b.name).endsWith('hips'));
+  if(!candidateBody||!sourceBone||!actualBone)
+    throw Error('Candidate must retain entire original rig for root proportion validation');
+  candidateBody.updateMatrixWorld(true);body.updateMatrixWorld(true);
+  const sourceScale=candidateBody.getWorldScale(new THREE.Vector3());
+  const targetScale=body.getWorldScale(new THREE.Vector3());
+  const ratio=new THREE.Vector3(sourceScale.x/targetScale.x,
+    sourceScale.y/targetScale.y,sourceScale.z/targetScale.z);
+  if(![ratio.x,ratio.y,ratio.z].every(v=>v>.50&&v<1.8))
+    throw Error('Candidate has implausible full-rig scale');
+  return {body,original,parts:results,
+    triangles:results.reduce((a,m)=>a+m.triangles,0),
+    sourceRigScale:ratio,
+    status:'VISUAL_CANDIDATE_NOT_APPROVED'};
+}
+/**
+ * Creates an isolated preview group. Does not hide any live body geometry,
+ * replace the game character, or imply release approval.
+ */
+export function installSculptedOutfit(THREE,character,outfitScene){
+  const info=inspectSculptedOutfit(THREE,character,outfitScene);
+  // Preserve the candidate's full scaled armature and reference body for
+  // visual review instead of transplanting cloth into a different root scale.
+  // No animation state is mutated on the existing playable character.
+  const preview=outfitScene.clone(true);
+  preview.name='UnapprovedV5ShirtPreview';
+  preview.visible=false;
+  return {...info,preview,status:'CANDIDATE_ONLY_REQUIRES_VISUAL_SIGNOFF'};
 }
