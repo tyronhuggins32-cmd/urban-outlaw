@@ -95,10 +95,11 @@ export function installTailoredCloth(THREE,root) {
   // Main shirt: broad short sleeves join a loose rectangular body.
   // Hem around natural hips, shoulders narrowing into a high collar.
   const shirt=surface('ContinuousV5NavyTunic',26,52,(t,a)=>{
-    const y=.785+.46*t;
+    const y=.754+.491*t;
     const collarSlope=Math.max(0,Math.min(1,(y-1.15)/.095));
     const shoulder=1-.32*Math.abs(2*t-1);
-    const rx=.188+.077*Math.sin(t*Math.PI)-.097*collarSlope;
+    const shoulderBump=.059*Math.exp(-Math.pow((y-1.165)/.069,2));
+    const rx=.188+.019*Math.sin(t*Math.PI)+shoulderBump-.097*collarSlope;
     const rz=.145+.019*Math.sin(t*Math.PI)-.049*collarSlope;
     const wrinkle=.013*Math.sin(a*9+t*12)*(.28+.72*(1-t));
     const flare=.014*Math.pow(1-t,1.3);
@@ -126,8 +127,8 @@ export function installTailoredCloth(THREE,root) {
     if(tangent.length()<.1)tangent.set(1,0,0);
     const bitangent=direction.clone().cross(tangent).normalize();
     const place=(t,a,edge=false)=>{
-      const center=origin.clone().addScaledVector(direction,length*(.015+.59*t));
-      const radius=(edge?.109:(.093+.018*t))+.002*Math.sin(a*5+t*8);
+      const center=origin.clone().addScaledVector(direction,length*(.015+.77*t));
+      const radius=(edge?.122:(.103+.019*t))+.002*Math.sin(a*5+t*8);
       center.addScaledVector(tangent,Math.cos(a)*radius);
       center.addScaledVector(bitangent,Math.sin(a)*radius);
       return center.toArray();
@@ -144,12 +145,12 @@ export function installTailoredCloth(THREE,root) {
   }
   // Fabric inner fold at hem avoids a flat hard waist ring.
   const shirthem=surface('V5SoftShirtHem',3,52,(t,a)=>{
-    const rx=.228+.004*t+.006*Math.sin(a*8),
-          rz=.170+.002*t+.004*Math.cos(a*7);
-    return [rx*Math.cos(a),.775+.023*t+.005*Math.sin(a*6),rz*Math.sin(a)-.01];
+    const rx=.206+.006*t+.006*Math.sin(a*8),
+          rz=.157+.004*t+.004*Math.cos(a*7);
+    return [rx*Math.cos(a),.744+.026*t+.005*Math.sin(a*6),rz*Math.sin(a)-.01];
   },()=>[[joints.hips,1]],navy);
   const hip=surface('V5ShortsHipPanel',16,56,(t,a)=>{
-    const y=.815-.185*t;
+    const y=.815-.127*t;
     const rx=.185+.023*t,
           rz=.152+.019*t;
     const fold=.006*Math.sin(a*7+8*t)*Math.sin(Math.PI*t);
@@ -188,11 +189,11 @@ export function installTailoredCloth(THREE,root) {
   // retained on the character-right shorts leg only.
   for(const suffix of ['ReferenceNavyThighBand0','ReferenceNavyThighBand1']){
     const o=root.getObjectByName(suffix);
-    if(o){o.material=materialBand;o.scale.y*=.46;}
+    if(o){o.material=materialBand;o.scale.y*=.85;}
   }
   for(const o of out) if(!o.isSkinnedMesh || o.skeleton!==skeleton)
     throw Error('A V5 cloth panel is not skinned to the character');
-  return {style:'v5-textured-tailoring-v5',
+  return {style:'v5-tailored-separates-v6',
     shirtTriangles:shirt.geometry.index.count/3,
     sleeveTriangles:sleevePieces.reduce((n,o)=>n+o.geometry.index.count/3,0),
     hipTriangles:hip.geometry.index.count/3,
