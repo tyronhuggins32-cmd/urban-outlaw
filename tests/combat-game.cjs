@@ -33,11 +33,12 @@ const {chromium}=require('playwright');
  await page.keyboard.down('w');
  await page.waitForTimeout(880);
  await page.keyboard.up('w');
+ console.log('FIGHT APPROACH',JSON.stringify(await page.locator('#game').evaluate(el=>({...el.dataset}))));
  for(let attempt=0;attempt<5;attempt++){
   await page.locator('#attackLight').dispatchEvent('pointerdown',{pointerType:'touch'});
   await page.waitForTimeout(440);
   const hp=Number(await page.locator('#game').getAttribute('data-combat-enemy-health'));
-  console.log('ATTACK RESULT',attempt,hp);
+  console.log('ATTACK RESULT',attempt,hp,JSON.stringify(await page.locator('#game').evaluate(el=>({action:el.dataset.combatLastAction,started:el.dataset.combatAttacksStarted,hits:el.dataset.combatHits,dist:el.dataset.combatEnemyDistance,player:el.dataset.combatPlayerPosition,enemy:el.dataset.combatEnemyPosition,message:el.dataset.combatMessage,anim:el.dataset.animation}))));
   if(hp<start.enemy)break;
   if(attempt<4){await page.keyboard.down('w');await page.waitForTimeout(135);await page.keyboard.up('w');}
  }
