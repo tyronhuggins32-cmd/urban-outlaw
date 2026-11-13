@@ -818,7 +818,7 @@
           const sprinting = menuStarted && !reviewMode && (pressed.has('shift') || touchRun || down(pad, 7) || down(pad, 5) || down(pad, 10));
           const fighting = !!(combat && menuStarted && !reviewMode);
           // Keep arcade sprint movement controlled inside a compact combat arena.
-          const speed = sprinting ? (fighting ? 14 : 95) : walkSpeed;
+          const speed = sprinting ? (fighting ? 14 : 95) : fighting ? Math.max(6.2,walkSpeed) : walkSpeed;
           player.position.x += moveX * speed * dt;
           player.position.z += moveZ * speed * dt;
           if(fighting){
@@ -832,6 +832,15 @@
             stride += dt * (sprinting ? 14 : 10.5) * Math.min(1, inputLength);
           }
           player.rotation.y = facing;
+          // Soft aim assistance during attacks, keeping close-range combat
+          // readable on a touchscreen while preserving manual movement.
+          if(combat?.state.attackType && combat.state.attackTime>0 &&
+             combat.state.attackType!=='Dodge' && player.position.distanceTo(combat.fighter.position)<5.2){
+            const target=Math.atan2(combat.fighter.position.x-player.position.x,
+                                    combat.fighter.position.z-player.position.z);
+            facing+=Math.atan2(Math.sin(target-facing),Math.cos(target-facing))*Math.min(1,dt*19);
+            player.rotation.y=facing;
+          }
           // Secondary animations now blend across 44 skinned rig joints.
           if (characterVisual) {
             characterVisual.position.y = moving ? Math.abs(Math.sin(stride)) * .035 : 0;
