@@ -88,9 +88,27 @@ const {chromium}=require('playwright');
   await page.waitForTimeout(400);
   await page.screenshot({path:'v5-game-playable-ninja-run.png'});
   await page.keyboard.up('w');await page.keyboard.up('Shift');
-  await page.keyboard.press('j');
-  await page.waitForFunction(()=>Number(document.querySelector('#game')?.dataset.combatAttacksStarted)>=1,{timeout:6000});
-  await page.waitForTimeout(120);
+  // A sprint can end during an opponent's stagger/hit animation. Test a
+  // genuine accepted attack rather than assuming the very first input must
+  // land before the fighter recovers from an enemy strike.
+  await page.locator('#viewport').focus();
+  let attackAccepted=false,attackState=null;
+  for(let attempt=0;attempt<15;attempt++){
+    await page.keyboard.press('j');
+    await page.waitForTimeout(180);
+    attackState=await page.locator('#game').evaluate(el=>({
+      attacks:Number(el.dataset.combatAttacksStarted||0),
+      health:Number(el.dataset.combatPlayerHealth||0),
+      animation:el.dataset.animation,
+      message:el.dataset.combatMessage,
+      screen:el.dataset.screen,
+      active:el.dataset.combatActive
+    }));
+    if(attackState.attacks>=1){attackAccepted=true;break;}
+  }
+  if(!attackAccepted){
+    throw Error('V5 full-rig ninja punch never activated after sprint: '+JSON.stringify(attackState));
+  }
   await page.screenshot({path:'v5-game-playable-punch.png'});
   if(errors.length)throw Error('V5 browser exceptions: '+errors.join('; '));
   console.log('V5 FULL-RIG PLAYTEST VERIFIED (NOT VISUAL APPROVAL)');
