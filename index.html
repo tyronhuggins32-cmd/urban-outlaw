@@ -43,6 +43,29 @@
     #run[aria-pressed="true"] { background: #5764ec; border-color: #ffffff; box-shadow: 0 0 0 4px #a8b7ff55, 0 0 24px #637affbb; }
     #jump { width: 92px; height: 92px; background: #ffdb72b0; border-color: #fff4cb; color: #263544; }
     #jump:active { background: #ffeb99; }
+    #combatHUD { position:absolute; z-index:7; top:calc(max(16px,env(safe-area-inset-top)) + 132px); left:max(16px,env(safe-area-inset-left)); width:min(310px,calc(100vw - 32px)); padding:12px; background:#0d1729d9; border:1px solid #aebdde65; box-shadow:0 12px 40px #02071166; border-radius:12px; color:white; font-family:system-ui,sans-serif; pointer-events:none; }
+    #combatHUD[hidden], #game.review #combatHUD { display:none !important; }
+    .fight-top { display:flex; justify-content:space-between; align-items:center; gap:7px; margin-bottom:7px; font-size:10px; font-weight:900; letter-spacing:1px; }
+    .fight-top strong { color:#ffd991; }
+    .fight-label { font-size:10px; font-weight:800; letter-spacing:1px; margin:7px 0 4px; }
+    .fight-meter { width:100%; height:10px; overflow:hidden; border-radius:9px; background:#253047; box-shadow:inset 0 0 0 1px #a7b6ce33; }
+    .fight-meter span { display:block; height:100%; width:100%; transition:width .14s linear; background:linear-gradient(90deg,#6dbcb6,#c5f1d3); border-radius:9px; }
+    .fight-meter.enemy span { background:linear-gradient(90deg,#bc4959,#ff9e7b); }
+    .fight-meter.stamina { height:6px; margin-top:5px; }
+    .fight-meter.stamina span { background:linear-gradient(90deg,#6d76cf,#a8c8f3); }
+    #combatStatus { font:800 10px system-ui,sans-serif; min-height:16px; color:#ffd89b; margin-top:10px; letter-spacing:.4px; }
+    #combatCombo { color:#ffe28e; }
+    #combatControls { position:absolute; z-index:8; display:none; right:max(14px,env(safe-area-inset-right)); bottom:calc(max(32px,env(safe-area-inset-bottom)) + 105px); width:182px; grid-template-columns:repeat(3,1fr); gap:8px; }
+    #combatControls button { min-height:48px; padding:6px 2px; border:1px solid #d8e6ffbf; border-radius:11px; background:#142847e6; box-shadow:0 4px 12px #0008; color:white; font:850 9px system-ui,sans-serif; letter-spacing:.4px; touch-action:manipulation; user-select:none; }
+    #combatControls button:active,#combatControls button.pressed { background:#5b6ce1; }
+    #attackLight { grid-column:1; }
+    #attackHeavy { grid-column:2; }
+    #attackKick { grid-column:3; }
+    #attackGuard { grid-column:1/3; }
+    #attackDodge { grid-column:3; }
+    #game.touch-disabled #combatControls,#game.review #combatControls { display:none !important; }
+    @media (pointer:coarse) { #game.playing #combatControls { display:grid; } #combatHUD { top:calc(max(18px,env(safe-area-inset-top)) + 64px); width:min(295px,calc(100vw - 30px)); padding:9px; } .fight-label { font-size:9px; } }
+    @media (max-width:390px) { #combatControls { width:164px; gap:5px; right:9px; bottom:calc(max(26px,env(safe-area-inset-bottom)) + 102px); } #combatControls button { min-height:44px; font-size:8px; } #combatHUD { width:235px; } }
     #modelReviewPanel { display:none; position:absolute; inset:0; pointer-events:none; z-index:7; }
     #game.review #modelReviewPanel { display:block; }
     #game.review #touchControls, #game.review #touchToggle, #game.review .hint, #game.review .help { display:none !important; }
@@ -135,12 +158,12 @@
       <div class="menu-shell">
         <header class="menu-top">
           <div class="menu-logo">URBAN <strong>OUTLAW</strong></div>
-          <div class="menu-build">FREE ROAM · ROSTER 01</div>
+          <div class="menu-build">ARENA FIGHT · ROSTER 01</div>
         </header>
         <div class="menu-intro">
           <div class="menu-step">01 / CHARACTER SELECT</div>
           <h2 id="brawlerTitle">PICK UR <br><span>BRAWLER</span></h2>
-          <p class="menu-subtitle">Choose your fighter and enter the world. More brawlers are coming.</p>
+          <p class="menu-subtitle">Enter the ninja courtyard. Fight an adaptive rival, chain strikes, guard, evade, and win rounds.</p>
         </div>
         <div class="menu-selection">
           <h3 class="menu-selection-label">AVAILABLE BRAWLERS</h3>
@@ -159,7 +182,7 @@
             </div>
           </div>
           <div class="brawler-actions">
-            <div class="menu-character-note"><strong>SELECTED: NINJA</strong> Current playable character · Other roster slots are not released.</div>
+            <div class="menu-character-note"><strong>SELECTED: NINJA</strong> Current playable character · More fighters will join the roster.</div>
             <button id="startGame" type="button" disabled>LOADING...</button>
           </div>
           <p id="menuStatus" role="status" aria-live="polite">Preparing character and arena…</p>
@@ -169,12 +192,28 @@
     </section>
     <button type="button" id="openMenu" aria-label="Return to brawler selection menu">MENU</button>
     <div class="ui brand"><div class="eyebrow">Free roam prototype</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 5.3 · ARMS-BACK NINJA RUN</div>
+    <div class="ui version"><span class="dot"></span> BUILD 6.0 · ARENA COMBAT</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
-    <div class="ui hint"><strong>WASD / Arrow keys to move · Space to jump</strong><p>Drag: look · Shift/R: ninja run · DualSense: sticks, Cross, R2</p></div>
-    <div class="ui help">REFERENCE-SCULPTED 3D CHARACTER</div>
+    <div class="ui hint"><strong>WASD move · J punch · K heavy · I kick · L guard · Q dodge</strong><p>Space jump · Shift/R ninja run · DualSense: □ punch, △ heavy, ○ dodge, L2 guard</p></div>
+    <div class="ui help">NINJA COMBAT · TRAINING COURTYARD</div>
     <div class="ui animation-status" id="animationStatus">SCULPTED · IDLE</div>
+    <section id="combatHUD" aria-label="Combat match status" hidden>
+      <div class="fight-top"><span id="combatRound">ROUND 1 · WINS 0</span><strong id="combatCombo"></strong></div>
+      <div class="fight-label">YOU · NINJA</div>
+      <div class="fight-meter"><span id="playerHealthFill"></span></div>
+      <div class="fight-meter stamina"><span id="playerStaminaFill"></span></div>
+      <div class="fight-label" id="enemyName">SHADOW RIVAL · LV 1</div>
+      <div class="fight-meter enemy"><span id="enemyHealthFill"></span></div>
+      <div id="combatStatus">FIGHT READY</div>
+    </section>
+    <div id="combatControls" aria-label="Touch combat controls">
+      <button id="attackLight" type="button" aria-label="Quick punch">PUNCH</button>
+      <button id="attackHeavy" type="button" aria-label="Heavy strike">HEAVY</button>
+      <button id="attackKick" type="button" aria-label="Roundhouse kick">KICK</button>
+      <button id="attackGuard" type="button" aria-label="Hold to guard">GUARD</button>
+      <button id="attackDodge" type="button" aria-label="Dodge">DODGE</button>
+    </div>
     <div id="touchControls">
       <div class="stick-wrap" id="stickZone" aria-label="Movement joystick"><div id="stick"><div id="knob"></div></div></div>
       <div class="actions">
@@ -323,6 +362,8 @@
         let characterModel = null;
         let characterVisual = null;
         let animationMixer = null;
+        let combat = null;
+        let wardrobe = null;
         let walkSpeed = 3.2;
         let animationActions = {};
         let activeAnimation = '';
@@ -330,10 +371,12 @@
         function setCharacterAnimation(state) {
           if (!animationMixer || activeAnimation === state || !animationActions[state]) return;
           const oldAction = animationActions[activeAnimation];
-          if (oldAction) oldAction.fadeOut(state === 'Jump' || state === 'Land' ? .09 : .24);
+          const combatAction=['Light','Heavy','Kick','Guard','Dodge','Hit'].includes(state);
+          const blend=combatAction || ['Light','Heavy','Kick','Guard','Dodge','Hit'].includes(activeAnimation) ? .095 : state === 'Jump' || state === 'Land' ? .09 : .24;
+          if (oldAction) oldAction.fadeOut(blend);
           const nextAction = animationActions[state];
           nextAction.reset().setEffectiveWeight(1).setEffectiveTimeScale(1);
-          nextAction.fadeIn(state === 'Jump' || state === 'Land' ? .09 : .24).play();
+          nextAction.fadeIn(blend).play();
           activeAnimation = state;
           document.getElementById('game').dataset.animation = state.toLowerCase();
           document.getElementById('animationStatus').textContent = state === 'Run' ? 'SCULPTED · NINJA RUN V4' : 'SCULPTED · ' + state.toUpperCase();
@@ -345,6 +388,8 @@
         loading.textContent = loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+          const {fitCombatWardrobe} = await import('./scripts/combat-wardrobe.js?v=1');
+          const {createCombatClips} = await import('./scripts/arena-combat.js?v=1');
           const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=11');
           const { attachSeamPatches } = await import('./scripts/cloth-seam-patches.js?v=2');
           const { cleanLegacyCharacterHead } = await import('./scripts/clean-head-v5.js?v=4');
@@ -383,6 +428,7 @@
           }
 
           const clothPatches=attachSeamPatches(THREE,imported);
+          wardrobe=fitCombatWardrobe(THREE,imported);
           characterModel = new THREE.Group();
           characterModel.name = 'Reference Sculpt Rig v1';
           characterModel.add(imported);
@@ -413,7 +459,11 @@
           }
 
           animationMixer=new THREE.AnimationMixer(imported);
-          animationActions=Object.fromEntries(rig.clips.map(clip=>[clip.name,animationMixer.clipAction(clip)]));
+          const combatClips=createCombatClips(THREE,imported);
+          animationActions=Object.fromEntries([...rig.clips,...combatClips].map(clip=>[clip.name,animationMixer.clipAction(clip)]));
+          for(const clip of combatClips){
+            if(clip.name!=='Guard')animationActions[clip.name].setLoop(THREE.LoopOnce,1);
+          }
           animationActions.Jump.setLoop(THREE.LoopOnce,1);
           animationActions.Land.setLoop(THREE.LoopOnce,1);
           animationActions.Jump.clampWhenFinished=true;
@@ -450,6 +500,10 @@
           data.walkGait='phased-contact-v3';
           data.runStyle='ninja-pose-v4';
           data.runActivation='toggle-v1';
+          data.uniformStyle=wardrobe.style;
+          data.uniformShirtTriangles=String(wardrobe.shirtTriangles);
+          data.uniformAccessories=String(wardrobe.accessories);
+          data.combatClips=combatClips.map(c=>c.name).join(',');
         } catch (error) {
           console.error('Could not load reference sculpted GLB:', error);
           document.getElementById('game').dataset.character = 'fallback';
@@ -488,6 +542,12 @@
           warning.style.cssText = 'position:absolute;z-index:7;left:50%;top:max(90px,env(safe-area-inset-top));transform:translateX(-50%);background:#273b4cbd;border:1px solid #fff7;color:white;padding:8px 12px;border-radius:9px;font:700 10px system-ui,sans-serif;letter-spacing:1px;pointer-events:none';
           document.getElementById('game').appendChild(warning);
         }
+        if(!reviewMode) {
+          const {createCombatArena,createCombatSystem}=await import('./scripts/arena-combat.js?v=1');
+          createCombatArena(THREE,scene);
+          combat=createCombatSystem(THREE,scene,player);
+          document.getElementById('game').dataset.combatEngine='arena-v1';
+        }
         function updateFallbackView(orbit, facing, moving) {
           if (!avatar) return;
           const relative = Math.atan2(Math.sin(orbit - facing), Math.cos(orbit - facing));
@@ -512,7 +572,7 @@
         scene.add(shadow);
 
         const pressed = new Set();
-        const handled = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'r']);
+        const handled = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'r', 'j', 'k', 'i', 'l', 'q']);
         window.addEventListener('keydown', event => {
           const key = event.key.toLowerCase();
           if (handled.has(key) || key==='escape') event.preventDefault();
@@ -522,6 +582,10 @@
           }
           if (key==='escape') { returnToBrawlerMenu(); return; }
           if (key === 'r' && !event.repeat) toggleNinjaRun();
+          if (!event.repeat && key==='j') combat?.queue('Light');
+          if (!event.repeat && key==='k') combat?.queue('Heavy');
+          if (!event.repeat && key==='i') combat?.queue('Kick');
+          if (!event.repeat && key==='q') combat?.queue('Dodge');
           pressed.add(key);
           if (key === ' ') jumpRequested = true;
         });
@@ -573,6 +637,16 @@
         runButton.addEventListener('click', event => { event.preventDefault(); toggleNinjaRun(); });
         function stopRun() { setNinjaRun(false); }
         setNinjaRun(false);
+        let touchGuard=false;
+        for(const [id,type] of [['attackLight','Light'],['attackHeavy','Heavy'],['attackKick','Kick'],['attackDodge','Dodge']]){
+          document.getElementById(id).addEventListener('pointerdown',event=>{
+            event.preventDefault();if(menuStarted)combat?.queue(type);
+          });
+        }
+        const guardButton=document.getElementById('attackGuard');
+        guardButton.addEventListener('pointerdown',event=>{event.preventDefault();touchGuard=true;guardButton.classList.add('pressed');});
+        function releaseGuard(){touchGuard=false;guardButton.classList.remove('pressed');}
+        for(const type of ['pointerup','pointercancel','lostpointercapture'])guardButton.addEventListener(type,releaseGuard);
 
         const gameRoot = document.getElementById('game');
         const touchToggle = document.getElementById('touchToggle');
@@ -593,6 +667,7 @@
           pressed.clear();
           jumpRequested=false;
           stopRun();
+          releaseGuard();combat?.pause();
           stickPointer=null; stickX=stickY=0;updateKnob();
           if (animationMixer) setCharacterAnimation('Idle');
         };
@@ -663,7 +738,7 @@
           );
           camera.lookAt(target);
         };
-        onEnterFreeRoam=()=>snapToCharacterView(facing+Math.PI);
+        onEnterFreeRoam=()=>{snapToCharacterView(facing+Math.PI);combat?.begin();};
         const originalReturn=onReturnToMenu;
         onReturnToMenu=()=>{
           originalReturn?.();
@@ -683,6 +758,7 @@
         const controllerStatus = document.getElementById('controllerStatus');
         let currentPadId = null;
         let previousPadMenuConfirm=false, previousPadMenuBack=false;
+        const previousCombatPad={Light:false,Heavy:false,Dodge:false,Kick:false};
         function refreshPadStatus(pad) {
           const id = pad ? pad.index + ':' + pad.id : null;
           if (id === currentPadId) return;
@@ -722,6 +798,11 @@
           const padJump = down(pad, 0);
           if (menuStarted && padJump && !previousPadJump) jumpRequested = true;
           previousPadJump = padJump;
+          for(const [name,id] of [['Light',2],['Heavy',3],['Dodge',1],['Kick',4]]){
+            const now=!!(menuStarted&&down(pad,id));
+            if(now&&!previousCombatPad[name])combat?.queue(name);
+            previousCombatPad[name]=now;
+          }
 
           let x = (pressed.has('d') || pressed.has('arrowright') ? 1 : 0) - (pressed.has('a') || pressed.has('arrowleft') ? 1 : 0) + stickX + padX;
           let y = (pressed.has('w') || pressed.has('arrowup') ? 1 : 0) - (pressed.has('s') || pressed.has('arrowdown') ? 1 : 0) + stickY + padY;
@@ -735,9 +816,15 @@
           const moveZ = forward.z * y + right.z * x;
           const moving = Math.hypot(moveX, moveZ) > .07;
           const sprinting = menuStarted && !reviewMode && (pressed.has('shift') || touchRun || down(pad, 7) || down(pad, 5) || down(pad, 10));
-          const speed = sprinting ? 95 : walkSpeed; // walk travel matches the recorded stride
+          const fighting = !!(combat && menuStarted && !reviewMode);
+          // Keep arcade sprint movement controlled inside a compact combat arena.
+          const speed = sprinting ? (fighting ? 14 : 95) : walkSpeed;
           player.position.x += moveX * speed * dt;
           player.position.z += moveZ * speed * dt;
+          if(fighting){
+            const radius=Math.hypot(player.position.x,player.position.z);
+            if(radius>20){const scale=20/radius;player.position.x*=scale;player.position.z*=scale;}
+          }
 
           if (moving) {
             const angle = Math.atan2(moveX, moveZ);
@@ -759,6 +846,9 @@
             if (height < 0) { height = 0; verticalSpeed = 0; }
           }
           player.position.y = height;
+          const guarding=pressed.has('l') || touchGuard || down(pad,6);
+          combat?.queue(guarding?'GuardOn':'GuardOff');
+          const combatAnimation=combat?.tick(dt,!!(menuStarted&&!reviewMode),facing,moving);
           if (animationMixer) {
             const airborne=height>.001;
             let nextAnimation;
@@ -776,6 +866,7 @@
             } else {
               nextAnimation=!moving?'Idle':sprinting?'Run':'Walk';
             }
+            if(combatAnimation && !ninjaRunPreview)nextAnimation=combatAnimation;
             setCharacterAnimation(nextAnimation);
             if(nextAnimation==='Walk'){
               animationActions.Walk.setEffectiveTimeScale(Math.max(.05, Math.min(1,inputLength)));
@@ -815,7 +906,7 @@
         startGameButton.textContent = 'START GAME';
         menuStatus.textContent = document.getElementById('game').dataset.character === 'fallback'
           ? 'Ready with simplified fallback character.'
-          : 'Ninja ready. Select and enter free roam.';
+          : 'Ninja arena ready. Fight the shadow rival.';
         gameRootMenu.dataset.selectedBrawler='ninja';
         frame();
       } catch (err) {
