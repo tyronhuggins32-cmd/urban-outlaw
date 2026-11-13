@@ -7,7 +7,7 @@ export function installDetachableHair(THREE, humanoid, hairScene) {
   let headBone=null,body=null;
   humanoid.traverse(o=>{
     if(o.isBone && o.name.toLowerCase().replace(/[^a-z]/g,'').endsWith('head'))headBone=o;
-    if(o.isSkinnedMesh&&!body)body=o;
+    if(o.isSkinnedMesh&&!/^v5_shirt_/i.test(o.name)&&!body)body=o;
   });
   if(!headBone||!body)throw new Error('Reference head bone or skinned character missing');
   const allowed=new Set(['REFERENCE SCULPT HAIR','REFERENCE FOREHEAD METAL','REFERENCE LEAF ENGRAVING']);
