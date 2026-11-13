@@ -64,7 +64,23 @@ def texture(filename,crest=False,base=(19,30,64)):
     weave=np.where((X%5)==0,-5,0)+np.where((Y%6)==0,-4,0)
     lum=np.maximum(.80,1+(grain+weave)/255)
     rgb=np.empty((dim,dim,4),dtype=np.float32)
-    for i in range(3):rgb[:,:,i]=np.clip(base[i]/255*lum,0,1)
+    # Reference front shirt has three asymmetric, wide folds above the waist.
+    # Keep fine knit independent of folds so it still looks like fabric under
+    # a directional light. The two fields follow the same waist geometry.
+    U=X/dim;V=Y/dim
+    front=np.exp(-.5*((U-.75)/.135)**4)
+    back=np.exp(-.5*((U-.25)/.20)**4)
+    def crease(v0,width,amount):
+        return amount*np.exp(-.5*((V-v0)/width)**2)
+    y1=.17+.11*(U-.75)
+    y2=.265-.085*(U-.75)
+    y3=.36+.13*(U-.75)
+    shading=1+front*(
+        crease(y1-.025,.020,.075)+crease(y1+.018,.016,-.125)+
+        crease(y2-.023,.018,.065)+crease(y2+.016,.020,-.108)+
+        crease(y3-.019,.016,.04)+crease(y3+.019,.020,-.085)
+    ) +back*(crease(.20,.025,-.055)+crease(.30,.021,-.045))
+    for i in range(3):rgb[:,:,i]=np.clip(base[i]/255*lum*shading,0,1)
     rgb[:,:,3]=1
     if crest:
         # u=.25 corresponds to the back-facing +Y quadrant in this pattern.
@@ -179,10 +195,10 @@ def torso(t,u):
     localX=(halfw+folds)*X
     front=Y<0
     diagonal=(
-      .031*gauss(z,.824+.20*localX,.030)*gauss(localX,-.025,.17)+
-      .018*gauss(z,.880-.26*localX,.021)*gauss(localX,.040,.17)+
-      .012*gauss(z,.943+.12*localX,.022)+
-      -.010*gauss(z,.845+.20*localX,.014)*gauss(localX,-.015,.15)
+      .037*gauss(z,.824+.20*localX,.030)*gauss(localX,-.025,.17)+
+      .024*gauss(z,.880-.26*localX,.024)*gauss(localX,.040,.17)+
+      .015*gauss(z,.943+.12*localX,.022)+
+      -.015*gauss(z,.847+.20*localX,.014)*gauss(localX,-.015,.15)
     ) if front else (
       .008*gauss(z,.831-.20*localX,.021)+
       .005*gauss(z,.892+.20*localX,.022)
@@ -209,7 +225,8 @@ def collar_shape(t,u):
     theta=u*math.tau;X,Y=math.cos(theta),math.sin(theta)
     front=max(0,-Y)
     z0=1.208
-    z1=1.310-.039*front
+    center_front=gauss(X,0,.47) if front>0 else 0
+    z1=1.312-.033*front-.020*front*center_front
     z=mix(z0,z1,t)
     rX=mix(.113,.126,t)+.002*math.sin(theta*4+t*math.pi)
     rY=mix(.101,.113,t)
@@ -281,7 +298,7 @@ for obj in bpy.data.objects:
 source.hide_render=False
 scene=bpy.context.scene
 scene.render.engine='CYCLES'
-scene.cycles.samples=24
+scene.cycles.samples=32
 scene.cycles.use_denoising=False
 bpy.context.view_layer.cycles.use_denoising=False
 scene.render.resolution_x=750
@@ -314,6 +331,27 @@ for name,ang in [('front',0),('right_side',90),('back',180),('three_quarter',38)
     scene.render.filepath=str((OUT/('shirt_'+name+'.png')).resolve())
     bpy.ops.render.render(write_still=True)
     print('V5_SHIRT_RENDER',name,flush=True)
+
+# Non-public animation QA. A garment that renders correctly only while idle
+# does not qualify as a combat outfit. Pose both upper arms and verify their
+# attached sleeve panels follow the same 44-bone skeleton.
+arm.pose.bones[N['LeftArm']].rotation_mode='XYZ'
+arm.pose.bones[N['RightArm']].rotation_mode='XYZ'
+for poseName,angles in [
+    ('guard',(.46,-.48)),
+    ('jab',(.70,-.11)),
+]:
+    arm.pose.bones[N['LeftArm']].rotation_euler=(angles[0],0,-.12)
+    arm.pose.bones[N['RightArm']].rotation_euler=(angles[1],0,.12)
+    bpy.context.view_layer.update()
+    cam.location=Vector(pos(0,-2.3,1.08))
+    cam.rotation_euler=(target-cam.location).to_track_quat('-Z','Y').to_euler()
+    scene.render.filepath=str((OUT/('shirt_combat_'+poseName+'.png')).resolve())
+    bpy.ops.render.render(write_still=True)
+    print('V5_SHIRT_COMBAT_POSE',poseName,flush=True)
+arm.pose.bones[N['LeftArm']].rotation_euler=(0,0,0)
+arm.pose.bones[N['RightArm']].rotation_euler=(0,0,0)
+
 with open(OUT/'shirt-stats.json','w') as f:
     json.dump({'status':'NOT APPROVED','garment_meshes':[o.name for o in garments],
        'vertices':sum(len(o.data.vertices) for o in garments),
