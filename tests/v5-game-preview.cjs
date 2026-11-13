@@ -60,6 +60,19 @@ const {chromium}=require('playwright');
     if(['Guard','Light','Kick','Run'].includes(pose))
       await page.screenshot({path:'v5-game-pose-'+pose.toLowerCase()+'.png'});
   }
+  // Inspect the actual shirt in game at a matched upper-body camera scale.
+  // A full-body screenshot can hide collar/fold/crest errors on a phone.
+  await page.goto('http://127.0.0.1:8000/?review=1&prototype=v5&shirt=1',{
+    waitUntil:'domcontentloaded',timeout:30000
+  });
+  await page.waitForFunction(()=>document.querySelector('#loading')?.classList.contains('hidden'),null,{timeout:100000});
+  if(await page.locator('#game').getAttribute('data-character')!=='v5-sculpted-fighter-prototype')
+    throw Error('Close-up QA did not load the actual sculpted fighter');
+  for(const view of ['front','back']){
+    await page.locator('[data-review-angle="'+view+'"]').click();
+    await page.waitForTimeout(200);
+    await page.screenshot({path:'v5-game-shirt-'+view+'.png'});
+  }
   // The same candidate must remain a *playable* combatant, not just a
   // scene overlay or static fashion dummy.
   await page.goto('http://127.0.0.1:8000/?prototype=v5',{
