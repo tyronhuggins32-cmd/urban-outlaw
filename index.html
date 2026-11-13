@@ -784,6 +784,28 @@
             for(const other of document.querySelectorAll('[data-review-angle]')) other.setAttribute('aria-pressed',String(other===button));
           });
         }
+        if(prototypeMode && reviewMode){
+          for(const button of document.querySelectorAll('[data-review-pose]')){
+            button.addEventListener('click',()=>{
+              const pose=button.dataset.reviewPose;
+              if(!animationMixer || !animationActions[pose])return;
+              inspectionPose=pose;
+              for(const action of Object.values(animationActions))action.stop();
+              activeAnimation='';
+              setCharacterAnimation(pose);
+              const action=animationActions[pose];
+              action.setEffectiveWeight(1);
+              if(pose!=='Run'){
+                action.time=pose==='Idle'?0:action.getClip().duration*.48;
+                action.paused=true;
+              }
+              animationMixer.update(0);
+              for(const other of document.querySelectorAll('[data-review-pose]'))
+                other.setAttribute('aria-pressed',String(other===button));
+              document.getElementById('game').dataset.reviewPose=pose.toLowerCase();
+            });
+          }
+        }
         document.getElementById('reviewExit').addEventListener('click',()=>{ location.href=location.pathname; });
         let dragging = null, lastX = 0, lastY = 0;
         canvas.addEventListener('pointerdown', event => {
@@ -964,6 +986,7 @@
               nextAnimation=!moving?'Idle':sprinting?'Run':'Walk';
             }
             if(combatAnimation && !ninjaRunPreview && !airborne && !wasAirborne && landingSeconds<=0)nextAnimation=combatAnimation;
+            if(prototypeMode && reviewMode && inspectionPose)nextAnimation=inspectionPose;
             setCharacterAnimation(nextAnimation);
             if(nextAnimation==='Walk'){
               animationActions.Walk.setEffectiveTimeScale(Math.max(.05, Math.min(1,inputLength)));
