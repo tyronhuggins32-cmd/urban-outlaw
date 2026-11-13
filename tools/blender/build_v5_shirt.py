@@ -170,7 +170,7 @@ def mesh_surface(name,rows,segments,shape,weight,mat,thickness=None):
 # at abdomen and waistband. The rectangular tailoring comes from a modified
 # superellipse circumference; it never uses straight cylinder rings.
 profile=[
-    (.763,.165,.152),(.810,.173,.156),(.865,.181,.160),
+    (.718,.171,.155),(.763,.175,.154),(.810,.177,.158),(.865,.181,.160),
     (.930,.180,.153),(.985,.185,.142),(1.070,.192,.150),
     (1.135,.199,.153),(1.177,.181,.142),(1.207,.153,.126),
     (1.242,.115,.108)
@@ -180,14 +180,14 @@ def width(z):
         lo,hi=profile[k-1],profile[k]
         if z<=hi[0]:
             w=smooth((z-lo[0])/(hi[0]-lo[0]))
-            return mix(lo[1],hi[1],w),mix(lo[2],hi[2],w)
-    return profile[-1][1:]
+            return mix(lo[1],hi[1],w)*.955,mix(lo[2],hi[2],w)
+    return profile[-1][1]*.955,profile[-1][2]
 def torso(t,u):
-    z=mix(.763,1.242,t);theta=u*math.tau
+    z=mix(.718,1.242,t);theta=u*math.tau
     X,Y=math.cos(theta),math.sin(theta)
     halfw,halfd=width(z)
     chest=smooth((z-1.04)/.135)
-    bottom=1-smooth((z-.900)/.21)
+    bottom=1-smooth((z-.925)/.23)
     # Looser but non-bulbous shirt with side drape.
     folds=(
        .012*bottom*math.sin(9*theta+z*20)+
@@ -212,9 +212,9 @@ def torso(t,u):
     y=(halfd+folds*.4+diagonal)*math.copysign(abs(Y)**(1-squareness),Y)
     return pos(x,y,z+.003*bottom*math.sin(theta*6))
 def torso_weights(t,u):
-    z=mix(.763,1.242,t)
+    z=mix(.718,1.242,t)
     if z<.92:
-        f=smooth((z-.765)/.155)
+        f=smooth((z-.718)/.202)
         base={'Hips':1-f*.6,'Spine':f*.6}
     elif z<1.08:
         f=smooth((z-.92)/.16)
