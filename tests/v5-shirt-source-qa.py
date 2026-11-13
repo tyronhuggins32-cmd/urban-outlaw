@@ -37,5 +37,20 @@ for f in ['shirt_front.png','shirt_back.png','shirt_right_side.png',
           'shirt_three_quarter.png','shirt_combat_guard.png','shirt_combat_jab.png']:
     image=out/f
     assert image.exists() and image.stat().st_size>25_000, 'Missing art proof '+f
-print('V5 SHIRT GLB, SKIN, UV, MATERIAL AND 6 RENDERS VERIFIED')
+# Verify the critical shoulder/armhole doesn't expose a beige skin patch
+# ABOVE the sleeve hem during guard or jab. This was a visible defect in the
+# previous connected-mesh candidate and was invisible to pure GLB validation.
+import numpy as np
+from PIL import Image
+for pose in ('guard','jab'):
+    pixels=np.asarray(Image.open(out/('shirt_combat_'+pose+'.png')).convert('RGB'),dtype=np.int16)
+    exposed=pixels[365:431,515:560]
+    skin=((exposed[:,:,0]>125)&(exposed[:,:,1]>90)&
+          (exposed[:,:,2]<165)&
+          (exposed[:,:,0]-exposed[:,:,1]>12)&
+          (exposed[:,:,0]>exposed[:,:,2]))
+    count=int(skin.sum())
+    print('SHOULDER_EXPOSED_SKIN_PIXELS',pose,count)
+    assert count<=4, 'Sleeve armhole leaks skin during '+pose+': '+str(count)+' pixels'
+print('V5 SHIRT GLB, SKIN, UV, MATERIAL, SHOULDER COVERAGE AND 6 RENDERS VERIFIED')
 print('VISUAL APPROVAL STATUS: NOT APPROVED. DO NOT PUBLISH.')
