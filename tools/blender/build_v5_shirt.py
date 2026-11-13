@@ -287,7 +287,7 @@ def sleeve(side):
     sleeveObj=mesh_surface(name,25,64,sculpt,weights,PLAIN)
     def cuff(t,u):
         return sculpt(.967+.033*t,u,offset=.002*S)
-    mesh_surface(name+'_Cuff',4,64,cuff,weights,PLAIN)
+    mesh_surface(name+'_Cuff',4,64,cuff,lambda t,u:{side+'Arm':1},PLAIN)
     return sleeveObj
 l=sleeve('Left');r=sleeve('Right')
 
