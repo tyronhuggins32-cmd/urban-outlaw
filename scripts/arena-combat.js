@@ -162,7 +162,7 @@ export function createCombatArena(THREE,scene) {
   return placed;
 }
 
-export function createCombatSystem(THREE,scene,player) {
+export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyMotion=null) {
   const hud=document.getElementById('combatHUD');
   if(!hud)throw Error('Combat HUD missing');
   const refs={
@@ -197,6 +197,21 @@ export function createCombatSystem(THREE,scene,player) {
     const shin=box(label+'Shin',.28,.64,.32,boots,side*.23,.57,.04);
     box(label+'Shoe',.34,.17,.52,boots,side*.23,.13,.22);
     poseParts[label]={upper,lower,leg,shin};
+  }
+  let rivalMixer=null,rivalActions=null,rivalState='';
+  if(opponentVisual && enemyMotion?.walkData && enemyMotion?.createReferenceClips){
+    // Remove every primitive dummy piece. Use the high-detail skinned ninja,
+    // its own skeleton and its own mixer instead.
+    for(const child of [...fighter.children])fighter.remove(child);
+    fighter.add(opponentVisual);
+    const rivalRig=enemyMotion.createReferenceClips(THREE,opponentVisual,enemyMotion.walkData);
+    const clips=[...rivalRig.clips,...createCombatClips(THREE,opponentVisual)];
+    rivalMixer=new THREE.AnimationMixer(opponentVisual);
+    rivalActions=Object.fromEntries(clips.map(clip=>[clip.name,rivalMixer.clipAction(clip)]));
+    for(const name of ['Light','Heavy','Kick','Dodge','Hit']){
+      rivalActions[name].setLoop(THREE.LoopOnce,1);
+    }
+    rivalActions.Ready.play();rivalState='Ready';
   }
   const healthMax=100,enemyBase=85;
   const state={health:healthMax,stamina:100,enemyHealth:enemyBase,enemyMax:enemyBase,
@@ -371,7 +386,19 @@ export function createCombatSystem(THREE,scene,player) {
     }
     if(state.defeated){state.spawnTimer-=dtSafe;if(state.spawnTimer<=0)resetMatch();}
     const seconds=performance.now()*.001;
-    for(const [name,part] of Object.entries(poseParts)){
+    if(rivalMixer){
+      let next='Ready';
+      if(state.enemyHealth<=0||state.enemyStun>0)next='Hit';
+      else if(state.enemyWindup>0)next='Light';
+      else if(distance>3.45)next='Walk';
+      if(next!==rivalState){
+        rivalActions[rivalState]?.fadeOut(.15);
+        rivalActions[next].reset().fadeIn(.15).play();
+        rivalState=next;
+      }
+      rivalMixer.update(dtSafe);
+    }
+    if(!rivalMixer)for(const [name,part] of Object.entries(poseParts)){
       const side=name==='L'?1:-1;
       part.upper.rotation.x=.15+Math.sin(seconds*2+side)*.16+(state.enemyWindup>0?-.95:0);
       part.lower.rotation.x=-.48+(state.enemyWindup>0?-.52:0);
