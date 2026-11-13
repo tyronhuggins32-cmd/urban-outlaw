@@ -40,6 +40,7 @@ export function inspectSculptedOutfit(THREE,character,outfitScene){
   });
   if(oldSleeves.length)throw Error('Old detached sleeve tubes must not be present');
   const parentBoneIndex=new Map(original.bones.map((b,i)=>[b,i]));
+  let maxBindDeviation=0;
   const results=[];
   for(const mesh of meshes){
     const attr=mesh.geometry.attributes;
@@ -61,8 +62,12 @@ export function inspectSculptedOutfit(THREE,character,outfitScene){
       let maxError=0;
       for(let k=0;k<16;k++)
         maxError=Math.max(maxError,Math.abs(referenceInverse.elements[k]-candidateInverse.elements[k]));
-      if(maxError>.015)
-        throw Error(mesh.name+': rest bind pose mismatch for '+remapped[i].name+' ('+maxError.toFixed(4)+')');
+      maxBindDeviation=Math.max(maxBindDeviation,maxError);
+      // A deliberate root-scale/model-proportion overhaul cannot be installed
+      // as shirt-only geometry on the previous skeleton. Validate the changes
+      // but require a COMPLETE candidate rig replacement when bind poses differ.
+      if(maxError>.40)throw Error(mesh.name+': extreme bind deformation for '+
+        remapped[i].name+' ('+maxError.toFixed(4)+')');
     }
     const weights=attr.skinWeight,index=attr.skinIndex;
     const stride=Math.max(1,Math.floor(weights.count/500));
@@ -88,9 +93,11 @@ export function inspectSculptedOutfit(THREE,character,outfitScene){
     sourceScale.y/targetScale.y,sourceScale.z/targetScale.z);
   if(![ratio.x,ratio.y,ratio.z].every(v=>v>.50&&v<1.8))
     throw Error('Candidate has implausible full-rig scale');
+  const replacementMode=maxBindDeviation>.015?'FULL_CHARACTER_RIG':'SHIRT_ONLY_SAME_BIND';
   return {body,original,parts:results,
     triangles:results.reduce((a,m)=>a+m.triangles,0),
-    sourceRigScale:ratio,
+    sourceRigScale:ratio,bindDeviation:maxBindDeviation,
+    replacementMode,
     status:'VISUAL_CANDIDATE_NOT_APPROVED'};
 }
 /**
@@ -102,8 +109,9 @@ export function installSculptedOutfit(THREE,character,outfitScene){
   // Preserve the candidate's full scaled armature and reference body for
   // visual review instead of transplanting cloth into a different root scale.
   // No animation state is mutated on the existing playable character.
-  const preview=outfitScene.clone(true);
-  preview.name='UnapprovedV5ShirtPreview';
-  preview.visible=false;
-  return {...info,preview,status:'CANDIDATE_ONLY_REQUIRES_VISUAL_SIGNOFF'};
+  // Do not naively clone skinned meshes: it breaks the 44-bone links.
+  // Keep this candidate as a verified SOURCE for full-rig replacement after
+  // visual signoff; the live character remains untouched here.
+  return {...info,sourceScene:outfitScene,
+    status:'CANDIDATE_ONLY_REQUIRES_VISUAL_SIGNOFF'};
 }
