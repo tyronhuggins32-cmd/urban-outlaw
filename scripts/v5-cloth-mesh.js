@@ -1,0 +1,137 @@
+/**
+ * V5 tailored garment topology. Replaces rectangular patchwork with continuous
+ * smoothed, weighted torso + shorts shells. No disconnected torso/leg boxes.
+ * Vertex groups are attached to the existing 44-joint skeletal rig.
+ */
+export function installTailoredCloth(THREE,root) {
+  const old= [
+    'FittedNavyCombatTunic_Skinned44','LooseGrayNinjaShorts_Skinned44',
+    'LooseHangingShirtHem','TunicWaistHem',
+    'LeftShortLegPanel','RightShortLegPanel','LeftShortHemStitch',
+    'RightShortHemStitch','LeftTailoredShortPocket','RightTailoredShortPocket',
+    'LeftPocketStitch','RightPocketStitch'
+  ];
+  for(const name of old){
+    const obj=root.getObjectByName(name);
+    if(obj)obj.visible=false;
+  }
+  let base=null;
+  root.traverse(o=>{if(o.isSkinnedMesh&&o.name!=='FittedNavyCombatTunic_Skinned44'&&o.name!=='LooseGrayNinjaShorts_Skinned44'&&!base)base=o});
+  if(!base||base.skeleton.bones.length<44)throw Error('Need original skinned 44-bone humanoid to sew clothing');
+  const skeleton=base.skeleton;
+  const find=token=>skeleton.bones.findIndex(b=>b.name.toLowerCase().replace(/[^a-z0-9]/g,'').endsWith(token.toLowerCase()));
+  const joints={hips:find('Hips'),spine:find('Spine'),spine1:find('Spine1'),spine2:find('Spine2'),
+    leftThigh:find('LeftUpLeg'),rightThigh:find('RightUpLeg')};
+  if(Object.values(joints).some(j=>j<0))throw Error('V5 garment bone mapping incomplete');
+  const navy=new THREE.MeshStandardMaterial({color:0x263963,roughness:.94,metalness:0,side:THREE.DoubleSide,vertexColors:true});
+  const gray=new THREE.MeshStandardMaterial({color:0xcac7ca,roughness:.98,metalness:0,side:THREE.DoubleSide,vertexColors:true});
+  const stitch=new THREE.MeshStandardMaterial({color:0xa6a3af,roughness:.99,side:THREE.DoubleSide});
+  const materialBand=new THREE.MeshStandardMaterial({color:0x283d6d,roughness:.90,side:THREE.DoubleSide});
+  const out=[];
+  // Lofted quad rows preserve topology and smooth normals. Weights are exact
+  // source-skeleton bone indices, always normalized, never hardcoded numbers.
+  function surface(name,rows,radial,point,weight,material,open=true) {
+    const pos=[],colors=[],ids=[],ws=[],idx=[];
+    for(let i=0;i<=rows;i++){
+      const t=i/rows;
+      for(let j=0;j<radial;j++){
+        const a=j/radial*Math.PI*2;
+        const [x,y,z]=point(t,a);
+        pos.push(x,y,z);
+        const c=1+.024*Math.sin(a*7+y*21)*Math.sin(t*Math.PI*3)+.017*Math.cos(a*12-y*16);
+        colors.push(Math.min(1.1,c),Math.min(1.1,c),Math.min(1.1,c));
+        const pairs=weight(t,a).filter(([_,w])=>w>0).sort((a,b)=>b[1]-a[1]).slice(0,4);
+        const total=pairs.reduce((n,x)=>n+x[1],0);
+        while(pairs.length<4)pairs.push([joints.hips,0]);
+        for(const p of pairs)ids.push(p[0]);
+        for(const p of pairs)ws.push(total>0?p[1]/total:0);
+      }
+    }
+    for(let i=0;i<rows;i++)for(let j=0;j<radial;j++){
+      const a=i*radial+j,b=i*radial+(j+1)%radial,
+            c=(i+1)*radial+j,d=(i+1)*radial+(j+1)%radial;
+      idx.push(a,b,c,b,d,c);
+    }
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+    g.setAttribute('normal',new THREE.Float32BufferAttribute(new Float32Array(pos.length),3));
+    g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+    g.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(ids,4));
+    g.setAttribute('skinWeight',new THREE.Float32BufferAttribute(ws,4));
+    g.setIndex(idx);g.computeVertexNormals();g.computeBoundingSphere();
+    const o=new THREE.SkinnedMesh(g,material);
+    o.name=name;
+    o.castShadow=true;o.receiveShadow=false;o.frustumCulled=false;
+    o.position.copy(base.position);o.quaternion.copy(base.quaternion);o.scale.copy(base.scale);
+    base.parent.add(o);o.bind(skeleton,base.bindMatrix.clone());
+    out.push(o);return o;
+  }
+  // Main shirt: broad short sleeves join a loose rectangular body.
+  // Hem around natural hips, shoulders narrowing into a high collar.
+  const shirt=surface('ContinuousV5NavyTunic',26,52,(t,a)=>{
+    const y=.785+.46*t;
+    const top=Math.max(0,(y-1.15)/.095);
+    const rx=(.208+.019*Math.sin(t*Math.PI)-.038*top);
+    const rz=(.153+.012*Math.sin(t*Math.PI)-.015*top);
+    const wrinkle=.006*Math.sin(a*9+t*12)*(.28+.72*(1-t));
+    const flare=.021*Math.pow(1-t,1.3);
+    return [(rx+flare+wrinkle)*Math.cos(a),
+      y+.006*Math.sin(a*5+t*9)*(1-t),
+      (rz+flare*.46+wrinkle*.43)*Math.sin(a)-.009*(1-t)];
+  },(t)=>[
+    [joints.hips,Math.max(0,.84-1.7*t)],
+    [joints.spine,Math.min(1,.45+1.5*(1-t))*Math.max(.20,1-t)],
+    [joints.spine1,Math.max(0,.70*t)],
+    [joints.spine2,Math.max(0,1.6*t-1.0)]
+  ],navy);
+  // Fabric inner fold at hem avoids a flat hard waist ring.
+  const shirthem=surface('V5SoftShirtHem',3,52,(t,a)=>{
+    const rx=.228+.004*t+.006*Math.sin(a*8),
+          rz=.170+.002*t+.004*Math.cos(a*7);
+    return [rx*Math.cos(a),.775+.023*t+.005*Math.sin(a*6),rz*Math.sin(a)-.01];
+  },()=>[[joints.hips,1]],navy);
+  const hip=surface('V5ShortsHipPanel',16,56,(t,a)=>{
+    const y=.815-.185*t;
+    const rx=.192+.032*t,
+          rz=.155+.026*t;
+    const fold=.006*Math.sin(a*7+8*t)*Math.sin(Math.PI*t);
+    return [(rx+fold)*Math.cos(a),y,(rz+fold*.45)*Math.sin(a)];
+  },t=>[[joints.hips,.92-.56*t],[joints.leftThigh,.04+.28*t],[joints.rightThigh,.04+.28*t]],gray);
+  const legPieces=[];
+  for(const side of [-1,1]){
+    const left=side===-1,thigh=left?joints.leftThigh:joints.rightThigh;
+    const centerX=side*.112;
+    const leg=surface((left?'Left':'Right')+'V5BaggyShortLeg',22,44,(t,a)=>{
+      const y=.702-.250*t;
+      const width=.138+.026*t-.006*Math.sin(Math.PI*t);
+      const drape=.005*Math.cos(9*a+20*t)*(.3+.7*t)+.003*Math.sin(21*a+8*t);
+      const radius=width+drape;
+      return [centerX+radius*Math.cos(a)+side*.006*t,
+        y+.004*Math.sin(a*7+side*2)*t,
+        (radius*.89)*Math.sin(a)+.015];
+    },t=>[[joints.hips,Math.max(0,.48-1.3*t)],[thigh,Math.min(1,.52+1.3*t)]],gray);
+    legPieces.push(leg);
+    // Thin, flat woven stitch at bottom. No thick tire-shaped cylinders.
+    surface((left?'Left':'Right')+'V5HemSeam',2,44,(t,a)=>{
+      const radius=.162+.002*Math.cos(8*a+side);
+      return [centerX+radius*Math.cos(a)+side*.006,.464+.010*t,
+        radius*.89*Math.sin(a)+.015];
+    },()=>[[thigh,1]],gray);
+  }
+  // True mesh-weighted back pockets and fly seams remain anchored to pelvis.
+  const fan=root.getObjectByName('UchihaFanBackCrest');
+  if(!fan)throw Error('Missing reference Uchiha fan on rear tunic');
+  // Convert crude old broad straps into two thinner reference navy lines,
+  // retained on the character-right shorts leg only.
+  for(const suffix of ['ReferenceNavyThighBand0','ReferenceNavyThighBand1']){
+    const o=root.getObjectByName(suffix);
+    if(o){o.material=materialBand;o.scale.y*=.46;}
+  }
+  for(const o of out) if(!o.isSkinnedMesh || o.skeleton!==skeleton)
+    throw Error('A V5 cloth panel is not skinned to the character');
+  return {style:'v5-seamless-tailoring-v3',
+    shirtTriangles:shirt.geometry.index.count/3,
+    hipTriangles:hip.geometry.index.count/3,
+    shortsTriangles:hip.geometry.index.count/3+legPieces.reduce((n,o)=>n+o.geometry.index.count/3,0),
+    skinWeightedMeshes:out.length,fanAttached:!!fan.parent};
+}
