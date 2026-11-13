@@ -265,8 +265,8 @@ def sleeve(side):
     axisV=direction.cross(axisU).normalized()
     def sculpt(t,u,offset=0):
         theta=u*math.tau
-        center=upper+direction*(distance*mix(.04,.53,t))
-        sleeveR=mix(.086,.099,t)*S+offset
+        center=upper+direction*(distance*mix(-.09,.57,t))
+        sleeveR=mix(.050,.095,t)*S+offset
         wrinkle=.004*S*math.sin(theta*7+t*12)*(.4+.6*t)
         center+=axisU*math.cos(theta)*(sleeveR+wrinkle)
         center+=axisV*math.sin(theta)*(.9*sleeveR+wrinkle*.5)
@@ -275,7 +275,7 @@ def sleeve(side):
         # Bind root sleeve rings to chest/shoulder; gradually hand off skin
         # weights toward the upper arm down the sleeve. The cuff remains free
         # to follow the attacking limb without tearing its shoulder seam.
-        armShare=smooth(t/.45)
+        armShare=smooth(t/.55)
         shoulderShare=(1-armShare)*.63
         chestShare=(1-armShare)*.37
         return {side+'Arm':armShare,side+'Shoulder':shoulderShare,'Spine2':chestShare}
