@@ -150,7 +150,7 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
                 (1-smoothstep((side-.255)/.060)))
         if weight>.015:
             sign=1 if shoulder_x>0 else -1
-            vertex.co.x+=sign*.016*scale*weight
+            vertex.co.x+=sign*.008*scale*weight
             vertex.co.z+=.001*scale*weight
             protected+=1
     joined.data.update()
