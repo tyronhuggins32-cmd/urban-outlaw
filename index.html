@@ -391,9 +391,9 @@
         loading.textContent = loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-          const {fitCombatWardrobe} = await import('./scripts/combat-wardrobe.js?v=2');
-          const {refineCombatHair} = await import('./scripts/combat-hair.js?v=1');
-          const {createCombatClips} = await import('./scripts/arena-combat.js?v=2');
+          const {fitCombatWardrobe} = await import('./scripts/combat-wardrobe.js?v=3');
+          const {refineCombatHair} = await import('./scripts/combat-hair.js?v=2');
+          const {createCombatClips} = await import('./scripts/arena-combat.js?v=3');
           const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=11');
           const { attachSeamPatches } = await import('./scripts/cloth-seam-patches.js?v=2');
           const { cleanLegacyCharacterHead } = await import('./scripts/clean-head-v5.js?v=4');
@@ -574,7 +574,7 @@
           document.getElementById('game').appendChild(warning);
         }
         if(!reviewMode) {
-          const {createCombatArena,createCombatSystem}=await import('./scripts/arena-combat.js?v=2');
+          const {createCombatArena,createCombatSystem}=await import('./scripts/arena-combat.js?v=3');
           createCombatArena(THREE,scene);
           combat=createCombatSystem(THREE,scene,player,opponentVisual,{walkData:enemyWalkData,createReferenceClips:enemyClipFactory});
           document.getElementById('game').dataset.combatEngine='arena-v1';
