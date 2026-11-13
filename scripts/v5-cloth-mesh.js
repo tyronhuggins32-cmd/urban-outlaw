@@ -21,7 +21,9 @@ export function installTailoredCloth(THREE,root) {
   const skeleton=base.skeleton;
   const find=token=>skeleton.bones.findIndex(b=>b.name.toLowerCase().replace(/[^a-z0-9]/g,'').endsWith(token.toLowerCase()));
   const joints={hips:find('Hips'),spine:find('Spine'),spine1:find('Spine1'),spine2:find('Spine2'),
-    leftThigh:find('LeftUpLeg'),rightThigh:find('RightUpLeg')};
+    leftThigh:find('LeftUpLeg'),rightThigh:find('RightUpLeg'),
+    leftArm:find('LeftArm'),rightArm:find('RightArm'),
+    leftElbow:find('LeftForeArm'),rightElbow:find('RightForeArm')};
   if(Object.values(joints).some(j=>j<0))throw Error('V5 garment bone mapping incomplete');
   const navy=new THREE.MeshStandardMaterial({color:0x263963,roughness:.94,metalness:0,side:THREE.DoubleSide,vertexColors:true});
   const gray=new THREE.MeshStandardMaterial({color:0xcac7ca,roughness:.98,metalness:0,side:THREE.DoubleSide,vertexColors:true});
@@ -70,10 +72,11 @@ export function installTailoredCloth(THREE,root) {
   // Hem around natural hips, shoulders narrowing into a high collar.
   const shirt=surface('ContinuousV5NavyTunic',26,52,(t,a)=>{
     const y=.785+.46*t;
-    const top=Math.max(0,(y-1.15)/.095);
-    const rx=(.208+.019*Math.sin(t*Math.PI)-.038*top);
-    const rz=(.153+.012*Math.sin(t*Math.PI)-.015*top);
-    const wrinkle=.006*Math.sin(a*9+t*12)*(.28+.72*(1-t));
+    const collarSlope=Math.max(0,Math.min(1,(y-1.15)/.095));
+    const shoulder=1-.32*Math.abs(2*t-1);
+    const rx=.207+.044*Math.sin(t*Math.PI)-.119*collarSlope;
+    const rz=.155+.016*Math.sin(t*Math.PI)-.061*collarSlope;
+    const wrinkle=.009*Math.sin(a*9+t*12)*(.28+.72*(1-t));
     const flare=.021*Math.pow(1-t,1.3);
     return [(rx+flare+wrinkle)*Math.cos(a),
       y+.006*Math.sin(a*5+t*9)*(1-t),
@@ -84,6 +87,37 @@ export function installTailoredCloth(THREE,root) {
     [joints.spine1,Math.max(0,.70*t)],
     [joints.spine2,Math.max(0,1.6*t-1.0)]
   ],navy);
+  // Short sleeves encircle each upper-arm joint and flex with taijutsu.
+  // Their inner edges overlap the wide shoulder slope; no bare shoulder gap.
+  const sleevePieces=[];
+  for(const [side,armIndex,elbowIndex] of [
+    ['Left',joints.leftArm,joints.leftElbow],
+    ['Right',joints.rightArm,joints.rightElbow]]){
+    const arm=skeleton.bones[armIndex],elbow=skeleton.bones[elbowIndex];
+    const origin=arm.getWorldPosition(new THREE.Vector3());
+    const end=elbow.getWorldPosition(new THREE.Vector3());
+    const direction=end.clone().sub(origin),length=direction.length();
+    direction.normalize();
+    const tangent=new THREE.Vector3(0,0,1).cross(direction).normalize();
+    if(tangent.length()<.1)tangent.set(1,0,0);
+    const bitangent=direction.clone().cross(tangent).normalize();
+    const place=(t,a,edge=false)=>{
+      const center=origin.clone().addScaledVector(direction,length*(.015+.59*t));
+      const radius=(edge?.109:(.093+.018*t))+.002*Math.sin(a*5+t*8);
+      center.addScaledVector(tangent,Math.cos(a)*radius);
+      center.addScaledVector(bitangent,Math.sin(a)*radius);
+      return center.toArray();
+    };
+    const sleeve=surface(side+'V5LooseShortSleeve',13,32,
+      (t,a)=>place(t,a),()=>[[armIndex,1]],navy);
+    sleevePieces.push(sleeve);
+    surface(side+'V5SleeveCuffSeam',2,32,
+      (t,a)=>place(.965+.035*t,a,true),()=>[[armIndex,1]],navy);
+    for(const oldName of [side+'Sleeve',side+'SleeveEdge']){
+      const oldPart=root.getObjectByName(oldName);
+      if(oldPart)oldPart.visible=false;
+    }
+  }
   // Fabric inner fold at hem avoids a flat hard waist ring.
   const shirthem=surface('V5SoftShirtHem',3,52,(t,a)=>{
     const rx=.228+.004*t+.006*Math.sin(a*8),
@@ -136,6 +170,7 @@ export function installTailoredCloth(THREE,root) {
     throw Error('A V5 cloth panel is not skinned to the character');
   return {style:'v5-seamless-tailoring-v3',
     shirtTriangles:shirt.geometry.index.count/3,
+    sleeveTriangles:sleevePieces.reduce((n,o)=>n+o.geometry.index.count/3,0),
     hipTriangles:hip.geometry.index.count/3,
     shortsTriangles:hip.geometry.index.count/3+legPieces.reduce((n,o)=>n+o.geometry.index.count/3,0),
     skinWeightedMeshes:out.length,fanAttached:!!fan.parent};
