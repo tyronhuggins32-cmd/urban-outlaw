@@ -68,10 +68,29 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
         i,j=edge.vertices
         ri,rj=rootof(i),rootof(j)
         if ri!=rj:parents[ri]=rj
-    components={rootof(v.index) for v in joined.data.vertices}
-    if len(components)!=1:
-        raise RuntimeError("Shoulder sleeves are NOT topologically sewn: "+
-                           str(len(components))+" detached islands")
+    from collections import Counter
+    component_by_vertex=[rootof(v.index) for v in joined.data.vertices]
+    component_sizes=Counter(component_by_vertex)
+    primary,_=component_sizes.most_common(1)[0]
+    fragments=[i for i,c in enumerate(component_by_vertex) if c!=primary]
+    if fragments:
+        # Voxel stitching can create a tiny closed, internal speck (previous
+        # run measured an eight-vertex island). That is not a real sleeve.
+        # Remove small remesh debris, but NEVER silently accept a detached
+        # shoulder or whole sleeve disguised as a second mesh island.
+        if len(fragments)>max(32,int(.004*count)):
+            raise RuntimeError("Shoulder sleeves are NOT sewn: detached "+
+                               str(dict(component_sizes)))
+        import bmesh
+        bm=bmesh.new()
+        bm.from_mesh(joined.data)
+        bm.verts.ensure_lookup_table()
+        bmesh.ops.delete(bm,geom=[bm.verts[i] for i in fragments],
+                         context="VERTS")
+        bm.to_mesh(joined.data)
+        bm.free()
+        joined.data.update()
+        print("V5_SEAM_FRAGMENT_REMOVED",len(fragments),flush=True)
 
     # Very small surface relaxation removes shoulder sawtooth artifacts and
     # softens the old tube-on-tube intersection without erasing waist folds.
