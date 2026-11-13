@@ -10,6 +10,8 @@ on:
       - 'tools/blender/build_v5_shirt.py'
       - 'tools/blender/sew_v5_shirt.py'
       - 'tests/v5-shirt-source-qa.py'
+      - 'tests/v5-shirt-live-rig.cjs'
+      - 'scripts/import-sculpted-v5-outfit.js'
       - 'tools/blender/v5_shirt_textures.py'
 permissions:
   contents: read
@@ -34,8 +36,15 @@ jobs:
         run: |
           mkdir -p art/v5/generated
           PYTHONPATH=/usr/lib/python3/dist-packages blender -b -t 2 --python tools/blender/build_v5_shirt.py
-      - name: Check continuous garment mesh, 44-joint skinning and 6 pose renders
+      - name: Check continuous garment mesh, 44-joint skinning and six combat poses
         run: python3 tests/v5-shirt-source-qa.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real game glTF engine
+        run: npm install --no-save three@0.166.1
+      - name: Verify 44-bone shirt compatibility with original playable ninja
+        run: node tests/v5-shirt-live-rig.cjs
       - name: Save shirt candidate and render previews
         if: always()
         uses: actions/upload-artifact@v4
