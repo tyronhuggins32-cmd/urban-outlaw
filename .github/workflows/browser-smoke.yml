@@ -46,6 +46,9 @@ on:
       - 'tests/rig-diagnostics.cjs'
       - 'scripts/reference-character-animations.js'
       - 'scripts/cloth-seam-patches.js'
+      - 'scripts/combat-wardrobe.js'
+      - 'scripts/arena-combat.js'
+      - 'tests/combat-game.cjs'
 permissions:
   contents: read
 jobs:
@@ -73,6 +76,7 @@ jobs:
           python3 -m http.server 8000 >/tmp/urban-server.log 2>&1 &
           sleep 2
           node tests/browser-smoke.cjs
+          node tests/combat-game.cjs
           node tests/model-review.cjs
           node tests/head-review.cjs
           node tests/rig-diagnostics.cjs
@@ -87,6 +91,7 @@ jobs:
             urban-main-menu.png
             urban-brawler-resume.png
             urban-animation-*.png
+            urban-combat-*.png
             urban-body-animated-test.png
             urban-review-*.png
             urban-head-*.png
