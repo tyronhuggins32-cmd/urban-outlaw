@@ -62,7 +62,31 @@
         "No pointed sleeve-root spikes, detached shoulder fabric, or hand collision with shirt in guard and jab renders"
       ],
       "merge_gate": "Only sign if all checks pass; automated rig tests are necessary but insufficient",
-      "explicit_approval": false
+      "explicit_approval": false,
+      "shirt_closeup_standard": "art/v5/shirt-approval-criteria.json",
+      "shirt_visual_check_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F06",
+        "F07",
+        "F08",
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "P01",
+        "P02"
+      ],
+      "latest_visual_audit": "art/v5/shirt-latest-audit.json"
     }
   },
   "last_baseline": {
@@ -88,6 +112,8 @@
       "Back fan should have full rounded red cap and broad white lower section plus centered straight handle",
       "Back logo located centered just below shoulder blades, correctly scaled and not stretched or flattened",
       "Cotton knit material remains dark navy, no metallic blue or bright generic sportswear look"
-    ]
+    ],
+    "front_sha256": "c67b969ccb0ff5fd8f5c0f58d5babaf2ec3863abff3e59049687d1c25b4a0c38",
+    "back_sha256": "742ebc9e02210ecc739dfdfad10d6324fd40d0be2424a4a06ea6a8e9cfa20de7"
   }
 }
