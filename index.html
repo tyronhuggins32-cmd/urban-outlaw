@@ -192,7 +192,7 @@
     </section>
     <button type="button" id="openMenu" aria-label="Return to brawler selection menu">MENU</button>
     <div class="ui brand"><div class="eyebrow">Arena fighter</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 8.1 · CLEAN CLOTH FIT</div>
+    <div class="ui version"><span class="dot"></span> BUILD 8.2 · REFERENCE OUTFIT</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD move · J punch · K heavy · I kick · L guard · Q dodge</strong><p>Space jump · Shift/R ninja run · DualSense: □ punch, △ heavy, ○ dodge, L2 guard</p></div>
@@ -395,7 +395,7 @@
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
           const {fitCombatWardrobe} = await import('./scripts/combat-wardrobe.js?v=5');
-          const {fitReferenceOutfit} = await import('./scripts/reference-outfit-v8.js?v=2');
+          const {fitReferenceOutfit} = await import('./scripts/reference-outfit-v8.js?v=3');
           const {createFluidCombatClips} = await import('./scripts/fluid-combat-clips.js?v=2');
           fluidClipFactory=createFluidCombatClips;
           const {refineCombatHair} = await import('./scripts/combat-hair.js?v=3');
