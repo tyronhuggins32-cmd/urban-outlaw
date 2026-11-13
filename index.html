@@ -323,6 +323,10 @@
         if(headReviewMode)document.getElementById('game').dataset.headReview='active';
         document.getElementById('game').classList.toggle('review', reviewMode);
         if (reviewMode) document.getElementById('game').dataset.reviewView = 'front';
+        if(prototypeMode && reviewMode){
+          document.querySelector('.review-headline').textContent='V5 CHARACTER · SCULPT IN GAME · VISUAL MATCH NOT APPROVED';
+          document.getElementById('reviewReferenceLabel').textContent='BASE BODY / HAIR · NOT SHIRT TARGET';
+        }
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -782,7 +786,9 @@
             );
             camera.lookAt(reviewLook);
             document.getElementById('reviewReference').src='./assets/reference/'+view+'.jpg';
-            document.getElementById('reviewReferenceLabel').textContent=(view==='hero'?'3/4':view.toUpperCase())+' REFERENCE';
+            document.getElementById('reviewReferenceLabel').textContent=prototypeMode
+              ? 'BASE BODY · '+(view==='hero'?'3/4':view.toUpperCase())+' (NOT SHIRT TARGET)'
+              : (view==='hero'?'3/4':view.toUpperCase())+' REFERENCE';
             document.getElementById('game').dataset.reviewView=view;
             for(const other of document.querySelectorAll('[data-review-angle]')) other.setAttribute('aria-pressed',String(other===button));
           });
