@@ -170,7 +170,7 @@ def mesh_surface(name,rows,segments,shape,weight,mat):
 # at abdomen and waistband. The rectangular tailoring comes from a modified
 # superellipse circumference; it never uses straight cylinder rings.
 profile=[
-    (.763,.187,.162),(.810,.190,.167),(.865,.185,.161),
+    (.763,.165,.152),(.810,.173,.156),(.865,.181,.160),
     (.930,.180,.153),(.985,.185,.142),(1.070,.192,.150),
     (1.135,.199,.153),(1.177,.202,.148),(1.207,.171,.133),
     (1.242,.115,.108)
