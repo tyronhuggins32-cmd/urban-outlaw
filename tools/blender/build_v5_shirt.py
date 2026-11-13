@@ -56,7 +56,7 @@ def mix(a,b,t):return a+(b-a)*t
 # Navy cloth: knit noise is physically integrated into a texture, while
 # geometry holds actual sewn folds. A crisp fan emblem is printed into the
 # back-center UV island without an extra floating sprite plane.
-def texture(filename,crest=False,base=(24,37,76)):
+def texture(filename,crest=False,base=(19,30,64)):
     dim=1024
     rng=np.random.default_rng(198)
     X,Y=np.meshgrid(np.arange(dim),np.arange(dim))
@@ -69,13 +69,15 @@ def texture(filename,crest=False,base=(24,37,76)):
     if crest:
         # u=.25 corresponds to the back-facing +Y quadrant in this pattern.
         # The atlas's v coordinate increases with physical shirt height.
-        xc,yc=int(dim*.25),int(dim*.62)
-        dx=X-xc;dy=Y-yc;r=100
-        circle=dx*dx+dy*dy<=r*r
-        red=circle&(dy>=0)&(dy<=r)
-        white=circle&(dy<0)&(dy>=-69)&(np.abs(dx)<r*np.sqrt(np.clip(1-(dy/(r*.85))**2,0,1)))
-        outline=(circle)&(np.abs(dy)<=3)
-        handle=(np.abs(dx)<11)&(dy>=-123)&(dy<=-60)
+        xc,yc=int(dim*.25),int(dim*.65)
+        dx=X-xc;dy=Y-yc
+        rx,ry=92,190
+        circle=(dx/rx)**2+(dy/ry)**2<=1
+        red=circle&(dy>=0)&(dy<=ry)
+        bowl=(dx/rx)**2+(dy/138)**2<=1
+        white=bowl&(dy<0)&(dy>=-115)
+        outline=(np.abs(dx)<rx)&(np.abs(dy)<=6)
+        handle=(np.abs(dx)<10)&(dy>=-177)&(dy<=-110)
         rgb[red,:3]=[.68,.28,.34]
         rgb[white,:3]=[.94,.92,.90]
         rgb[outline,:3]=[.15,.19,.31]
@@ -149,9 +151,10 @@ def mesh_surface(name,rows,segments,shape,weight,mat):
 # at abdomen and waistband. The rectangular tailoring comes from a modified
 # superellipse circumference; it never uses straight cylinder rings.
 profile=[
-    (.765,.204,.208),(.825,.205,.205),(.905,.194,.155),
-    (.985,.185,.140),(1.070,.193,.150),(1.135,.200,.153),
-    (1.177,.202,.148),(1.207,.171,.133),(1.242,.115,.108)
+    (.763,.185,.207),(.810,.188,.201),(.865,.182,.179),
+    (.930,.180,.153),(.985,.185,.142),(1.070,.192,.150),
+    (1.135,.199,.153),(1.177,.202,.148),(1.207,.171,.133),
+    (1.242,.115,.108)
 ]
 def width(z):
     for k in range(1,len(profile)):
@@ -161,7 +164,7 @@ def width(z):
             return mix(lo[1],hi[1],w),mix(lo[2],hi[2],w)
     return profile[-1][1:]
 def torso(t,u):
-    z=mix(.765,1.242,t);theta=u*math.tau
+    z=mix(.763,1.242,t);theta=u*math.tau
     X,Y=math.cos(theta),math.sin(theta)
     halfw,halfd=width(z)
     chest=smooth((z-1.04)/.135)
@@ -176,9 +179,10 @@ def torso(t,u):
     localX=(halfw+folds)*X
     front=Y<0
     diagonal=(
-      .019*gauss(z,.835+.18*localX,.023)*gauss(localX,-.055,.14)+
-      .012*gauss(z,.888-.26*localX,.018)*gauss(localX,.080,.13)+
-      .009*gauss(z,.944+.14*localX,.017)
+      .031*gauss(z,.824+.20*localX,.030)*gauss(localX,-.025,.17)+
+      .018*gauss(z,.880-.26*localX,.021)*gauss(localX,.040,.17)+
+      .012*gauss(z,.943+.12*localX,.022)+
+      -.010*gauss(z,.845+.20*localX,.014)*gauss(localX,-.015,.15)
     ) if front else (
       .008*gauss(z,.831-.20*localX,.021)+
       .005*gauss(z,.892+.20*localX,.022)
@@ -189,7 +193,7 @@ def torso(t,u):
     y=(halfd+folds*.4+diagonal)*math.copysign(abs(Y)**(1-squareness),Y)
     return pos(x,y,z+.003*bottom*math.sin(theta*6))
 def torso_weights(t,u):
-    z=mix(.765,1.242,t)
+    z=mix(.763,1.242,t)
     if z<.92:
         f=smooth((z-.765)/.155)
         return {'Hips':1-f*.6,'Spine':f*.6}
@@ -205,17 +209,17 @@ def collar_shape(t,u):
     theta=u*math.tau;X,Y=math.cos(theta),math.sin(theta)
     front=max(0,-Y)
     z0=1.208
-    z1=1.314-.040*front
+    z1=1.310-.039*front
     z=mix(z0,z1,t)
     rX=mix(.113,.126,t)+.002*math.sin(theta*4+t*math.pi)
     rY=mix(.101,.113,t)
-    fold=.006*gauss(t,.72,.14)*math.cos(theta*2)
+    fold=.012*gauss(t,.57,.17)*math.cos(theta*2)
     return pos((rX+fold)*X,(rY+fold)*Y,z)
 collar=mesh_surface('V5_Shirt_Collar',27,88,collar_shape,lambda t,u:{'Spine2':1},PLAIN)
 
 # Shirt bottom doubled edge and inset stitch ridge, both deform with hips.
 def hem_shape(t,u):
-    x,y,z=torso(.010+t*.022,u)
+    x,y,z=torso(.012+t*.014,u)
     a=u*math.tau
     return (x+S*.004*math.cos(a),y+S*.004*math.sin(a),z-S*.004*(1-t))
 hem=mesh_surface('V5_Shirt_Hem',5,112,hem_shape,lambda t,u:{'Hips':.85,'Spine':.15},PLAIN)
@@ -235,7 +239,7 @@ def sleeve(side):
     def sculpt(t,u,offset=0):
         theta=u*math.tau
         center=upper+direction*(distance*mix(.04,.53,t))
-        sleeveR=mix(.089,.087,t)*S+offset
+        sleeveR=mix(.086,.099,t)*S+offset
         wrinkle=.004*S*math.sin(theta*7+t*12)*(.4+.6*t)
         center+=axisU*math.cos(theta)*(sleeveR+wrinkle)
         center+=axisV*math.sin(theta)*(.9*sleeveR+wrinkle*.5)
