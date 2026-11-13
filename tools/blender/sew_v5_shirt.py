@@ -55,6 +55,23 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
 
     if len(joined.data.polygons)<1500:
         raise RuntimeError("Seamless garment fusion returned too little geometry")
+    # One object is not enough: a mesh can silently contain disconnected
+    # floating sleeve islands. Require exactly one connected polygon shell.
+    count=len(joined.data.vertices)
+    parents=list(range(count))
+    def rootof(i):
+        while parents[i]!=i:
+            parents[i]=parents[parents[i]]
+            i=parents[i]
+        return i
+    for edge in joined.data.edges:
+        i,j=edge.vertices
+        ri,rj=rootof(i),rootof(j)
+        if ri!=rj:parents[ri]=rj
+    components={rootof(v.index) for v in joined.data.vertices}
+    if len(components)!=1:
+        raise RuntimeError("Shoulder sleeves are NOT topologically sewn: "+
+                           str(len(components))+" detached islands")
 
     # Very small surface relaxation removes shoulder sawtooth artifacts and
     # softens the old tube-on-tube intersection without erasing waist folds.
