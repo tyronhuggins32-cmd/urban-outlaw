@@ -10,13 +10,13 @@ const {chromium}=require('playwright');
  await page.waitForFunction(()=>document.getElementById('loading')?.classList.contains('hidden'),null,{timeout:80000});
  const atBoot=await page.evaluate(()=>{
   const g=document.getElementById('game').dataset;
-  return {model:g.character,uniform:g.uniformStyle,shirt:+g.uniformShirtTriangles,
+  return {model:g.character,uniform:g.uniformStyle,clothMeshes:+g.uniformClothMeshes,shirt:+g.uniformShirtTriangles,
     accessories:+g.uniformAccessories,shorts:+g.uniformShortsTriangles,drape:+g.uniformDrape,pockets:+g.uniformPockets,crest:g.uniformCrest,clips:g.combatClips,engine:g.combatEngine,
     hairFlow:g.hairFlow,hairLocks:+g.hairFlowLocks,enemyModel:g.enemyModel};
  });
  console.log('COMBAT MODEL',JSON.stringify(atBoot));
  if(atBoot.model!=='clean-head-v5')throw Error('Original skinned ninja failed to load');
- if(atBoot.uniform!=='v5-tailored-ninja-v2'||atBoot.shirt<200||atBoot.shorts<300||atBoot.drape<100||atBoot.pockets!==2||atBoot.crest!=='UchihaFanBackCrest'||atBoot.accessories<25)
+ if(atBoot.uniform!=='v5-seamless-tailoring-v3'||atBoot.clothMeshes<5||atBoot.shirt<200||atBoot.shorts<300||atBoot.drape<100||atBoot.pockets!==2||atBoot.crest!=='UchihaFanBackCrest'||atBoot.accessories<25)
    throw Error('3D outfit missing/failed to skin: '+JSON.stringify(atBoot));
  if(atBoot.hairFlow!=='source-sculpt-swept-v2'||atBoot.hairLocks!==1||atBoot.enemyModel!=='skinned-rival-44')throw Error('Hair refinement did not attach to head bone: '+JSON.stringify(atBoot));
  if(atBoot.clips!=='Ready,Light,Cross,Heavy,Kick,Sweep,Guard,Dodge,Slip,Parry,Hit'||atBoot.engine!=='arena-v1')
