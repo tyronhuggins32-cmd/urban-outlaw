@@ -274,8 +274,9 @@ def sleeve(side):
     def sculpt(t,u,offset=0):
         theta=u*math.tau
         center=upper+direction*(distance*mix(-.10,.99,t))
-        sleeveR=mix(.070,.089,t)*S+offset
-        wrinkle=.006*S*math.sin(theta*7+t*12)*(.35+.65*t)
+        center.x+=(.021 if side=='Left' else -.021)*S*smooth(t)
+        sleeveR=mix(.073,.125,t)*S+offset
+        wrinkle=.008*S*math.sin(theta*7+t*12)*(.30+.70*t)
         center+=axisU*math.cos(theta)*(sleeveR+wrinkle)
         center+=axisV*math.sin(theta)*(.9*sleeveR+wrinkle*.5)
         return tuple(center)
