@@ -26,6 +26,14 @@ The experimental editable shirt is reproducibly built by `tools/blender/build_v5
 
 The next geometry change must use a properly sewn one-piece shoulder-to-sleeve topology, not another stack of disconnected cap meshes or a release of this failed candidate. The branch remains isolated, and nothing has been promoted to `main`.
 
+## Mandatory shirt approval gate
+
+The full shirt-specific checklist is [SHIRT_APPROVAL_CHECKLIST.md](SHIRT_APPROVAL_CHECKLIST.md) and its machine-readable rules live in [shirt-approval-criteria.json](shirt-approval-criteria.json). The latest candidate audit is [shirt-latest-audit.json](shirt-latest-audit.json). There are 20 individually mandatory checks, all bound to the final front and back close-up image hashes. A nonpassing criterion blocks release regardless of geometry tests.
+
+A standalone offline, self-contained comparison page is also generated for the user. Source photos are retained in the conversation rather than uploading the user's original images into this public GitHub repository without explicit request.
+
+`node tests/v5-shirt-approval-gate.cjs --audit` prints a factual status; `node tests/v5-shirt-approval-gate.cjs --require-pass` must reject any incomplete or unsigned candidate.
+
 ## Pass/fail standard
 
 A candidate needs orthographic *front, side, back and three-quarter* views matched to the reference at equal character height, along with *guard, jab, kick and ninja-run* deformation checks. The approval contract in \`art/v5/approval-contract.json\` records what each view needs to match. A correct skeleton is necessary but cannot substitute for an accurate shirt/shorts silhouette, details, color, fabric folds or crest.
