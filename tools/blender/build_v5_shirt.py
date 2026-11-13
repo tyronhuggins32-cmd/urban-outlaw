@@ -87,7 +87,7 @@ def texture(filename,crest=False,base=(16,25,59)):
         # The atlas's v coordinate increases with physical shirt height.
         xc,yc=int(dim*.25),int(dim*.65)
         dx=X-xc;dy=Y-yc
-        rx,ry=59,190
+        rx,ry=72,190
         circle=(dx/rx)**2+(dy/ry)**2<=1
         red=circle&(dy>=0)&(dy<=ry)
         bowl=(dx/rx)**2+(dy/138)**2<=1
@@ -172,7 +172,7 @@ def mesh_surface(name,rows,segments,shape,weight,mat):
 profile=[
     (.763,.165,.152),(.810,.173,.156),(.865,.181,.160),
     (.930,.180,.153),(.985,.185,.142),(1.070,.192,.150),
-    (1.135,.199,.153),(1.177,.202,.148),(1.207,.171,.133),
+    (1.135,.199,.153),(1.177,.181,.142),(1.207,.153,.126),
     (1.242,.115,.108)
 ]
 def width(z):
@@ -252,7 +252,7 @@ collar=mesh_surface('V5_Shirt_Collar',27,88,collar_shape,lambda t,u:{'Spine2':1}
 def hem_shape(t,u):
     x,y,z=torso(.012+t*.014,u)
     a=u*math.tau
-    return (x+S*.004*math.cos(a),y+S*.004*math.sin(a),z-S*.004*(1-t))
+    return (x+S*.014*math.cos(a),y+S*.014*math.sin(a),z-S*.006*(1-t))
 hem=mesh_surface('V5_Shirt_Hem',5,112,hem_shape,lambda t,u:{'Hips':.85,'Spine':.15},PLAIN)
 
 # The sleeve axis uses original arm endpoints, not guessed world coordinates.
