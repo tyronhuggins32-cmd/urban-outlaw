@@ -907,7 +907,7 @@
             } else {
               nextAnimation=!moving?'Idle':sprinting?'Run':'Walk';
             }
-            if(combatAnimation && !ninjaRunPreview)nextAnimation=combatAnimation;
+            if(combatAnimation && !ninjaRunPreview && !airborne && !wasAirborne && landingSeconds<=0)nextAnimation=combatAnimation;
             setCharacterAnimation(nextAnimation);
             if(nextAnimation==='Walk'){
               animationActions.Walk.setEffectiveTimeScale(Math.max(.05, Math.min(1,inputLength)));
