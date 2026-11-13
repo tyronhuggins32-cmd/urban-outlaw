@@ -310,6 +310,16 @@ garments=[body,collar,hem]+[
 assert len(garments)==5,len(garments)
 assert all(any(m.type=='ARMATURE' and m.object==arm for m in o.modifiers) for o in garments)
 
+# V5 reference: slender early-teen body. The original GLB was visibly too
+# broad and short, which made any shirt look like a square poncho. A common
+# rig-level scale, rather than per-garment deformation, preserves all fitted
+# clothing and animation relationships. This is a candidate, not a live edit.
+arm.scale.x*=.80
+arm.scale.y*=.94
+arm.scale.z*=1.20
+bpy.context.view_layer.update()
+print('V5_PROPORTION_CORRECTION',tuple(round(x,3) for x in arm.scale),flush=True)
+
 # Export a portable GLB with its original skeleton for future in-game skin
 # retargeting. Keep source .blend for real editable sculpt refinements.
 bpy.ops.wm.save_as_mainfile(filepath=str((OUT/'v5-shirt-candidate.blend').resolve()))
@@ -355,11 +365,11 @@ area('soft fill',pos(2,-2,.7),90,3)
 camData=bpy.data.cameras.new('Orthographic garment QA only')
 cam=bpy.data.objects.new('QA shirt camera',camData)
 scene.collection.objects.link(cam);scene.camera=cam
-camData.type='ORTHO';camData.ortho_scale=1.34*S
-target=Vector(pos(0,0,1.12))
+camData.type='ORTHO';camData.ortho_scale=1.70*S
+target=arm.matrix_world @ Vector(pos(0,0,1.12))
 for name,ang in [('front',0),('right_side',90),('back',180),('three_quarter',38)]:
     angle=math.radians(ang)
-    cam.location=Vector(pos(math.sin(angle)*2.3,-math.cos(angle)*2.3,1.08))
+    cam.location=arm.matrix_world @ Vector(pos(math.sin(angle)*2.3,-math.cos(angle)*2.3,1.08))
     cam.rotation_euler=(target-cam.location).to_track_quat('-Z','Y').to_euler()
     scene.render.filepath=str((OUT/('shirt_'+name+'.png')).resolve())
     bpy.ops.render.render(write_still=True)
@@ -392,7 +402,7 @@ for poseName,left,right,spine,hips,leg in [
         arm.pose.bones[leg_name].rotation_mode='XYZ'
         arm.pose.bones[leg_name].rotation_euler=(leg,0,0)
     bpy.context.view_layer.update()
-    cam.location=Vector(pos(0,-2.3,1.08))
+    cam.location=arm.matrix_world @ Vector(pos(0,-2.3,1.08))
     cam.rotation_euler=(target-cam.location).to_track_quat('-Z','Y').to_euler()
     scene.render.filepath=str((OUT/('shirt_combat_'+poseName+'.png')).resolve())
     shoulder_points={}
