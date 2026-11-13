@@ -66,6 +66,13 @@
     #game.touch-disabled #combatControls,#game.review #combatControls { display:none !important; }
     @media (pointer:coarse) { #game.playing #combatControls { display:grid; } #combatHUD { top:calc(max(18px,env(safe-area-inset-top)) + 64px); width:min(295px,calc(100vw - 30px)); padding:9px; } .fight-label { font-size:9px; } }
     @media (max-width:390px) { #combatControls { width:164px; gap:5px; right:9px; bottom:calc(max(26px,env(safe-area-inset-bottom)) + 102px); } #combatControls button { min-height:44px; font-size:8px; } #combatHUD { width:235px; } }
+    #candidateWarning { display:none; position:absolute; z-index:9; top:max(82px,env(safe-area-inset-top)); left:50%; transform:translateX(-50%); padding:7px 12px; max-width:calc(100vw - 36px); text-align:center; color:#fff2cd; background:#5c263ae9; border:1px solid #ffd28c; border-radius:8px; font:800 10px system-ui; letter-spacing:1px; pointer-events:none; }
+    #game.prototype #candidateWarning { display:block; }
+    #game.prototype .version { border-color:#ffd28c; background:#5d263fd8; }
+    #reviewPoses { display:none; position:absolute; z-index:8; left:50%; top:max(158px,env(safe-area-inset-top)); transform:translateX(-50%); width:min(480px,calc(100vw - 28px)); gap:6px; align-items:center; justify-content:center; flex-wrap:wrap; pointer-events:auto; }
+    #game.prototype.review #reviewPoses { display:flex; }
+    #reviewPoses button { padding:7px 9px; border:1px solid #dce7ff8c; border-radius:7px; color:#fff; background:#1a324bc7; font:750 10px system-ui; cursor:pointer; }
+    #reviewPoses button[aria-pressed=true] { background:#8d6687; border-color:#fff; }
     #modelReviewPanel { display:none; position:absolute; inset:0; pointer-events:none; z-index:7; }
     #game.review #modelReviewPanel { display:block; }
     #game.review #touchControls, #game.review #touchToggle, #game.review .hint, #game.review .help { display:none !important; }
@@ -192,7 +199,7 @@
     </section>
     <button type="button" id="openMenu" aria-label="Return to brawler selection menu">MENU</button>
     <div class="ui brand"><div class="eyebrow">Arena fighter</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 8.2 · REFERENCE OUTFIT</div>
+    <div class="ui version"><span class="dot"></span> BUILD 8.3 · V5 CHARACTER SANDBOX</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD move · J punch · K heavy · I kick · L guard · Q dodge</strong><p>Space jump · Shift/R ninja run · DualSense: □ punch, △ heavy, ○ dodge, L2 guard</p></div>
@@ -222,8 +229,19 @@
       </div>
     </div>
     <div id="loading" role="status" aria-live="polite">Loading playground...</div>
+    <div id="candidateWarning" role="status">V5 SCULPT PLAYTEST · NOT APPROVED · NOT RELEASED</div>
     <div id="modelReviewPanel" aria-label="Reference comparison mode">
       <div class="review-headline">ACTUAL 3D MODEL VS. REFERENCE</div>
+      <div id="reviewPoses" aria-label="Model movement inspection">
+        <button type="button" data-review-pose="Idle" aria-pressed="true">IDLE</button>
+        <button type="button" data-review-pose="Ready" aria-pressed="false">STANCE</button>
+        <button type="button" data-review-pose="Guard" aria-pressed="false">GUARD</button>
+        <button type="button" data-review-pose="Light" aria-pressed="false">JAB</button>
+        <button type="button" data-review-pose="Cross" aria-pressed="false">CROSS</button>
+        <button type="button" data-review-pose="Kick" aria-pressed="false">KICK</button>
+        <button type="button" data-review-pose="Dodge" aria-pressed="false">DODGE</button>
+        <button type="button" data-review-pose="Run" aria-pressed="false">NINJA RUN</button>
+      </div>
       <div class="review-reference">
         <img id="reviewReference" src="./assets/reference/front.jpg" alt="Character approval reference"/>
         <p id="reviewReferenceLabel">FRONT REFERENCE</p>
@@ -252,6 +270,9 @@
     const startGameButton = document.getElementById('startGame');
     const menuStatus = document.getElementById('menuStatus');
     const inReview = new URLSearchParams(location.search).get('review') === '1';
+    const prototypeMode = new URLSearchParams(location.search).get('prototype') === 'v5';
+    gameRootMenu.classList.toggle('prototype',prototypeMode);
+    gameRootMenu.dataset.modelSource=prototypeMode?'v5-sculpt-sandbox':'live-reference';
     let menuStarted = inReview, gameReady = false, onReturnToMenu = null, onEnterFreeRoam = null;
     gameRootMenu.dataset.screen = inReview ? 'review' : 'menu';
     function enterWithBrawler() {
@@ -298,6 +319,7 @@
         const reviewMode = new URLSearchParams(location.search).get('review') === '1';
         const headReviewMode = reviewMode && new URLSearchParams(location.search).get('head')==='1';
         const ninjaRunPreview = reviewMode && new URLSearchParams(location.search).get('run')==='1';
+        let inspectionPose=null;
         if(headReviewMode)document.getElementById('game').dataset.headReview='active';
         document.getElementById('game').classList.toggle('review', reviewMode);
         if (reviewMode) document.getElementById('game').dataset.reviewView = 'front';
@@ -391,7 +413,7 @@
         let spriteAtlas = null;
         let currentCharacterView = -1;
         const loaderMessage = 'Loading reference sculpt and humanoid rig…';
-        loading.textContent = loaderMessage;
+        loading.textContent = prototypeMode ? 'Loading unpublished V5 sculpted fighter…' : loaderMessage;
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
           const {fitCombatWardrobe} = await import('./scripts/combat-wardrobe.js?v=5');
