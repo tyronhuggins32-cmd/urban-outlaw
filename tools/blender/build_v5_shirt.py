@@ -158,7 +158,10 @@ def mesh_surface(name,rows,segments,shape,weight,mat):
     obj.parent=arm
     obj.matrix_parent_inverse=arm.matrix_world.inverted()
     solid=obj.modifiers.new('Soft cotton shell thickness','SOLIDIFY')
-    solid.thickness=.003*S
+    # A robust, manifold seam-fusion shell must remain thicker than voxels.
+    # The earlier .003 m wall was narrower than the remesh cell and left
+    # see-through chest pinholes. This thickness goes inward by default.
+    solid.thickness=.018*S
     solid.offset=-.6
     solid.use_rim=True
     return obj
