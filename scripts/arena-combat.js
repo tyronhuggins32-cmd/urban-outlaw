@@ -331,7 +331,7 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
   }
   function tick(dt,active,facing,moving){
     state.active=active;
-    const dtSafe=Math.min(.05,Math.max(0,dt));
+    const dtSafe=Math.min(.10,Math.max(0,dt)); // Keep 3D impacts in time with animation on mobile.
     for(let i=fx.length-1;i>=0;i--){
       const o=fx[i];o.userData.life-=dtSafe;
       o.position.addScaledVector(o.userData.velocity,dtSafe);
@@ -351,6 +351,7 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     state.comboTimer=Math.max(0,state.comboTimer-dtSafe);
     if(state.comboTimer===0&&state.attackTime===0)state.comboStep=0;
     if(state.guard)state.guardAge+=dtSafe;
+    else state.guardAge=0;
     state.messageTimer=Math.max(0,state.messageTimer-dtSafe);
     state.stamina=clamp(state.stamina+(state.guard?7:21)*dtSafe,0,100);
     if(state.guard)state.stamina=Math.max(0,state.stamina-9*dtSafe);
@@ -361,6 +362,18 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     const directionLen=Math.max(.0001,Math.hypot(dx,dz));
     const fxDir=Math.sin(facing),fzDir=Math.cos(facing);
     const facingScore=(dx*fxDir+dz*fzDir)/directionLen;
+    // Short forward weight transfers tie full-body swing animation to actual
+    // footwork. No teleporting: every lunge translates over several frames.
+    const attacking=['Light','Cross','Heavy','Kick','Sweep','Parry'].includes(state.attackType);
+    if(attacking&&state.attackLength>0&&distance>1.95){
+      const phase=(state.attackLength-state.attackTime)/state.attackLength;
+      if(phase<.44){
+        const rush={Light:2.8,Cross:4.0,Heavy:3.1,Kick:3.6,Sweep:2.4,Parry:1.4}[state.attackType];
+        const forwardStep=rush*Math.sin(Math.PI*Math.min(1,phase/.44))*dtSafe;
+        player.position.x+=dx/directionLen*forwardStep;
+        player.position.z+=dz/directionLen*forwardStep;
+      }
+    }
     // A short windup precedes the hitbox, and one contact resolves per strike.
     if(state.attackTime>0){
       const type=state.attackType,old=state.attackTime;
