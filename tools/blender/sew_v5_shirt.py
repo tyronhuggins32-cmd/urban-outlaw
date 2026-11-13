@@ -113,7 +113,7 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
     for vertex in joined.data.vertices:
         u=(vertex.co.x-cx)/scale
         z=(vertex.co.z-bottom)/scale
-        if z<.758 or z>1.070 or abs(u)>.23:
+        if z<.711 or z>1.073 or abs(u)>.23:
             continue
         xmask=smoothstep((.235-abs(u))/.072)
         if xmask<=0.:continue
@@ -151,7 +151,7 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
         if weight>.015:
             sign=1 if shoulder_x>0 else -1
             vertex.co.x+=sign*.016*scale*weight
-            vertex.co.z-=.010*scale*weight
+            vertex.co.z-=.026*scale*weight
             protected+=1
     joined.data.update()
     print("V5_GARMENT_FOLDS_SCULPTED",displaced,
@@ -203,7 +203,7 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
     for vertex in joined.data.vertices:
         x,y,z=vertex.co
         u=(math.atan2(y-cy,x-cx)/(2*math.pi))%1.0
-        v=(z-bottom-.763*scale)/(.479*scale)
+        v=(z-bottom-.718*scale)/(.524*scale)
         vert_uv.append((u,v))
     # UV must be unwrapped PER FACE at the angular 0/1 seam. Otherwise
     # Blender interpolates across the whole atlas and paints parts of the
