@@ -192,7 +192,7 @@ export function createCombatSystem(THREE,scene,player) {
     dodgeTimer:0,stagger:0,enemyAttack:0,enemyWindup:0,enemyStun:0,enemyGuard:0,
     spawnTimer:0,messageTimer:0,message:'MOVE INTO RANGE · START THE FIGHT',
     enemySide:1,hits:0,damageDealt:0,defeated:false,attacksStarted:0,enemyHits:0};
-  fighter.position.set(0,0,9);
+  fighter.position.set(2.0,0,7.8);
   const vec=(a,b)=>Math.hypot(a.position.x-b.position.x,a.position.z-b.position.z);
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const events=[];const available=['Light','Heavy','Kick','Dodge'];
@@ -255,14 +255,14 @@ export function createCombatSystem(THREE,scene,player) {
     state.enemyGuard=0;state.combo=0;state.stagger=0;state.attackTime=0;state.attackType=null;
     state.health=clamp(state.health+25,0,healthMax);
     state.stamina=100;state.defeated=false;
-    fighter.position.set(state.round%2?0:6,0,10);
+    fighter.position.set(state.round%2?2:-2,0,9);
     announce('ROUND '+state.round+' · FIGHT!',2);
   }
   function resetMatch(){
     Object.assign(state,{health:100,stamina:100,round:1,wins:0,combo:0,enemyHealth:enemyBase,enemyMax:enemyBase,
       cooldown:0,attackTime:0,attackType:null,hitApplied:false,dodgeTimer:0,stagger:0,enemyAttack:0,enemyWindup:0,
       enemyStun:0,enemyGuard:0,spawnTimer:0,defeated:false,hits:0,enemyHits:0,damageDealt:0});
-    fighter.position.set(0,0,9);announce('FIGHT!',1.5);ui();
+    fighter.position.set(2.0,0,7.8);announce('FIGHT!',1.5);ui();
   }
   function tick(dt,active,facing,moving){
     state.active=active;
