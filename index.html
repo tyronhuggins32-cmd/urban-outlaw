@@ -435,6 +435,7 @@
             selectV5ShirtForPreview=mod.selectV5ShirtForPreview;
             const baseline=await modelLoader.loadAsync('./assets/reference-rig-fluid.glb?v=20');
             v5Proof=mod.verifyV5PlayableRig(THREE,baseline.scene,gltf.scene);
+            v5Proof.originalBody=mod.restoreCanonicalBody(THREE,baseline.scene,gltf.scene);
           }
           const imported = gltf.scene;
           imported.name = 'Urban Outlaw continuous reference-sculpted skinned character';
@@ -545,6 +546,8 @@
             data.prototypeBindDeviation=v5Proof.bindDeviation.toFixed(4);
             data.prototypeMode=v5Proof.replacementMode;
             data.prototypeTriangles=String(v5Proof.triangles);
+            data.prototypeRestoredFace=String(v5Proof.originalBody.vertices);
+            data.prototypeRetargetedBoneIndices=String(v5Proof.originalBody.remappedBones);
           }
           data.hairLocks='0'; // No extra procedural hair or double headband.
           data.hairDrawGroups='0'; // Only standalone GLB has hair meshes.
