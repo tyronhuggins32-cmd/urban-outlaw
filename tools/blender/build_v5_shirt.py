@@ -325,6 +325,7 @@ print('V5_PROPORTION_CORRECTION',tuple(round(x,3) for x in arm.scale),flush=True
 bpy.ops.wm.save_as_mainfile(filepath=str((OUT/'v5-shirt-candidate.blend').resolve()))
 bpy.ops.object.select_all(action='DESELECT')
 arm.select_set(True)
+source.select_set(True)  # Full-rig replacement needs source body, not cloth only
 for obj in garments:obj.select_set(True)
 bpy.context.view_layer.objects.active=arm
 bpy.ops.export_scene.gltf(filepath=str((OUT/'v5-shirt-candidate.glb').resolve()),
