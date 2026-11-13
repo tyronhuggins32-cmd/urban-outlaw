@@ -79,8 +79,26 @@ export function fitCombatWardrobe(THREE, root) {
 
   // Raised dark-blue collar enclosing the lower neck, linked to upper spine.
   const collar=mesh(new THREE.CylinderGeometry(.139,.15,.137,32,2,true),navy,'HighNinjaCollar');
+  // Tailored opening: raised sides/back, dipped front so mouth and chin remain
+  // visible. Sculpt the actual vertices rather than placing a giant tube
+  // across the character's face.
+  const frontDip=z=>{
+    const forward=Math.max(0,Math.min(1,(z+.008)/.148));
+    return .068*forward*forward;
+  };
+  const cp=collar.geometry.getAttribute('position');
+  for(let i=0;i<cp.count;i++){
+    const y=cp.getY(i);
+    if(y>0)cp.setY(i,y-frontDip(cp.getZ(i))*(y/.0685));
+  }
+  cp.needsUpdate=true;collar.geometry.computeVertexNormals();
   collar.position.set(0,1.178,-.018);mount(collar,spine);
   const collarEdge=mesh(new THREE.TorusGeometry(.139,.009,7,32),hem,'CollarTopSeam');
+  const ep=collarEdge.geometry.getAttribute('position');
+  // Torus rotates about X below, so local Y maps to world forward Z and
+  // local Z maps to negative world height.
+  for(let i=0;i<ep.count;i++)ep.setZ(i,ep.getZ(i)+frontDip(ep.getY(i)));
+  ep.needsUpdate=true;collarEdge.geometry.computeVertexNormals();
   collarEdge.rotation.x=Math.PI/2;collarEdge.position.set(0,1.246,-.018);mount(collarEdge,spine);
   // Band at shirt waist and hem, without covering fitted shorts.
   const waist=mesh(new THREE.CylinderGeometry(.164,.165,.06,28,1,true),dark,'TunicWaistHem');
