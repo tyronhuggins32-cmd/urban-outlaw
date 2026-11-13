@@ -192,7 +192,7 @@
     </section>
     <button type="button" id="openMenu" aria-label="Return to brawler selection menu">MENU</button>
     <div class="ui brand"><div class="eyebrow">Arena fighter</div><h1>URBAN <span>OUTLAW</span></h1></div>
-    <div class="ui version"><span class="dot"></span> BUILD 6.5 · NINJA DUEL</div>
+    <div class="ui version"><span class="dot"></span> BUILD 7.0 · FLUID COMBAT + V5 OUTFIT</div>
     <button id="touchToggle" type="button" aria-label="Hide touchscreen controls" aria-pressed="false">TOUCH: ON</button>
     <div id="controllerStatus" role="status" aria-live="polite">CONTROLLER CONNECTED</div>
     <div class="ui hint"><strong>WASD move · J punch · K heavy · I kick · L guard · Q dodge</strong><p>Space jump · Shift/R ninja run · DualSense: □ punch, △ heavy, ○ dodge, L2 guard</p></div>
@@ -374,7 +374,7 @@
         function setCharacterAnimation(state) {
           if (!animationMixer || activeAnimation === state || !animationActions[state]) return;
           const oldAction = animationActions[activeAnimation];
-          const combatAction=['Ready','Light','Heavy','Kick','Guard','Dodge','Hit'].includes(state);
+          const combatAction=['Ready','Light','Cross','Heavy','Kick','Sweep','Guard','Dodge','Slip','Parry','Hit'].includes(state);
           const blend=combatAction || ['Light','Heavy','Kick','Guard','Dodge','Hit'].includes(activeAnimation) ? .095 : state === 'Jump' || state === 'Land' ? .09 : .24;
           if (oldAction) oldAction.fadeOut(blend);
           const nextAction = animationActions[state];
@@ -394,6 +394,8 @@
         try {
           const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
           const {fitCombatWardrobe} = await import('./scripts/combat-wardrobe.js?v=5');
+          const {tailorNinjaClothes} = await import('./scripts/combat-outfit-v2.js?v=1');
+          const {createFluidCombatClips} = await import('./scripts/fluid-combat-clips.js?v=1');
           const {refineCombatHair} = await import('./scripts/combat-hair.js?v=3');
           const {createCombatClips} = await import('./scripts/arena-combat.js?v=3');
           const { createReferenceClips } = await import('./scripts/reference-character-animations-v2.js?v=11');
@@ -435,6 +437,7 @@
 
           const clothPatches=attachSeamPatches(THREE,imported);
           wardrobe=fitCombatWardrobe(THREE,imported);
+          const tailoring=tailorNinjaClothes(THREE,imported);
           const hairFlow=refineCombatHair(THREE,imported,standaloneHair.scene);
           characterModel = new THREE.Group();
           characterModel.name = 'Reference Sculpt Rig v1';
@@ -488,7 +491,7 @@
           enemyWalkData=walkData;
           enemyClipFactory=createReferenceClips;
           animationMixer=new THREE.AnimationMixer(imported);
-          const combatClips=createCombatClips(THREE,imported);
+          const combatClips=createFluidCombatClips(THREE,imported);
           animationActions=Object.fromEntries([...rig.clips,...combatClips].map(clip=>[clip.name,animationMixer.clipAction(clip)]));
           for(const clip of combatClips){
             if(!['Ready','Guard'].includes(clip.name))animationActions[clip.name].setLoop(THREE.LoopOnce,1);
@@ -529,7 +532,11 @@
           data.walkGait='phased-contact-v3';
           data.runStyle='ninja-pose-v4';
           data.runActivation='toggle-v1';
-          data.uniformStyle=wardrobe.style;
+          data.uniformStyle=tailoring.style;
+          data.uniformShortsTriangles=String(tailoring.shortsTriangles);
+          data.uniformDrape=String(tailoring.shirtDrapeVertices);
+          data.uniformPockets=String(tailoring.pockets);
+          data.uniformCrest=tailoring.crest;
           data.uniformShirtTriangles=String(wardrobe.shirtTriangles);
           data.uniformAccessories=String(wardrobe.accessories);
           data.hairFlow=hairFlow.style;
@@ -579,7 +586,7 @@
         if(!reviewMode) {
           const {createCombatArena,createCombatSystem}=await import('./scripts/arena-combat.js?v=3');
           createCombatArena(THREE,scene);
-          combat=createCombatSystem(THREE,scene,player,opponentVisual,{walkData:enemyWalkData,createReferenceClips:enemyClipFactory});
+          combat=createCombatSystem(THREE,scene,player,opponentVisual,{walkData:enemyWalkData,createReferenceClips:enemyClipFactory,createCombatClips:createFluidCombatClips});
           document.getElementById('game').dataset.combatEngine='arena-v1';
         }
         function updateFallbackView(orbit, facing, moving) {
