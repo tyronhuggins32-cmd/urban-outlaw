@@ -75,5 +75,18 @@
       "missing natural seam, fold and pocket detail",
       "overall render far below approval sheet reference"
     ]
+  },
+  "reference_closeups": {
+    "front": "IMG_0286.jpeg, front of head torso high collar sleeves and waist",
+    "back": "IMG_0287.jpeg, back collar, sleeves, sewn fan graphic and hem",
+    "inspection_priority": [
+      "Collar should be folded and tapered, sitting just below the mouth, leaving the face visible",
+      "Rounded shoulder seam flows into short relaxed sleeves, no poncho-like flat shoulders",
+      "Fabric drapes smoothly across chest, gathering into three or more asymmetric visible folds above shirt hem",
+      "Slightly relaxed hem covers gray shorts waistband without holes, hard cutoff or gray protrusions",
+      "Back fan should have full rounded red cap and broad white lower section plus centered straight handle",
+      "Back logo located centered just below shoulder blades, correctly scaled and not stretched or flattened",
+      "Cotton knit material remains dark navy, no metallic blue or bright generic sportswear look"
+    ]
   }
 }
