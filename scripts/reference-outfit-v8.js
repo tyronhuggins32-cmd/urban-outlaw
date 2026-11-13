@@ -10,7 +10,7 @@ export function fitReferenceOutfit(THREE,root) {
   root.updateMatrixWorld(true);
   let body=null;
   root.traverse(o=>{
-    if(o.isSkinnedMesh && o.name!=='FittedNavyCombatTunic_Skinned44' &&
+    if(o.isSkinnedMesh && !/^v5_shirt_/i.test(o.name) && o.name!=='FittedNavyCombatTunic_Skinned44' &&
        o.name!=='LooseGrayNinjaShorts_Skinned44' && !body)body=o;
   });
   if(!body||body.skeleton.bones.length<44)throw new Error('Reference clothing requires original 44-bone body');
