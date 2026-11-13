@@ -263,6 +263,7 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     data.combatPlayerPosition=player.position.x.toFixed(2)+','+player.position.z.toFixed(2);
     data.combatEnemyPosition=fighter.position.x.toFixed(2)+','+fighter.position.z.toFixed(2);
     data.combatMessage=state.message;
+    data.combatChainHistory=(state.clipHistory||[]).join(',');
   }
   function beginAttack(request) {
     const type=request==='Light'?(state.comboStep%2?'Cross':'Light'):
@@ -279,6 +280,7 @@ export function createCombatSystem(THREE,scene,player,opponentVisual=null,enemyM
     state.cooldown=.05;
     state.attacksStarted++;
     state.lastAction=type;
+    state.clipHistory=[...(state.clipHistory||[]),type].slice(-12);
     if(!['Dodge','Slip'].includes(type)) {
       state.comboStep++;state.comboTimer=1.10;
     } else {
