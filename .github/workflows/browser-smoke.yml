@@ -47,6 +47,7 @@ on:
       - 'scripts/reference-character-animations.js'
       - 'scripts/cloth-seam-patches.js'
       - 'scripts/combat-wardrobe.js'
+      - 'scripts/combat-hair.js'
       - 'scripts/arena-combat.js'
       - 'tests/combat-game.cjs'
 permissions:
