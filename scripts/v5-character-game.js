@@ -23,6 +23,56 @@ export function verifyV5PlayableRig(THREE,originalRig,candidateScene){
   return proof;
 }
 
+/**
+ * Restore the exact original head/body mesh inside Blender's scaled candidate
+ * armature. Blender re-indexes the imported source on GLB export, but the
+ * existing hair cleanup uses exact original triangle/vertex indexes. Swapping
+ * only the body geometry back preserves the canonical face and separate hair
+ * while keeping the candidate's *entire* root and cloth rig scale.
+ *
+ * Bone indices must be remapped by name, never assumed to match Blender's.
+ * We intentionally do not merge or detach armatures.
+ */
+export function restoreCanonicalBody(THREE,originalRig,candidateScene){
+  function body(scene){
+    let found=null;
+    scene.traverse(o=>{
+      if(o.isSkinnedMesh&&o.skeleton?.bones?.length>=44&&
+         !/^v5_shirt_/i.test(o.name)&&
+         !/referencev8|fittednavy|loosegray/i.test(o.name)&&!found)found=o;
+    });
+    if(!found)throw Error('No original 44-bone body was found');
+    return found;
+  }
+  const src=body(originalRig),dst=body(candidateScene);
+  const boneMap=new Map(dst.skeleton.bones.map((bone,i)=>[
+    bone.name.toLowerCase().replace(/[^a-z0-9]/g,'').replace(/^mixamorig/,''),i
+  ]));
+  const order=src.skeleton.bones.map(b=>boneMap.get(
+    b.name.toLowerCase().replace(/[^a-z0-9]/g,'').replace(/^mixamorig/,'')
+  ));
+  if(order.some(x=>x===undefined))throw Error('Candidate lost original bone names');
+  const geo=src.geometry.clone();
+  const skin=geo.getAttribute('skinIndex');
+  if(!skin)throw Error('Source head has no weights');
+  const indices=new Uint16Array(skin.array.length);
+  for(let i=0;i<skin.count;i++)for(let k=0;k<4;k++){
+    const originalIndex=skin.getComponent(i,k);
+    indices[i*4+k]=order[originalIndex];
+  }
+  geo.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(indices,4));
+  if(!geo.index||geo.getAttribute('position').count<20000)
+    throw Error('Canonical face geometry is unexpectedly small');
+  const old=dst.geometry;dst.geometry=geo;
+  dst.material=Array.isArray(src.material)?src.material.map(m=>m.clone()):src.material.clone();
+  dst.frustumCulled=false;
+  old.dispose();
+  return {vertices:geo.getAttribute('position').count,
+    triangles:geo.index.count/3,
+    skinningBones:dst.skeleton.bones.length,
+    remappedBones:order.filter((x,i)=>x!==i).length};
+}
+
 export function selectV5ShirtForPreview(character){
   const required=new Set(V5_SHIRT_PARTS);
   const present=new Set();
