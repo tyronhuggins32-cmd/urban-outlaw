@@ -121,6 +121,11 @@ export function installTailoredCloth(THREE,root) {
   // True mesh-weighted back pockets and fly seams remain anchored to pelvis.
   const fan=root.getObjectByName('UchihaFanBackCrest');
   if(!fan)throw Error('Missing reference Uchiha fan on rear tunic');
+  root.updateMatrixWorld(true);
+  root.attach(fan);
+  fan.position.set(0,1.095,-.184);
+  root.updateMatrixWorld(true);
+  skeleton.bones[joints.spine2].attach(fan);
   // Convert crude old broad straps into two thinner reference navy lines,
   // retained on the character-right shorts leg only.
   for(const suffix of ['ReferenceNavyThighBand0','ReferenceNavyThighBand1']){
