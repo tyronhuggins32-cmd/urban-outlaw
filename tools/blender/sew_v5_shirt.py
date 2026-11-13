@@ -135,8 +135,27 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
         if abs(delta)>.00005:
             vertex.co.y-=delta
             displaced+=1
+    # Keep the upper-arm skin behind fabric in guard/jab rotations. A local
+    # curved shoulder allowance inflates the real sewn armhole surface (not
+    # a separate cap mesh) and gracefully tapers into the shirt's chest.
+    protected=0
+    for vertex in joined.data.vertices:
+        shoulder_x=(vertex.co.x-cx)/scale
+        z=(vertex.co.z-bottom)/scale
+        side=abs(shoulder_x)
+        if z<1.045 or z>1.235 or side<.09 or side>.31:
+            continue
+        weight=(math.exp(-.5*((z-1.133)/.068)**2)*
+                smoothstep((side-.085)/.077)*
+                (1-smoothstep((side-.238)/.07)))
+        if weight>.015:
+            sign=1 if shoulder_x>0 else -1
+            vertex.co.x+=sign*.0185*scale*weight
+            vertex.co.z+=.0030*scale*weight
+            protected+=1
     joined.data.update()
-    print("V5_GARMENT_FOLDS_SCULPTED",displaced,flush=True)
+    print("V5_GARMENT_FOLDS_SCULPTED",displaced,
+          "SHOULDER_ALLOWANCE_VERTS",protected,flush=True)
 
     # Retarget weights from the art-shaped donor surface. Remesh operators
     # discard original per-vertex weights; never leave garments unweighted.
