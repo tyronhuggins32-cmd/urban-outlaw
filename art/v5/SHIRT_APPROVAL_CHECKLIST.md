@@ -1,6 +1,6 @@
 # Urban Outlaw V5: strict shirt approval checklist
 
-**Status: REJECTED, NOT RELEASED.** Baseline: candidate from development run 43432710683 using the specific GLB fingerprint `fd54a6cd7ccc7e5f762880119c8318a42a40e502e8daf7587f55d1c891dcf8e5`. Evaluated using the two user-supplied *final* shirt close-ups. Both are screenshot references, **not** a license to call this artifact approved simply because it exported.
+**Status: REJECTED, NOT RELEASED.** Baseline: latest exported candidate from development run 43433336069 using GLB fingerprint `4ade46c7f565d0a73b7f18174e48171826bbeb989a639446c92a997807bba97b`. Evaluated using the two user-supplied *final* shirt close-ups. Both are screenshot references, **not** a license to call this artifact approved simply because it exported.
 
 **Current tally:** 3 pass, 15 fail, 2 without complete visual evidence. Release requires **20/20 PASS** with matched views, independent actual pose renders and signed candidate-specific evidence. No weighted score, average rating, or partial credit.
 
