@@ -774,7 +774,7 @@
         });
 
         function frame() {
-          const dt = Math.min(last.getDelta(), .05);
+          const dt = Math.min(last.getDelta(), .14); // Prevent severe low-FPS slow motion while bounding long tab-resume steps.
           const pads = navigator.getGamepads ? navigator.getGamepads() : [];
           const pad = Array.from(pads || []).find(p => p && p.connected) || null;
           refreshPadStatus(pad);
