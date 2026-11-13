@@ -17,13 +17,13 @@ required={
     'V5_Shirt_Body geometry',
     'V5_Shirt_Collar geometry',
     'V5_Shirt_Hem geometry',
-    'V5_Shirt_LeftSleeve geometry',
     'V5_Shirt_LeftSleeve_Cuff geometry',
-    'V5_Shirt_RightSleeve geometry',
     'V5_Shirt_RightSleeve_Cuff geometry'
 }
 names={mesh.get('name') for mesh in meshes}
 assert required<=names, ('Missing garment parts',required-names)
+assert not any(name in names for name in ['V5_Shirt_LeftSleeve geometry','V5_Shirt_RightSleeve geometry']), 'Old detached sleeve tubes still exported'
+assert len(required)==5, 'One-piece shoulder garment requirement changed'
 assert len(asset.get('skins',[]))==1
 skin=asset['skins'][0]
 assert len(skin['joints'])>=44, 'Original 44-bone rig not preserved'
