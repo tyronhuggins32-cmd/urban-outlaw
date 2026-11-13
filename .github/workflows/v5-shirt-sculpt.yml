@@ -1,0 +1,39 @@
+name: V5 Shirt Sculpt Sandbox (No Deployment)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - art/v5-garment-sculpt-gated
+    paths:
+      - '.github/workflows/v5-shirt-sculpt.yml'
+      - 'tools/blender/v5_shirt_diagnostic.py'
+      - 'tools/blender/build_v5_shirt.py'
+      - 'tools/blender/v5_shirt_textures.py'
+permissions:
+  contents: read
+jobs:
+  offline-shirt-build:
+    name: Model shirt offline and capture evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install modeling renderer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq blender
+      - name: Inspect original rig shape and bone positions
+        run: blender -b -t 2 --python tools/blender/v5_shirt_diagnostic.py
+      - name: Build new shirt candidate
+        if: hashFiles('tools/blender/build_v5_shirt.py') != ''
+        run: |
+          mkdir -p art/v5/generated
+          blender -b -t 2 --python tools/blender/build_v5_shirt.py
+      - name: Save shirt candidate and render previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-shirt-sculpt-candidate-NOT-APPROVED
+          path: |
+            art/v5/generated/**
+          if-no-files-found: ignore
