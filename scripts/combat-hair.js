@@ -8,7 +8,7 @@ export function refineCombatHair(THREE,root,hairScene) {
   root.traverse(o=>{if(o.isBone&&o.name.toLowerCase().replace(/[^a-z]/g,'').endsWith('head'))head.push(o)});
   if(head.length!==1)throw Error('Cannot fit hair flow without skull bone');
   const hairRoot=head[0];
-  const dark=new THREE.MeshStandardMaterial({color:0x1a2545,roughness:.88,metalness:.02,side:THREE.DoubleSide});
+  const dark=new THREE.MeshStandardMaterial({color:0x29385f,roughness:.88,metalness:.02,side:THREE.DoubleSide});
   const strands=[];
   let tintCount=0;
   hairScene.traverse(o=>{
@@ -23,16 +23,16 @@ export function refineCombatHair(THREE,root,hairScene) {
   // Natural asymmetric layered sweep, strongest silhouette on the side/back.
   // The original front bangs and blue ties remain untouched.
   const locks=[
-    [-.13,1.485,-.055, -.25,1.59,-.28,.054],
-    [-.07,1.52,-.035, -.12,1.66,-.37,.074],
-    [-.025,1.535,-.04, -.055,1.67,-.415,.081],
-    [.045,1.53,-.035, .07,1.65,-.41,.082],
-    [.105,1.49,-.055, .20,1.62,-.33,.068],
-    [-.145,1.45,-.085, -.21,1.50,-.29,.054],
-    [-.078,1.46,-.09, -.12,1.49,-.36,.064],
-    [.065,1.46,-.085, .12,1.51,-.36,.066],
-    [.14,1.45,-.08, .22,1.49,-.30,.053],
-    [0,1.465,-.10, .005,1.56,-.425,.067]
+    [-.13,1.485,-.055, -.23,1.53,-.28,.035],
+    [-.07,1.515,-.035, -.14,1.565,-.32,.042],
+    [-.025,1.525,-.04, -.07,1.58,-.35,.047],
+    [.045,1.52,-.035, .09,1.57,-.35,.048],
+    [.105,1.49,-.055, .21,1.54,-.30,.041],
+    [-.145,1.45,-.085, -.22,1.48,-.29,.034],
+    [-.078,1.46,-.09, -.13,1.49,-.32,.039],
+    [.065,1.46,-.085, .13,1.49,-.33,.039],
+    [.14,1.45,-.08, .23,1.48,-.29,.033],
+    [0,1.465,-.10, .01,1.51,-.365,.040]
   ];
   const positions=[],uvs=[],indices=[];
   const ringCount=15,radial=10,TAU=2*Math.PI;
@@ -41,8 +41,8 @@ export function refineCombatHair(THREE,root,hairScene) {
     const base=positions.length/3;
     const path=new THREE.CatmullRomCurve3([
       new THREE.Vector3(x,y,z),
-      new THREE.Vector3(x*.88+(tipX-x)*.28,y+.067,z-.062),
-      new THREE.Vector3(tipX*.62+x*.38,Math.max(y,tipY)+.043,tipZ*.58+z*.42),
+      new THREE.Vector3(x*.88+(tipX-x)*.28,y+.026,z-.052),
+      new THREE.Vector3(tipX*.62+x*.38,Math.max(y,tipY)+.012,tipZ*.58+z*.42),
       new THREE.Vector3(tipX,tipY,tipZ)
     ],false,'catmullrom',.5);
     for(let i=0;i<=ringCount;i++){
@@ -53,7 +53,7 @@ export function refineCombatHair(THREE,root,hairScene) {
       const normal=tangent.clone().cross(binormal).normalize();
       // Broad rounded base, flattened elliptical middle, needle-fine tip.
       const envelope=Math.pow(1-t,.80)*(.83+.17*Math.sin(Math.PI*t));
-      const w=radius*envelope,h=radius*.56*envelope;
+      const w=radius*envelope,h=radius*.38*envelope;
       for(let j=0;j<radial;j++){
         const angle=j/radial*TAU;
         const ridge=1+.075*Math.sin(3*angle+k*.8);
