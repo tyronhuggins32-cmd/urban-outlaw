@@ -7,17 +7,26 @@ export function createFluidCombatClips(THREE,root) {
   root.updateMatrixWorld(true);
   const bones=new Map();
   root.traverse(b=>{if(b.isBone)bones.set(b.name.toLowerCase().replace(/[^a-z0-9]/g,'').replace(/^mixamorig/,''),b)});
-  const targets=[
-    'hips','spine','spine1','spine2','chestBreath','neck','neckFollow','head',
-    'leftShoulder','rightShoulder','leftArm','rightArm','leftUpperArmSoft','rightUpperArmSoft',
-    'leftForeArm','rightForeArm','leftForeArmTwist','rightForeArmTwist','leftHand','rightHand',
-    'leftUpLeg','rightUpLeg','leftLeg','rightLeg','leftCalfTwist','rightCalfTwist',
-    'leftFoot','rightFoot','leftToe','rightToe'
-  ];
+  // Logical movement joints map to the imported skeleton's *true* names.
+  // Importantly, the thigh is LeftUpLeg, while LeftLeg is the shin.
+  const jointMap={
+    hips:'hips',spine:'spine',spine1:'spine1',spine2:'spine2',
+    chestBreath:'uochestbreath',neck:'neck',neckFollow:'uoneckfollow',head:'head',
+    leftShoulder:'leftshoulder',rightShoulder:'rightshoulder',
+    leftArm:'leftarm',rightArm:'rightarm',
+    leftUpperArmSoft:'uoleftupperarmsoft',rightUpperArmSoft:'uorightupperarmsoft',
+    leftForeArm:'leftforearm',rightForeArm:'rightforearm',
+    leftForeArmTwist:'uoleftforearmtwist',rightForeArmTwist:'uorightforearmtwist',
+    leftHand:'lefthand',rightHand:'righthand',
+    leftLeg:'leftupleg',rightLeg:'rightupleg',
+    leftKnee:'leftleg',rightKnee:'rightleg',
+    leftCalfTwist:'uoleftcalftwist',rightCalfTwist:'uorightcalftwist',
+    leftFoot:'leftfoot',rightFoot:'rightfoot',leftToe:'lefttoebase',rightToe:'righttoebase'
+  };
   const bind=[];
-  for(const key of targets){
-    const bone=bones.get(key.toLowerCase());
-    if(!bone)throw Error('Fluid combat requires joint '+key);
+  for(const [key,boneKey] of Object.entries(jointMap)){
+    const bone=bones.get(boneKey);
+    if(!bone)throw Error('Fluid combat requires joint '+key+' → '+boneKey);
     bind.push({
       key,bone,
       rest:bone.quaternion.clone(),
