@@ -49,6 +49,7 @@ on:
       - 'scripts/combat-wardrobe.js'
       - 'scripts/combat-outfit-v2.js'
       - 'scripts/v5-cloth-mesh.js'
+      - 'scripts/reference-outfit-v8.js'
       - 'scripts/fluid-combat-clips.js'
       - 'tests/fluid-combat.cjs'
       - 'scripts/combat-hair.js'
