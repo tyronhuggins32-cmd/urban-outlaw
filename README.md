@@ -1,6 +1,19 @@
 # Urban Outlaw
 
-**Build 4.0: Completely Rebuilt Hair V6.** The existing V3-V5 hairstyles are archived, not layered into the new model.
+**Build 6.3: Ninja Duel (playable arena fighter).** A real 44-bone skinned ninja wearing a navy combat tunic, high collar, forearm and shin wraps, sandals and thigh pouch. The source continuous sculpted hair is adjusted backward without adding random duplicate spikes. A second independently skinned rival with its own animation mixer fights back.
+
+The 3D courtyard now supports directional punches, heavy strikes, kicks, guard damage reduction, evasive dodges, stamina, enemy AI, knockout rounds and health bars. These are real, timed hit events against a moving opponent, not automated text prompts.
+
+**Controls**
+- Keyboard: WASD movement, **J** punch, **K** heavy, **I** kick, **L** hold guard, **Q** dodge, Space jump, Shift sprint or R toggle ninja run.
+- Touch: joystick, PUNCH, HEAVY, KICK, GUARD (hold), DODGE, JUMP and toggle NINJA RUN.
+- PS5/DualSense: left stick movement, Square punch, Triangle heavy, L1 kick, Circle dodge, L2 guard, Cross jump and R2 sprint.
+
+The full 3D outfit uses a skinned shirt from the existing body's weighted topology. The original 3D face/hair sculpt remains the base. This is a substantial playable model-and-combat upgrade, **not a claim of perfect one-to-one reconstruction of a 2D reference**. Visual refinements can continue without replacing the fight engine.
+
+## Previous character reconstruction history
+
+
 
 [Play Urban Outlaw](https://tyronhuggins32-cmd.github.io/urban-outlaw/) | [Inspect the actual character from four directions](https://tyronhuggins32-cmd.github.io/urban-outlaw/?review=1&head=1)
 
