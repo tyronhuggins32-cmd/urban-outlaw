@@ -67,9 +67,9 @@ def texture(filename,crest=False,base=(35,49,94)):
     for i in range(3):rgb[:,:,i]=np.clip(base[i]/255*lum,0,1)
     rgb[:,:,3]=1
     if crest:
-        # u=.75 corresponds to the back-facing -Y quadrant in this pattern.
+        # u=.25 corresponds to the back-facing +Y quadrant in this pattern.
         # The atlas's v coordinate increases with physical shirt height.
-        xc,yc=int(dim*.75),int(dim*.64)
+        xc,yc=int(dim*.25),int(dim*.64)
         dx=X-xc;dy=Y-yc;r=73
         circle=dx*dx+dy*dy<=r*r
         red=circle&(dy>=0)&(dy<=r)
