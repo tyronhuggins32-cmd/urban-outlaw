@@ -248,8 +248,8 @@ export function fitReferenceOutfit(THREE,root) {
   // ALL its vertices follow the pelvis, preventing older jagged waist gaps.
   const hip=cloth('ReferenceV8GrayShortsWaist',24,64,(t,a)=>{
     const y=mix(.823,.665,t);
-    const x=mix(.179,.202,t),z=mix(.128,.152,t);
-    const fold=.003*Math.cos(7*a+15*t)*Math.sin(Math.PI*t);
+    const x=mix(.178,.191,t),z=mix(.127,.145,t);
+    const fold=.006*Math.cos(7*a+15*t)*Math.sin(Math.PI*t);
     return [(x+fold)*Math.cos(a),y,(z+fold*.4)*Math.sin(a)];
   },()=>[[bi.hips,1]],gray);
 
@@ -260,10 +260,11 @@ export function fitReferenceOutfit(THREE,root) {
     const sign=side==='Left'?-1:1,center=sign*.105;
     const legFn=(t,a,offset=0)=>{
       const y=mix(.694,.446,t);
-      const r=mix(.123,.142,t)+
-        .0028*Math.sin(a*10+19*t)*(0.35+.65*t);
+      const r=mix(.113,.125,t)+
+        .005*Math.sin(a*10+19*t)*(0.35+.65*t)+
+        .002*Math.sin(a*5-11*t)*Math.sin(Math.PI*t);
       return [center+(r+offset)*Math.cos(a)+sign*.005*t,
-        y+.003*Math.sin(5*a+11*t)*t,
+        y+.006*Math.sin(5*a+11*t)*t,
         (r*.88+offset)*Math.sin(a)+.008];
     };
     const legWeight=t=>[[bi.hips,1-smooth(t/.40)],[thigh,smooth(t/.40)]];
