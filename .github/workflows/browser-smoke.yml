@@ -47,6 +47,9 @@ on:
       - 'scripts/reference-character-animations.js'
       - 'scripts/cloth-seam-patches.js'
       - 'scripts/combat-wardrobe.js'
+      - 'scripts/combat-outfit-v2.js'
+      - 'scripts/fluid-combat-clips.js'
+      - 'tests/fluid-combat.cjs'
       - 'scripts/combat-hair.js'
       - 'scripts/arena-combat.js'
       - 'tests/combat-game.cjs'
@@ -67,6 +70,7 @@ jobs:
       - name: Verify walking gait and ninja-run sprint
         run: |
           node tests/combat-wardrobe.cjs
+          node tests/fluid-combat.cjs
           node tests/ninja-run.cjs
           node tests/ninja-run-rig.cjs
           node tests/walk-gait.cjs
