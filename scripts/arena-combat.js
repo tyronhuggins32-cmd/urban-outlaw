@@ -29,6 +29,18 @@ export function createCombatClips(THREE,root) {
   const strikeWave=t=>Math.sin(Math.PI*smooth(t));
   function pose(which,t,k) {
     const swing=strikeWave(t),recoil=Math.sin(Math.PI*t);
+    if(which==='Ready'){
+      const breath=Math.sin(t*Math.PI*2);
+      if(k==='hips')return P(.035,.009*breath);
+      if(k==='spine')return P(.07);
+      if(k==='spine1')return P(.09,.01*breath);
+      if(k==='spine2')return P(.04);
+      if(k==='leftArm')return P(-.62,0,.12);
+      if(k==='rightArm')return P(-.67,0,-.12);
+      if(k==='leftForeArm'||k==='rightForeArm')return P(-.40);
+      if(k==='leftKnee'||k==='rightKnee')return P(.12);
+      if(k==='head')return P(-.025,.008*breath);
+    }
     if(which==='Light'){
       if(k==='spine1')return P(-.16*swing,.10*swing,0);
       if(k==='spine2')return P(-.07*swing,.10*swing);
@@ -107,7 +119,7 @@ export function createCombatClips(THREE,root) {
     return new THREE.AnimationClip(name,duration,tracks);
   }
   return [
-    make('Light',.35),make('Heavy',.58),make('Kick',.64),
+    make('Ready',1.1),make('Light',.35),make('Heavy',.58),make('Kick',.64),
     make('Guard',.7),make('Dodge',.42),make('Hit',.34)
   ];
 }
@@ -371,6 +383,7 @@ export function createCombatSystem(THREE,scene,player) {
     if(state.stagger>0)return 'Hit';
     if(state.attackType)return state.attackType;
     if(state.guard)return 'Guard';
+    if(!moving && distance<13)return 'Ready';
     return null;
   }
   ui();
