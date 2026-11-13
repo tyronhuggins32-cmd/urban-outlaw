@@ -147,8 +147,16 @@ def sew_torso_to_sleeves(body, sleeves, scale, center, bottom):
         u=(math.atan2(y-cy,x-cx)/(2*math.pi))%1.0
         v=(z-bottom-.763*scale)/(.479*scale)
         vert_uv.append((u,v))
-    for loop in joined.data.loops:
-        uv.data[loop.index].uv=vert_uv[loop.vertex_index]
+    # UV must be unwrapped PER FACE at the angular 0/1 seam. Otherwise
+    # Blender interpolates across the whole atlas and paints parts of the
+    # red Uchiha crest as thin pink scars on shoulders and side sleeves.
+    for face in joined.data.polygons:
+        indices=list(face.loop_indices)
+        corners=[vert_uv[joined.data.loops[i].vertex_index] for i in indices]
+        crossing=max(c[0] for c in corners)-min(c[0] for c in corners)>.5
+        for loopid,(u,v) in zip(indices,corners):
+            if crossing and u<.5:u+=1.0
+            uv.data[loopid].uv=(u,v)
 
     for poly in joined.data.polygons:poly.use_smooth=True
     # Remove donor from final scene; it must never overlay the shirt.
