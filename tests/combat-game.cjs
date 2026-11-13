@@ -12,13 +12,13 @@ const {chromium}=require('playwright');
   const g=document.getElementById('game').dataset;
   return {model:g.character,uniform:g.uniformStyle,shirt:+g.uniformShirtTriangles,
     accessories:+g.uniformAccessories,clips:g.combatClips,engine:g.combatEngine,
-    hairFlow:g.hairFlow,hairLocks:+g.hairFlowLocks};
+    hairFlow:g.hairFlow,hairLocks:+g.hairFlowLocks,enemyModel:g.enemyModel};
  });
  console.log('COMBAT MODEL',JSON.stringify(atBoot));
  if(atBoot.model!=='clean-head-v5')throw Error('Original skinned ninja failed to load');
  if(atBoot.uniform!=='navy-combat-uniform-v1'||atBoot.shirt<200||atBoot.accessories<25)
    throw Error('3D outfit missing/failed to skin: '+JSON.stringify(atBoot));
- if(atBoot.hairFlow!=='layered-swept-v1'||atBoot.hairLocks!==10)throw Error('Hair refinement did not attach to head bone: '+JSON.stringify(atBoot));
+ if(atBoot.hairFlow!=='layered-swept-v1'||atBoot.hairLocks!==10||atBoot.enemyModel!=='skinned-rival-44')throw Error('Hair refinement did not attach to head bone: '+JSON.stringify(atBoot));
  if(atBoot.clips!=='Ready,Light,Heavy,Kick,Guard,Dodge,Hit'||atBoot.engine!=='arena-v1')
    throw Error('Combat clips or game engine missing');
  await page.locator('#startGame').click();
