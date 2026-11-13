@@ -8,6 +8,8 @@ on:
       - '.github/workflows/v5-shirt-sculpt.yml'
       - 'tools/blender/v5_shirt_diagnostic.py'
       - 'tools/blender/build_v5_shirt.py'
+      - 'tools/blender/sew_v5_shirt.py'
+      - 'tests/v5-shirt-source-qa.py'
       - 'tools/blender/v5_shirt_textures.py'
 permissions:
   contents: read
@@ -29,6 +31,8 @@ jobs:
         run: |
           mkdir -p art/v5/generated
           PYTHONPATH=/usr/lib/python3/dist-packages blender -b -t 2 --python tools/blender/build_v5_shirt.py
+      - name: Check continuous garment mesh, 44-joint skinning and 6 pose renders
+        run: python3 tests/v5-shirt-source-qa.py
       - name: Save shirt candidate and render previews
         if: always()
         uses: actions/upload-artifact@v4
