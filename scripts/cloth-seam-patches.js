@@ -12,7 +12,7 @@ export function attachSeamPatches(THREE,root){
   const right=find('rightupleg'), left=find('leftupleg');
   if(!right||!left)throw new Error('Cloth seam cannot bind to both thigh joints');
   let original=null;
-  root.traverse(o=>{if(o.isSkinnedMesh&&!original)original=o});
+  root.traverse(o=>{if(o.isSkinnedMesh&&!/^v5_shirt_/i.test(o.name)&&!original)original=o});
   if(!original)throw new Error('Missing skinned sculpt for cloth patches');
   const originalMaterial=Array.isArray(original.material)?original.material[0]:original.material;
   const cloth=originalMaterial.clone();
