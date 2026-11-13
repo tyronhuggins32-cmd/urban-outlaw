@@ -381,7 +381,9 @@
           nextAction.reset().setEffectiveWeight(1).setEffectiveTimeScale(1);
           nextAction.fadeIn(blend).play();
           activeAnimation = state;
-          document.getElementById('game').dataset.animation = state.toLowerCase();
+          const gameData=document.getElementById('game').dataset;
+          gameData.animation=state.toLowerCase();
+          if(state==='Land')gameData.landTransitions=String((Number(gameData.landTransitions)||0)+1);
           document.getElementById('animationStatus').textContent = state === 'Run' ? 'SCULPTED · NINJA RUN V4' : 'SCULPTED · ' + state.toUpperCase();
         }
         let avatar = null;
