@@ -19,6 +19,7 @@ const tailored=tailorNinjaClothes(THREE,root);
 const seamless=installTailoredCloth(THREE,root);
 assert.ok(seamless.skinWeightedMeshes>=9,'Expected joined sleeves, body, and skinned pant legs');
 assert.ok(seamless.sleeveTriangles>600,'Loose short sleeves missing');
+assert.ok(root.getObjectByName('ContinuousV5NavyTunic')?.geometry.getAttribute('uv'),'Real cotton material UV coordinates missing');
 assert.ok(root.getObjectByName('LeftV5LooseShortSleeve')?.isSkinnedMesh,'Left arm fabric must be skinned');
 assert.ok(seamless.shortsTriangles>3000,'Shorts have insufficient continuous topology');
 assert.ok(root.getObjectByName('ContinuousV5NavyTunic')?.isSkinnedMesh,'Tunic must deform with spine');
